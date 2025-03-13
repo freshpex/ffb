@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const Header = () => {
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] = useState (false);
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();

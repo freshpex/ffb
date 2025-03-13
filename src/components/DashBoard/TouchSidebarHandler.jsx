@@ -3,33 +3,38 @@ import { useEffect, useRef } from 'react';
 const TouchSidebarHandler = ({ onOpenSidebar, onCloseSidebar, isOpen }) => {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-  const touchStartY = useRef(0); // Track vertical movement
-  const minSwipeDistance = 70; // Minimum swipe distance in pixels
-  const maxVerticalDeviation = 50; // Maximum allowed vertical movement
+  const touchStartY = useRef(0);
+  const minSwipeDistance = 70;
+  const maxVerticalDeviation = 50;
   
   useEffect(() => {
     const handleTouchStart = (e) => {
-      touchStartX.current = e.touches[0].clientX;
-      touchStartY.current = e.touches[0].clientY;
+      // Only track touches starting from the left edge (for opening sidebar)
+      // or anywhere if the sidebar is already open (for closing it)
+      if (e.touches[0].clientX < 30 || isOpen) {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+      }
     };
     
     const handleTouchMove = (e) => {
-      touchEndX.current = e.touches[0].clientX;
+      if (touchStartX.current > 0 || isOpen) {
+        touchEndX.current = e.touches[0].clientX;
+      }
     };
     
     const handleTouchEnd = (e) => {
-      // Calculate horizontal distance
-      const horizontalDistance = touchEndX.current - touchStartX.current;
+      if (touchStartX.current === 0 && !isOpen) return;
       
-      // Calculate vertical distance to ensure it's mostly a horizontal swipe
+      const horizontalDistance = touchEndX.current - touchStartX.current;
       const verticalDistance = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
       
       const isLeftSwipe = horizontalDistance < -minSwipeDistance;
       const isRightSwipe = horizontalDistance > minSwipeDistance;
       
-      // Only trigger if it's a mostly horizontal swipe (not too much vertical movement)
+      // Only process horizontal swipes (not too much vertical movement)
       if (verticalDistance < maxVerticalDeviation) {
-        // If swiping from left edge (first 30px) to right, open sidebar
+        // If swiping from left edge to right, open sidebar
         if (isRightSwipe && touchStartX.current < 30 && !isOpen) {
           onOpenSidebar();
         } 
@@ -38,6 +43,10 @@ const TouchSidebarHandler = ({ onOpenSidebar, onCloseSidebar, isOpen }) => {
           onCloseSidebar();
         }
       }
+      
+      // Reset touch tracking
+      touchStartX.current = 0;
+      touchEndX.current = 0;
     };
     
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -51,7 +60,7 @@ const TouchSidebarHandler = ({ onOpenSidebar, onCloseSidebar, isOpen }) => {
     };
   }, [onOpenSidebar, onCloseSidebar, isOpen]);
   
-  return null; // This component doesn't render anything
+  return null;
 };
 
 export default TouchSidebarHandler;

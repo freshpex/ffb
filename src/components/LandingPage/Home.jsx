@@ -8,8 +8,8 @@ import HomePageSection4 from "./HomePageSection4";
 import TradingPlan from "./TradingPlan";
 import HomeFooter from "./HomeFooter";
 import FloatingActionButton from "../FloatingActionButton";
-import "../../css/landingpage.css";
 import { Suspense } from "react";
+import TradingViewChart from "./TradingViewChart";
 
 const Home = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);

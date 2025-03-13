@@ -1149,3 +1149,66 @@
     gap: 10px;
   }
 }
+
+/* Fix for TradingView widget container on mobile */
+.trading-widget-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  z-index: 1;
+}
+
+/* Ensure iframes inside the TradingView widget don't overflow */
+.tradingview-iframe {
+  border-width: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  touch-action: pan-y !important;
+}
+
+/* Fixes for TradingView widget on mobile */
+@media screen and (max-width: 992px) {
+  .dashboard-card .trading-widget-container {
+    width: 100% !important;
+    overflow: hidden !important;
+    transform: translateZ(0);
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    contain: strict;
+  }
+
+  /* Specifically target the container with the trading widget */
+  .dashboard-card:has(.trading-widget-container) {
+    overflow: hidden !important;
+    position: relative;
+    isolation: isolate;
+    transform: translateZ(0);
+  }
+
+  /* Remove any background overlay from TradingView */
+  .trading-widget-container::before,
+  .trading-widget-container::after {
+    display: none !important;
+  }
+  
+  .trading-widget-container {
+    height: 400px !important;
+  }
+
+  /* Symbol selector buttons scrollable on mobile */
+  .chart-symbol-selector {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .chart-symbol-selector::-webkit-scrollbar {
+    display: none;
+  }
+
+  .symbol-button {
+    flex: 0 0 auto;
+  }
+}

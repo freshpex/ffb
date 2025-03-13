@@ -22,7 +22,7 @@ const Withdraw = () => {
       return;
     }
 
-    if (parseFloat(amount) > 0) { // In a real app, check against actual balance
+    if (parseFloat(amount) > 0) {
       setError("Insufficient balance");
       setIsLoading(false);
       return;

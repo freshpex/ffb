@@ -9,7 +9,8 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
-import "../../css/dashboard.css";
+import "/src/css/dashboard.css";
+import "/src/css/dashboardMobile.css";
 import TouchSidebarHandler from './TouchSidebarHandler';
 
 const DashboardLayout = ({ children }) => {
@@ -47,7 +48,7 @@ const DashboardLayout = ({ children }) => {
       setWindowWidth(window.innerWidth);
       
       if (window.innerWidth > 992) {
-        setMobileActive(false); // Auto-close mobile sidebar on larger screens
+        setMobileActive(false);
       }
     };
 
@@ -101,26 +102,24 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <>
-      {/* Touch handler for swipe gestures */}
+      {/* Touch handler for swipe gestures*/}
       <TouchSidebarHandler 
         onOpenSidebar={openSidebar}
         onCloseSidebar={closeSidebar}
         isOpen={mobileActive}
       />
       
-      {/* Mobile overlay - clicking it closes the sidebar */}
-      <AnimatePresence>
-        {mobileActive && (
-          <motion.div 
-            className={`mobile-overlay ${mobileActive ? 'active' : ''}`}
-            onClick={closeSidebar}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Mobile overlay*/}
+      {mobileActive && (
+        <motion.div 
+          className="mobile-overlay active"
+          onClick={closeSidebar}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        />
+      )}
       
       <div className={`dashboard-container ${pageClasses()}`}>
         {/* Sidebar */}

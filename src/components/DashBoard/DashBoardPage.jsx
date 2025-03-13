@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { UserAuth } from "../AuthPage/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import "../../css/dashboard.css";
-import "../../css/tradingDashboard.css";
+import "/src/css/dashboard.css";
+import "/src/css/tradingDashboard.css";
 import { 
   FaUser, FaUserTie, FaCaretDown, FaSignOutAlt, FaHistory, 
   FaBars, FaTimes, FaWallet, FaPlusCircle, FaMinusCircle,

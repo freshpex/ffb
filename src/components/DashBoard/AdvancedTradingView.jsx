@@ -19,7 +19,6 @@ const AdvancedTradingView = () => {
   const chartLoadedRef = useRef(false);
 
   useEffect(() => {
-    // Check if TradingView object already exists to avoid re-loading
     if (window.TradingView) {
       setScriptLoaded(true);
       return;
@@ -82,7 +81,6 @@ const AdvancedTradingView = () => {
 
     // Use event listener for widget loading completion instead of onChartReady
     const handleIframeLoad = () => {
-      // Find the iframe created by TradingView
       const iframes = containerRef.current?.getElementsByTagName('iframe');
       if (iframes && iframes.length > 0) {
         if (!chartLoadedRef.current) {
@@ -101,7 +99,6 @@ const AdvancedTradingView = () => {
       
       const iframes = containerRef.current.getElementsByTagName('iframe');
       if (iframes.length > 0) {
-        // Add load event listener
         iframes[0].addEventListener('load', handleIframeLoad);
         
         // Also check if it's already loaded

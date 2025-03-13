@@ -5,7 +5,7 @@ import ContactSection2 from "./ContactSection2";
 import ContactSection3 from "./ContactSection3";
 import ContactSection4 from "./ContactSection4";
 import PageTransition from "../common/PageTransition";
-import "../../css/contact.css";
+import "/src/css/contact.css";
 
 const ContactPage = () => {
   return (

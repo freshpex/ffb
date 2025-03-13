@@ -1,6 +1,6 @@
-import award1 from "../../assets/images/en-best-cfd-brker-in-2023.png";
-import award2 from "../../assets/images/thumb_10178650_award_front.png";
-import award3 from "../../assets/images/en-best-cfd-brker-in-2023.png";
+import award1 from "/src/assets/images/en-best-cfd-brker-in-2023.png";
+import award2 from "/src/assets/images/thumb_10178650_award_front.png";
+import award3 from "/src/assets/images/en-best-cfd-brker-in-2023.png";
 
 
 const AboutSection5 = () => {

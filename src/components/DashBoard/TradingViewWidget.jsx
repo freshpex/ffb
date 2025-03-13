@@ -9,9 +9,18 @@ const TradingViewWidget = () => {
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [symbol, setSymbol] = useState('BITSTAMP:BTCUSD');
   const chartLoadedRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
-    // Check if TradingView object already exists to avoid re-loading
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     if (window.TradingView) {
       setScriptLoaded(true);
       return;
@@ -58,24 +67,34 @@ const TradingViewWidget = () => {
       toolbar_bg: '#f1f3f6',
       enable_publishing: false,
       withdateranges: true,
-      hide_side_toolbar: false,
+      hide_side_toolbar: isMobile,
       allow_symbol_change: true,
       save_image: false,
       container_id: containerId,
-      hide_top_toolbar: false,
-      loading_screen: { backgroundColor: "#131920", foregroundColor: "#f9a23f" }
+      hide_top_toolbar: isMobile,
+      studies: isMobile ? [] : undefined,
+      loading_screen: { backgroundColor: "#131920", foregroundColor: "#f9a23f" },
+
+      overrides: isMobile ? {
+        "mainSeriesProperties.candleStyle.upColor": "#4CAF50",
+        "mainSeriesProperties.candleStyle.downColor": "#FF5252",
+        "mainSeriesProperties.candleStyle.wickUpColor": "#4CAF50",
+        "mainSeriesProperties.candleStyle.wickDownColor": "#FF5252",
+      } : {}
     };
 
     const widget = new window.TradingView.widget(widgetOptions);
 
-    // Use event listener for widget loading completion instead of onChartReady
+    // Use event listener for widget loading completion
     const handleIframeLoad = () => {
-      // Find the iframe created by TradingView
       const iframes = containerRef.current?.getElementsByTagName('iframe');
       if (iframes && iframes.length > 0) {
         if (!chartLoadedRef.current) {
           setIsLoading(false);
           chartLoadedRef.current = true;
+          
+          // Add special class to the iframe to prevent overflow issues
+          iframes[0].classList.add('tradingview-iframe');
         }
       }
     };
@@ -89,10 +108,9 @@ const TradingViewWidget = () => {
       
       const iframes = containerRef.current.getElementsByTagName('iframe');
       if (iframes.length > 0) {
-        // Add load event listener
         iframes[0].addEventListener('load', handleIframeLoad);
         
-        // Also check if it's already loaded
+        // Also check if it`s already loaded
         if (iframes[0].contentDocument && 
             iframes[0].contentDocument.readyState === 'complete') {
           handleIframeLoad();
@@ -114,7 +132,7 @@ const TradingViewWidget = () => {
       clearInterval(checkIframe);
       clearTimeout(backupTimeout);
     };
-  }, [scriptLoaded, symbol]);
+  }, [scriptLoaded, symbol, isMobile]);
 
   // Available cryptocurrency symbols
   const cryptoSymbols = [
@@ -126,7 +144,7 @@ const TradingViewWidget = () => {
   ];
 
   return (
-    <div className="tradingview-widget-container" style={{ height: '100%', width: '100%' }}>
+    <div className="tradingview-widget-container" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
       <div className="chart-symbol-selector">
         {cryptoSymbols.map(crypto => (
           <motion.button
@@ -158,7 +176,10 @@ const TradingViewWidget = () => {
         style={{ 
           height: 'calc(100% - 50px)', 
           width: '100%',
-          visibility: isLoading ? 'hidden' : 'visible'
+          visibility: isLoading ? 'hidden' : 'visible',
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 1
         }} 
       />
     </div>

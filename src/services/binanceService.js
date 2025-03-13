@@ -2,14 +2,9 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 
 // Base URL is exposed to client, but keys are not
-const apiUrl = import.meta.env.VITE_BINANCE_API_URL || 'https://api.binance.com';
-
-// IMPORTANT: In a production environment, these API calls should be made through your backend
-// This is a simplified version for demonstration purposes
-// Your server should handle authentication and signing
+const apiUrl = import.meta.env.VITE_BINANCE_API_URL;
 
 const binanceService = {
-  // Public endpoints that don't require authentication
   getExchangeInfo: async () => {
     try {
       const response = await axios.get(`${apiUrl}/api/v3/exchangeInfo`);
@@ -107,7 +102,6 @@ const binanceService = {
   getTradingRules: async () => {
     try {
       const response = await axios.get(`${apiUrl}/api/v3/exchangeInfo`);
-      // Extract trading rules for each symbol
       const tradingRules = {};
       response.data.symbols.forEach(symbol => {
         tradingRules[symbol.symbol] = {
@@ -128,9 +122,8 @@ const binanceService = {
   getTopTradedAssets: async (limit = 10) => {
     try {
       const response = await axios.get(`${apiUrl}/api/v3/ticker/24hr`);
-      // Sort by volume and limit
       const sortedByVolume = response.data
-        .filter(ticker => ticker.symbol.endsWith('USDT')) // Filter for USDT pairs
+        .filter(ticker => ticker.symbol.endsWith('USDT'))
         .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
         .slice(0, limit);
       return sortedByVolume;

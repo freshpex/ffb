@@ -4,7 +4,6 @@ import { FaChartPie, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const FinancialHighlights = () => {
-  // In a real app, this would come from an API or context
   const [portfolioData] = useState({
     totalInvestment: 0,
     currentValue: 0,

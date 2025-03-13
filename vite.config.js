@@ -1,24 +1,12 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '/src/': path.resolve(__dirname, './src/')
-    }
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      target: 'es2020',
+      'react-tradingview-widget': './node_modules/react-tradingview-widget/dist/index.js',
     },
   },
-  build: {
-    commonjsOptions: {
-      transformMixedEsModules: true,
-    }
-  }
-})
+});
