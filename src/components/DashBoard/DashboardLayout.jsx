@@ -222,17 +222,6 @@ const DashboardLayout = ({ children }) => {
               
               <li className="nav-item">
                 <Link 
-                  to="/login/api-keys" 
-                  className={`nav-link ${isActive('/login/api-keys') ? 'active' : ''}`}
-                  onClick={() => navigateTo('/login/api-keys')}
-                >
-                  <FaKey />
-                  <span className="nav-link-text">API Keys</span>
-                </Link>
-              </li>
-              
-              <li className="nav-item">
-                <Link 
                   to="/login/accountsettings" 
                   className={`nav-link ${isActive('/login/accountsettings') ? 'active' : ''}`}
                   onClick={() => navigateTo('/login/accountsettings')}

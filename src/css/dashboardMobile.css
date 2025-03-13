@@ -39,6 +39,11 @@
     display: block;
     pointer-events: auto;
   }
+
+  .mobile-overlay.inactive {
+    pointer-events: auto;
+    color: yellow;
+  }
   
   .dashboard-content::after {
     display: none !important;
@@ -98,6 +103,131 @@
   .dashboard-content::before {
     display: none !important;
   }
+
+  /* Specific fixes for transaction history pages */
+  .deposit-history-page .dashboard-card,
+  .withdraw-history-page .dashboard-card {
+    isolation: isolate;
+    transform: translateZ(0);
+    overflow: hidden;
+    position: relative;
+    contain: content;
+    width: 100%;
+  }
+  
+  .deposit-history-page .card-body,
+  .withdraw-history-page .card-body {
+    overflow: hidden;
+    max-width: 100%;
+    contain: content;
+  }
+  
+  .transaction-cards {
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+  }
+  
+  .table-responsive {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent any absolutely positioned elements from extending beyond container */
+  .deposit-history-page .filter-panel,
+  .withdraw-history-page .filter-panel {
+    max-width: calc(100% - 30px);
+    overflow: hidden;
+  }
+  
+  /* Ensure modal overlays are properly contained on mobile */
+  .modal-backdrop {
+    z-index: 2000;
+  }
+  
+  .modal-content {
+    width: 90%;
+    max-width: 100vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for toggle view buttons in transaction pages */
+  .toggle-view {
+    position: relative;
+    z-index: 1;
+    transform: translateZ(0);
+    display: flex;
+    overflow: visible;
+    contain: content;
+  }
+
+  .toggle-view button {
+    transform: translateZ(0);
+    position: relative;
+    z-index: 1;
+    border: none;
+    overflow: hidden;
+    background-color: transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Ensure any subsequent elements don't create overlays */
+  .content-wrapper > .dashboard-card > * {
+    overflow: visible;
+    position: relative;
+  }
+
+  /* Fix for Account Settings tabs */
+  .settings-tabs {
+    position: relative;
+    z-index: 1;
+    transform: translateZ(0);
+    isolation: isolate;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .settings-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .settings-tab {
+    transform: translateZ(0);
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .account-settings-page .settings-content {
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+  }
+
+  /* Ensure any section below tabs doesn't create overlays */
+  .account-settings-page .dashboard-card > .card-body > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 /* Extra small devices */
@@ -122,5 +252,28 @@
   .dashboard-container::after,
   .dashboard-content::after {
     display: none !important;
+  }
+  
+  /* Ensure transaction items don't create overflows on small screens */
+  .transaction-card {
+    width: 100%;
+    margin-right: 0;
+    box-sizing: border-box;
+    transform: translateZ(0);
+  }
+  
+  /* Ensure filter panels don't overflow */
+  .filter-row {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  /* Make sure search box doesn't create overflow */
+  .search-input input {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

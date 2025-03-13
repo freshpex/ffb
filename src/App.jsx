@@ -20,7 +20,6 @@ const DepositTransaction = lazy(() => import("./components/DashBoard/DepositTran
 const WithdrawTransaction = lazy(() => import("./components/DashBoard/WithdrawTransaction"));
 const AccountSettings = lazy(() => import("./components/DashBoard/AccountSettings"));
 const InvestmentPlans = lazy(() => import("./components/DashBoard/InvestmentPlans"));
-const ApiKeyManagement = lazy(() => import("./components/DashBoard/ApiKeyManagement"));
 const TradingDashboard = lazy(() => import("./components/DashBoard/TradingDashboard"));
 
 // Error page
@@ -74,11 +73,6 @@ function App() {
             <Route path="/login/investmentplans" element={
               <ProtectedRoute>
                 <InvestmentPlans />
-              </ProtectedRoute>
-            } />
-            <Route path="/login/api-keys" element={
-              <ProtectedRoute>
-                <ApiKeyManagement />
               </ProtectedRoute>
             } />
             <Route path="/login/trading" element={

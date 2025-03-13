@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
-  FaSearch, FaHistory, FaFileCsv, FaFilter, 
-  FaTable, FaCreditCard, FaEthereum, FaBitcoin, 
-  FaSortAmountDown, FaSortAmountUp, FaRegCalendarAlt,
-  FaListUl 
+  FaSearch, FaHistory, FaFileCsv, FaFilter, FaTimes, 
+  FaSort, FaTable, FaCreditCard, FaEthereum, FaBitcoin, 
+  FaDownload, FaSortAmountDown, FaSortAmountUp, FaRegCalendarAlt, 
+  FaUniversity, FaListUl
 } from "react-icons/fa";
 import DashboardLayout from "./DashboardLayout";
 
@@ -181,20 +181,23 @@ const DepositTransaction = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
+        style={{ overflow: 'hidden', transform: 'translateZ(0)', isolation: 'isolate' }}
       >
         <div className="card-header">
           <h2 className="card-title">Your Deposit Transactions</h2>
           <div className="card-actions">
-            <div className="toggle-view">
+            <div className="toggle-view" style={{ position: 'relative', zIndex: 1 }}>
               <button 
-                className={isTableView ? 'active' : ''} 
+                className={isTableView ? 'active' : 'export-btn'} 
                 onClick={() => setIsTableView(true)}
+                style={{ transform: 'translateZ(0)' }}
               >
                 <FaTable /> Table
               </button>
               <button 
-                className={!isTableView ? 'active' : ''} 
+                className={!isTableView ? 'active' : 'export-btn'} 
                 onClick={() => setIsTableView(false)}
+                style={{ transform: 'translateZ(0)' }}
               >
                 <FaListUl /> Cards
               </button>
@@ -275,7 +278,7 @@ const DepositTransaction = () => {
           </motion.div>
         )}
         
-        <div className="card-body">
+        <div className="card-body" style={{ overflow: 'hidden' }}>
           <div className="search-box">
             <div className="search-input-wrapper">
               <FaSearch className="search-icon" />
@@ -290,7 +293,7 @@ const DepositTransaction = () => {
           </div>
           
           {isTableView ? (
-            <div className="table-responsive">
+            <div className="table-responsive" style={{ overflow: 'auto', maxWidth: '100%' }}>
               <table className="transaction-table">
                 <thead>
                   <tr>
@@ -350,7 +353,7 @@ const DepositTransaction = () => {
               </table>
             </div>
           ) : (
-            <div className="transaction-cards">
+            <div className="transaction-cards" style={{ overflow: 'hidden' }}>
               {currentTransactions.length > 0 ? currentTransactions.map((item, index) => (
                 <motion.div 
                   className="transaction-card"

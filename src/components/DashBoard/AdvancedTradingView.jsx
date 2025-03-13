@@ -15,16 +15,27 @@ const AdvancedTradingView = () => {
   const [showDepthChart, setShowDepthChart] = useState(false);
   const [showOrderbook, setShowOrderbook] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   const chartLoadedRef = useRef(false);
 
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Load TradingView script
   useEffect(() => {
     if (window.TradingView) {
       setScriptLoaded(true);
       return;
     }
 
-    // Load TradingView widget script
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/tv.js';
     script.async = true;
@@ -38,6 +49,7 @@ const AdvancedTradingView = () => {
     };
   }, []);
 
+  // Initialize and update TradingView widget
   useEffect(() => {
     if (!scriptLoaded || !containerRef.current) return;
 
@@ -65,27 +77,44 @@ const AdvancedTradingView = () => {
       toolbar_bg: '#f1f3f6',
       enable_publishing: false,
       withdateranges: true,
-      hide_side_toolbar: false,
+      hide_side_toolbar: isMobile, // Hide side toolbar on mobile
       allow_symbol_change: true,
-      studies: ['RSI@tv-basicstudies', 'MASimple@tv-basicstudies', 'MACD@tv-basicstudies'],
-      show_popup_button: true,
+      studies: isMobile ? [] : ['RSI@tv-basicstudies', 'MASimple@tv-basicstudies', 'MACD@tv-basicstudies'],
+      show_popup_button: !isMobile,
       popup_width: '1000',
       popup_height: '650',
-      save_image: true,
+      save_image: !isMobile,
       container_id: containerId,
-      hide_top_toolbar: false,
-      loading_screen: { backgroundColor: "#131920", foregroundColor: "#f9a23f" }
+      hide_top_toolbar: isMobile,
+      loading_screen: { backgroundColor: "#131920", foregroundColor: "#f9a23f" },
+      // Add mobile-specific overrides
+      overrides: isMobile ? {
+        "mainSeriesProperties.candleStyle.upColor": "#4CAF50",
+        "mainSeriesProperties.candleStyle.downColor": "#FF5252",
+        "mainSeriesProperties.candleStyle.wickUpColor": "#4CAF50",
+        "mainSeriesProperties.candleStyle.wickDownColor": "#FF5252",
+      } : {}
     };
 
     const widget = new window.TradingView.widget(widgetOptions);
 
-    // Use event listener for widget loading completion instead of onChartReady
+    // Use event listener for widget loading completion
     const handleIframeLoad = () => {
+      // Find the iframe created by TradingView
       const iframes = containerRef.current?.getElementsByTagName('iframe');
       if (iframes && iframes.length > 0) {
         if (!chartLoadedRef.current) {
           setIsLoading(false);
           chartLoadedRef.current = true;
+          
+          // Add special class to the iframe to prevent overflow issues
+          iframes[0].classList.add('tradingview-iframe');
+          
+          // Add explicit inline styles to prevent iframe from creating overlay
+          iframes[0].style.overflow = 'hidden';
+          iframes[0].style.width = '100%';
+          iframes[0].style.border = 'none';
+          iframes[0].style.transform = 'translateZ(0)';
         }
       }
     };
@@ -99,6 +128,7 @@ const AdvancedTradingView = () => {
       
       const iframes = containerRef.current.getElementsByTagName('iframe');
       if (iframes.length > 0) {
+        // Add load event listener
         iframes[0].addEventListener('load', handleIframeLoad);
         
         // Also check if it's already loaded
@@ -123,7 +153,7 @@ const AdvancedTradingView = () => {
       clearInterval(checkIframe);
       clearTimeout(backupTimeout);
     };
-  }, [scriptLoaded, symbol, timeframe, chartType]);
+  }, [scriptLoaded, symbol, timeframe, chartType, isMobile]);
 
   const toggleFullscreen = () => {
     setFullscreen(!fullscreen);
@@ -159,7 +189,16 @@ const AdvancedTradingView = () => {
   ];
 
   return (
-    <div className={`advanced-tradingview-container ${fullscreen ? 'fullscreen' : ''}`}>
+    <div 
+      className={`advanced-tradingview-container ${fullscreen ? 'fullscreen' : ''}`}
+      style={{ 
+        isolation: 'isolate', 
+        transform: 'translateZ(0)', 
+        overflow: 'hidden',
+        position: 'relative',
+        zIndex: 1
+      }}
+    >
       <div className="tradingview-controls">
         <div className="control-group symbols">
           {cryptoSymbols.map(crypto => (
@@ -238,7 +277,7 @@ const AdvancedTradingView = () => {
       </div>
       
       <div className="chart-container-wrapper">
-        <div className="chart-container">
+        <div className="chart-container" style={{ overflow: 'hidden' }}>
           {isLoading && (
             <div className="chart-loading">
               <motion.div
@@ -256,7 +295,11 @@ const AdvancedTradingView = () => {
             style={{ 
               height: '100%', 
               width: '100%',
-              visibility: isLoading ? 'hidden' : 'visible'
+              visibility: isLoading ? 'hidden' : 'visible',
+              overflow: 'hidden',
+              position: 'relative',
+              zIndex: 1,
+              contain: 'strict'
             }} 
           />
         </div>

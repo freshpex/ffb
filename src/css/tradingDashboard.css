@@ -1212,3 +1212,78 @@
     flex: 0 0 auto;
   }
 }
+
+/* Additional fixes for AdvancedTradingView component */
+.trading-page .advanced-tradingview-container {
+  transform: translateZ(0);
+  isolation: isolate;
+  contain: paint;
+  z-index: 1;
+  position: relative;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.trading-page .chart-container {
+  transform: translateZ(0);
+  isolation: isolate;
+  contain: strict;
+  overflow: hidden !important;
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix for TradingView iframe causing overlay */
+.advanced-tradingview-container iframe {
+  border: none !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  transform: translateZ(0);
+  contain: strict;
+}
+
+/* Mobile fixes for AdvancedTradingView */
+@media screen and (max-width: 992px) {
+  .trading-page .advanced-tradingview-container {
+    overflow: hidden !important;
+  }
+  
+  .trading-page .chart-container {
+    overflow: hidden !important;
+  }
+  
+  .trading-page .trading-dashboard {
+    overflow: hidden;
+  }
+  
+  /* Ensure no strange overlays on the right */
+  .trading-page .content-wrapper {
+    overflow: hidden;
+  }
+  
+  /* Mobile improvements */
+  .control-group {
+    padding: 0 3px;
+  }
+  
+  .symbol-button, .timeframe-button, .chart-type-button {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  /* Fix fullscreen issues on mobile */
+  .advanced-tradingview-container.fullscreen {
+    z-index: 9999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  /* Remove any transforms causing overlay issues */
+  .tradingview-controls {
+    position: relative;
+    z-index: 2;
+  }
+}
