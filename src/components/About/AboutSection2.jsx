@@ -1,7 +1,7 @@
-import picture1 from "/src/assets/images/assets_3@2x.955776ab.png";
-import picture2 from "/src/assets/images/assets_2@2x.5a4a98a0.png";
-import picture3 from "/src/assets/images/assets_1@2x.8f2f47cf.png";
-import map from "/src/assets/images/istockphoto-1435226213-170667a.webp";
+import picture1 from "../../assets/images/assets_3@2x.955776ab.png";
+import picture2 from "../../assets/images/assets_2@2x.5a4a98a0.png";
+import picture3 from "../../assets/images/assets_1@2x.8f2f47cf.png";
+import map from "../../assets/images/istockphoto-1435226213-170667a.webp";
 import { Link, useNavigate } from "react-router-dom";
 
 const AboutSection2 = () => {

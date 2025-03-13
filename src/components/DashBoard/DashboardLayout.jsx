@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
-import "/src/css/dashboard.css";
+import "../../css/dashboard.css";
 import TouchSidebarHandler from './TouchSidebarHandler';
 
 const DashboardLayout = ({ children }) => {
@@ -21,6 +21,20 @@ const DashboardLayout = ({ children }) => {
   const [userDropdownActive, setUserDropdownActive] = useState(false);
   const [notificationsActive, setNotificationsActive] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Check current page type for specific styling
+  const currentPath = location.pathname;
+  const pageClasses = () => {
+    if (currentPath.includes('/accountsettings')) return 'account-settings-page';
+    if (currentPath.includes('/withdrawtransaction')) return 'withdraw-history-page';
+    if (currentPath.includes('/deposittransaction')) return 'deposit-history-page';
+    if (currentPath.includes('/dashboardpage')) return 'dashboard-page';
+    if (currentPath.includes('/deposit')) return 'deposit-page';
+    if (currentPath.includes('/withdraw')) return 'withdraw-page';
+    if (currentPath.includes('/investmentplans')) return 'investment-plan-page';
+    if (currentPath.includes('/trading')) return 'trading-page';
+    return '';
+  };
   
   // Check if the current path matches a given path
   const isActive = (path) => {
@@ -108,7 +122,7 @@ const DashboardLayout = ({ children }) => {
         )}
       </AnimatePresence>
       
-      <div className="dashboard-container">
+      <div className={`dashboard-container ${pageClasses()}`}>
         {/* Sidebar */}
         <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${mobileActive ? 'mobile-active' : ''}`}>
           <div className="sidebar-logo">

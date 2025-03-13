@@ -1,0 +1,84 @@
+/* Mobile-specific dashboard fixes */
+@media screen and (max-width: 992px) {
+  /* Fix for yellow overlay/highlight issues */
+  .dashboard-container {
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+  }
+  
+  /* Fix for the dashboard page */
+  .dashboard-page .content-wrapper {
+    background-color: #f5f6fa;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Fix for account settings page */
+  .account-settings-page .content-wrapper {
+    background-color: #f5f6fa;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Fix for transaction history pages */
+  .withdraw-history-page .content-wrapper,
+  .deposit-history-page .content-wrapper {
+    background-color: #f5f6fa;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Trading page specific fixes */
+  .trading-page .content-wrapper {
+    background-color: #131920;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Ensure the mobile sidebar overlay is properly displayed */
+  .mobile-overlay {
+    will-change: opacity;
+    pointer-events: none;
+  }
+  
+  .mobile-overlay.active {
+    pointer-events: auto;
+  }
+  
+  /* Prevent tap highlight color on mobile */
+  .sidebar,
+  .dashboard-header,
+  .nav-link,
+  .toggle-sidebar-btn,
+  .dashboard-card {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Ensure content doesn't overflow horizontally */
+  .content-wrapper,
+  .dashboard-card,
+  .card-body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+/* Extra small devices */
+@media screen and (max-width: 576px) {
+  /* Additional small screen fixes */
+  .sidebar.mobile-active {
+    max-width: 85%;
+  }
+  
+  /* Fix for charts overflowing */
+  .trading-widget-container,
+  .market-cards {
+    width: 100%;
+    overflow-x: auto;
+  }
+}

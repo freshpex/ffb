@@ -1,11 +1,11 @@
-import picture1 from "/src/assets/images/istockphoto-1307254034-170667a.webp";
-import picture2 from "/src/assets/images/micheile-henderson-ZVprbBmT8QA-unsplash.jpg";
-import picture3 from "/src/assets/images/9d6f3587-8dbb-4902-9b59-56bdb00781c9.avif";
-import picture4 from "/src/assets/images/BestRewards.png";
-import picture5 from "/src/assets/images/SWAP.png";
-import picture6 from "/src/assets/images/payments.png";
-import picture7 from "/src/assets/images/Tellafriend.png";
-import picture8 from "/src/assets/images/Affiliate.png";
+import picture1 from "../../assets/images/istockphoto-1307254034-170667a.webp";
+import picture2 from "../../assets/images/micheile-henderson-ZVprbBmT8QA-unsplash.jpg";
+import picture3 from "../../assets/images/9d6f3587-8dbb-4902-9b59-56bdb00781c9.avif";
+import picture4 from "../../assets/images/BestRewards.png";
+import picture5 from "../../assets/images/SWAP.png";
+import picture6 from "../../assets/images/payments.png";
+import picture7 from "../../assets/images/Tellafriend.png";
+import picture8 from "../../assets/images/Affiliate.png";
 import { Link, useNavigate } from "react-router-dom";
 
 const ServiceSection2 = () => {

@@ -1,5 +1,5 @@
-import picture from "/src/assets/images/istockphoto-1463945887-170667a.webp";
-import "/src/css/about.css";
+import picture from "../../assets/images/istockphoto-1463945887-170667a.webp";
+import "../../css/about.css";
 
 
 const AboutSection1 = () => {

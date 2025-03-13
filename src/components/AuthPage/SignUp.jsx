@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import "/src/css/auth.css";
+import "../../css/auth.css";
 import { useState, useEffect } from "react";
 import { UserAuth } from "./AuthContext";
 import { motion, AnimatePresence } from "framer-motion";

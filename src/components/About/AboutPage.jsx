@@ -6,8 +6,7 @@ import AboutSection4 from "./AboutSection4"
 import AboutSection5 from "./AboutSection5"
 import HomeFooter from "../LandingPage/HomeFooter"
 import PageTransition from "../common/PageTransition"
-import "/src/css/about.css";
-
+import "../../css/about.css";
 
 const AboutPage = () => {
   return (

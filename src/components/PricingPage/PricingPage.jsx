@@ -4,7 +4,7 @@ import TradingPlan from "../LandingPage/TradingPlan";
 import HomePageSection4 from "../LandingPage/HomePageSection4";
 import PricingSection1 from "./PricingSection1";
 import PageTransition from "../common/PageTransition";
-import "/src/css/pricing.css";
+import "../../css/pricing.css";
 
 const PricingPage = () => {
   return (
