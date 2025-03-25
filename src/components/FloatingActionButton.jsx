@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronUp, FaComments, FaTimes } from 'react-icons/fa';
+import { FaChevronUp, FaComments, FaTimes, FaAngleUp } from 'react-icons/fa';
 import { MdLiveHelp } from 'react-icons/md';
 
 const FloatingActionButton = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
+      if (window.scrollY > 300) {
+        setVisible(true);
+      } else {
+        setVisible(false);
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -23,8 +29,26 @@ const FloatingActionButton = () => {
     });
   };
 
+  const toggleChat = () => {
+    setShowChat(!showChat);
+  };
+
   return (
     <>
+      <AnimatePresence>
+        {visible && (
+          <motion.div 
+            className="scroll-top-button"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={scrollToTop}
+          >
+            <FaAngleUp />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="floating-action-container">
         <AnimatePresence>
           {showScrollTop && (
@@ -43,10 +67,10 @@ const FloatingActionButton = () => {
         </AnimatePresence>
         
         <motion.button
-          className="fab chat-btn"
-          onClick={() => setShowChat(!showChat)}
+          className={`floating-action-button ${showChat ? 'active' : ''}`}
+          onClick={toggleChat}
           whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.95 }}
         >
           {showChat ? <FaTimes /> : <FaComments />}
         </motion.button>
@@ -55,33 +79,23 @@ const FloatingActionButton = () => {
       <AnimatePresence>
         {showChat && (
           <motion.div 
-            className="chat-box"
-            initial={{ opacity: 0, y: 50, scale: 0.3 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.3 }}
-            transition={{ type: 'spring', damping: 20 }}
+            className="chat-widget"
+            initial={{ opacity: 0, y: 20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 400 }}
+            exit={{ opacity: 0, y: 20, height: 0 }}
           >
             <div className="chat-header">
-              <MdLiveHelp size={24} />
               <h3>Live Support</h3>
-              <motion.button 
-                className="close-chat" 
-                onClick={() => setShowChat(false)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <FaTimes />
-              </motion.button>
             </div>
             <div className="chat-body">
-              <div className="message system-message">
-                <p>Welcome to FFB Support! How can we help you today?</p>
-                <span className="message-time">Just now</span>
+              <div className="chat-message support">
+                <p>Hello! How can I help you today?</p>
+                <span className="message-time">12:01 PM</span>
               </div>
-              <div className="chat-input-area">
-                <input type="text" placeholder="Type your message here..." />
-                <button>Send</button>
-              </div>
+            </div>
+            <div className="chat-input">
+              <input type="text" placeholder="Type a message..." />
+              <button className="send-button">Send</button>
             </div>
           </motion.div>
         )}

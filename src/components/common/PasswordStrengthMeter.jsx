@@ -1,60 +1,83 @@
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 
 const PasswordStrengthMeter = ({ password }) => {
-  // Calculate password strength
+  const [strength, setStrength] = useState(0);
+  const [label, setLabel] = useState('');
+  
+  useEffect(() => {
+    calculateStrength(password);
+  }, [password]);
+  
   const calculateStrength = (password) => {
-    if (!password) return 0;
+    // Start with a base score
+    let score = 0;
     
-    let strength = 0;
-    
-    // Length check
-    if (password.length >= 8) strength += 1;
-    
-    // Uppercase letters check
-    if (/[A-Z]/.test(password)) strength += 1;
-    
-    // Numbers check
-    if (/[0-9]/.test(password)) strength += 1;
-    
-    // Special characters check
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    
-    return strength;
-  };
-  
-  const strength = calculateStrength(password);
-  
-  // Get color and label based on strength score
-  const getStrengthInfo = () => {
-    switch(strength) {
-      case 0: return { color: '#ff4d4f', label: 'Very Weak' };
-      case 1: return { color: '#ff7a45', label: 'Weak' };
-      case 2: return { color: '#ffc53d', label: 'Medium' };
-      case 3: return { color: '#73d13d', label: 'Strong' };
-      case 4: return { color: '#52c41a', label: 'Very Strong' };
-      default: return { color: '#ff4d4f', label: 'Very Weak' };
+    // If password is empty, return score of 0
+    if (!password) {
+      setStrength(0);
+      setLabel('');
+      return;
     }
+    
+    // Award points based on complexity
+    
+    // Length
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    
+    // Contains uppercase
+    if (/[A-Z]/.test(password)) score += 1;
+    
+    // Contains lowercase
+    if (/[a-z]/.test(password)) score += 1;
+    
+    // Contains numbers
+    if (/\d/.test(password)) score += 1;
+    
+    // Contains special characters
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    
+    // Set strength label based on score
+    let strengthLabel = '';
+    if (score <= 2) {
+      strengthLabel = 'Weak';
+    } else if (score <= 4) {
+      strengthLabel = 'Moderate';
+    } else {
+      strengthLabel = 'Strong';
+    }
+    
+    // Normalize score to 0-100 range
+    const normalizedScore = Math.min(100, Math.round((score / 6) * 100));
+    
+    setStrength(normalizedScore);
+    setLabel(strengthLabel);
   };
   
-  const { color, label } = getStrengthInfo();
-
+  // Get color based on strength
+  const getColor = () => {
+    if (strength < 33) return '#ff4b5c'; // Red for weak
+    if (strength < 66) return '#ff9800'; // Orange/amber for moderate
+    return '#4caf50'; // Green for strong
+  };
+  
+  if (!password) return null;
+  
   return (
-    <div className="password-strength">
-      <div className="strength-meter">
-        {[...Array(4)].map((_, index) => (
-          <div 
-            key={index} 
-            className="meter-segment"
-            style={{
-              backgroundColor: index < strength ? color : '#e8e8e8',
-              opacity: index < strength ? 1 : 0.5
-            }}
-          ></div>
-        ))}
+    <div className="password-strength-meter">
+      <div className="strength-bar-container">
+        <div 
+          className="strength-bar" 
+          style={{ 
+            width: `${strength}%`,
+            backgroundColor: getColor()
+          }}
+        ></div>
       </div>
-      <span style={{ color: color }}>
+      <div className="strength-text" style={{ color: getColor() }}>
         {label}
-      </span>
+      </div>
     </div>
   );
 };

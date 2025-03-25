@@ -1,43 +1,39 @@
-import { motion } from 'framer-motion';
-import PropTypes from 'prop-types';
+import { motion } from "framer-motion";
 
 const PageTransition = ({ children }) => {
+  // Page transition animation settings
   const pageVariants = {
     initial: {
       opacity: 0,
+      y: 20,
     },
     in: {
       opacity: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeInOut",
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
+      y: 0,
     },
-    exit: {
+    out: {
       opacity: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeInOut"
-      }
-    }
+      y: -20,
+    },
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "easeInOut",
+    duration: 0.4,
   };
 
   return (
     <motion.div
       initial="initial"
       animate="in"
-      exit="exit"
+      exit="out"
       variants={pageVariants}
+      transition={pageTransition}
     >
       {children}
     </motion.div>
   );
-};
-
-PageTransition.propTypes = {
-  children: PropTypes.node.isRequired
 };
 
 export default PageTransition;

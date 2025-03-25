@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaChartBar, FaBitcoin, FaEthereum } from 'react-icons/fa';
-import { SiLitecoin, SiRipple, SiDogecoin } from 'react-icons/si';
+import { FaChartBar } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import Loader from '../common/Loader';
 
 const TradingViewWidget = () => {
   const containerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [symbol, setSymbol] = useState('BITSTAMP:BTCUSD');
-  const chartLoadedRef = useRef(false);
+  const [symbol, setSymbol] = useState('BTCUSDT');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
+  const [error, setError] = useState(null);
+  
+  // Handle window resize for responsive design
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -20,168 +20,130 @@ const TradingViewWidget = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Initialize and manage TradingView widget
   useEffect(() => {
-    if (window.TradingView) {
-      setScriptLoaded(true);
-      return;
-    }
-
-    // Load TradingView widget script
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => setScriptLoaded(true);
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!scriptLoaded || !containerRef.current) return;
-
+    // Skip if container ref is not available
+    if (!containerRef.current) return;
+    
     setIsLoading(true);
-    chartLoadedRef.current = false;
-
-    // Clean up any existing chart
-    if (containerRef.current) {
+    setError(null);
+    
+    try {
+      // Clear previous content
       containerRef.current.innerHTML = '';
-    }
-
-    // Generate a unique ID for the container
-    const containerId = 'tradingview_widget_' + Math.random().toString(36).substring(2, 9);
-    containerRef.current.id = containerId;
-
-    const widgetOptions = {
-      width: '100%',
-      height: '100%',
-      symbol: symbol,
-      interval: 'D',
-      timezone: 'Etc/UTC',
-      theme: 'dark',
-      style: '1',
-      locale: 'en',
-      toolbar_bg: '#f1f3f6',
-      enable_publishing: false,
-      withdateranges: true,
-      hide_side_toolbar: isMobile,
-      allow_symbol_change: true,
-      save_image: false,
-      container_id: containerId,
-      hide_top_toolbar: isMobile,
-      studies: isMobile ? [] : undefined,
-      loading_screen: { backgroundColor: "#131920", foregroundColor: "#f9a23f" },
-
-      overrides: isMobile ? {
-        "mainSeriesProperties.candleStyle.upColor": "#4CAF50",
-        "mainSeriesProperties.candleStyle.downColor": "#FF5252",
-        "mainSeriesProperties.candleStyle.wickUpColor": "#4CAF50",
-        "mainSeriesProperties.candleStyle.wickDownColor": "#FF5252",
-      } : {}
-    };
-
-    const widget = new window.TradingView.widget(widgetOptions);
-
-    // Use event listener for widget loading completion
-    const handleIframeLoad = () => {
-      const iframes = containerRef.current?.getElementsByTagName('iframe');
-      if (iframes && iframes.length > 0) {
-        if (!chartLoadedRef.current) {
-          setIsLoading(false);
-          chartLoadedRef.current = true;
-          
-          // Add special class to the iframe to prevent overflow issues
-          iframes[0].classList.add('tradingview-iframe');
-        }
-      }
-    };
-
-    // Monitor for the iframe to be created and loaded
-    const checkIframe = setInterval(() => {
-      if (!containerRef.current) {
-        clearInterval(checkIframe);
-        return;
-      }
       
-      const iframes = containerRef.current.getElementsByTagName('iframe');
-      if (iframes.length > 0) {
-        iframes[0].addEventListener('load', handleIframeLoad);
-        
-        // Also check if it`s already loaded
-        if (iframes[0].contentDocument && 
-            iframes[0].contentDocument.readyState === 'complete') {
-          handleIframeLoad();
+      // Generate a unique ID for the container
+      const containerId = `tradingview_${Math.random().toString(36).substring(2, 9)}`;
+      containerRef.current.id = containerId;
+      
+      // Create the script
+      const script = document.createElement('script');
+      script.src = 'https://s3.tradingview.com/tv.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.TradingView) {
+          new window.TradingView.widget({
+            width: '100%',
+            height: '100%',
+            symbol: `BINANCE:${symbol}`,
+            interval: 'D',
+            timezone: 'Etc/UTC',
+            theme: 'dark',
+            style: '1',
+            locale: 'en',
+            toolbar_bg: '#f1f3f6',
+            enable_publishing: false,
+            withdateranges: true,
+            hide_side_toolbar: isMobile,
+            hide_top_toolbar: isMobile,
+            allow_symbol_change: true,
+            studies: isMobile ? [] : ["MASimple@tv-basicstudies"],
+            container_id: containerId,
+            loading_screen: { backgroundColor: "#131920", foregroundColor: "#9155fd" }
+          });
+          
+          // Set a delay to ensure chart is loaded
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 1500);
         }
-        
-        clearInterval(checkIframe);
-      }
-    }, 100);
-
-    // Backup timeout in case iframe detection doesn't work
-    const backupTimeout = setTimeout(() => {
-      if (isLoading && containerRef.current) {
+      };
+      
+      script.onerror = () => {
+        setError('Failed to load TradingView widget');
         setIsLoading(false);
-      }
-    }, 5000);
+      };
+      
+      document.body.appendChild(script);
+      
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
+    } catch (err) {
+      console.error('TradingView widget error:', err);
+      setError('Error initializing chart');
+      setIsLoading(false);
+    }
+  }, [symbol, isMobile]);
 
-    // Clear interval and timeout on cleanup
-    return () => {
-      clearInterval(checkIframe);
-      clearTimeout(backupTimeout);
-    };
-  }, [scriptLoaded, symbol, isMobile]);
-
-  // Available cryptocurrency symbols
+  // Crypto symbols available for selection
   const cryptoSymbols = [
-    { name: 'Bitcoin', symbol: 'BITSTAMP:BTCUSD', icon: <FaBitcoin /> },
-    { name: 'Ethereum', symbol: 'BITSTAMP:ETHUSD', icon: <FaEthereum /> },
-    { name: 'Litecoin', symbol: 'BITSTAMP:LTCUSD', icon: <SiLitecoin /> },
-    { name: 'Ripple', symbol: 'BITSTAMP:XRPUSD', icon: <SiRipple /> },
-    { name: 'Dogecoin', symbol: 'BINANCE:DOGEUSD', icon: <SiDogecoin /> }
+    { symbol: 'BTCUSDT', name: 'Bitcoin' },
+    { symbol: 'ETHUSDT', name: 'Ethereum' },
+    { symbol: 'LTCUSDT', name: 'Litecoin' },
+    { symbol: 'DOGEUSDT', name: 'Dogecoin' },
+    { symbol: 'SOLUSDT', name: 'Solana' }
   ];
 
   return (
-    <div className="tradingview-widget-container" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
-      <div className="chart-symbol-selector">
-        {cryptoSymbols.map(crypto => (
-          <motion.button
+    <div className="w-full h-full relative overflow-hidden bg-gray-900">
+      {/* Symbol selector */}
+      <div className="flex overflow-x-auto p-2 space-x-2 bg-gray-800 border-b border-gray-700 scrollbar-thin scrollbar-thumb-gray-600">
+        {cryptoSymbols.map((crypto) => (
+          <button
             key={crypto.symbol}
-            className={`symbol-button ${symbol === crypto.symbol ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-md transition-colors whitespace-nowrap text-sm font-medium 
+              ${symbol === crypto.symbol 
+                ? 'bg-primary-500 text-white' 
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
             onClick={() => setSymbol(crypto.symbol)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
-            {crypto.icon} <span className="symbol-name">{crypto.name}</span>
-          </motion.button>
+            {crypto.name}
+          </button>
         ))}
       </div>
       
-      {isLoading && (
-        <div className="chart-loading">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          >
-            <FaChartBar size={30} />
-          </motion.div>
-          <span className="loading-text">Loading {symbol.split(':')[1]} chart...</span>
-        </div>
-      )}
-      
-      <div 
-        ref={containerRef}
-        style={{ 
-          height: 'calc(100% - 50px)', 
-          width: '100%',
-          visibility: isLoading ? 'hidden' : 'visible',
-          overflow: 'hidden',
-          position: 'relative',
-          zIndex: 1
-        }} 
-      />
+      {/* Chart container */}
+      <div className="relative w-full" style={{ height: 'calc(100% - 48px)' }}>
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/80 z-10">
+            <Loader fullScreen={false} size="small" text="Loading chart..." />
+          </div>
+        )}
+        
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10 p-4">
+            <div className="text-center">
+              <FaChartBar className="mx-auto text-4xl text-red-500 mb-2" />
+              <p className="text-red-400">{error}</p>
+              <button 
+                className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+        
+        <div 
+          ref={containerRef}
+          className="w-full h-full"
+        />
+      </div>
     </div>
   );
 };

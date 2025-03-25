@@ -1,72 +1,39 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { BiErrorAlt } from "react-icons/bi";
+import { Link } from 'react-router-dom';
+import { FaExclamationTriangle, FaHome, FaArrowLeft } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import HomeFooter from "./LandingPage/HomeFooter";
+import Header from "./LandingPage/Header";
 
-const ErrorPage = () => {
+const ErrorPage = ({ code = 404, message = "Page not found" }) => {
   return (
-    <motion.section 
-      className="error-page"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div 
-        className="error-container"
-        initial={{ scale: 0.8, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ 
-          type: "spring",
-          stiffness: 100,
-          delay: 0.1
-        }}
-      >
+    <>
+      <Header />
+      <div className="error-page">
         <motion.div 
-          className="error-icon"
-          animate={{ 
-            rotate: [0, 5, -5, 5, 0],
-            scale: [1, 1.1, 1, 1.1, 1]
-          }}
-          transition={{ 
-            duration: 2, 
-            repeat: Infinity,
-            repeatType: "mirror" 
-          }}
+          className="error-container"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <BiErrorAlt size={100} />
+          <div className="error-icon">
+            <FaExclamationTriangle />
+          </div>
+          <h1>{code}</h1>
+          <h2>{message}</h2>
+          <p>The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+          
+          <div className="error-actions">
+            <Link to="/" className="btn btn-primary">
+              <FaHome /> Back to Home
+            </Link>
+            <button onClick={() => window.history.back()} className="btn btn-outline">
+              <FaArrowLeft /> Go Back
+            </button>
+          </div>
         </motion.div>
-        
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          Error 404
-        </motion.h1>
-        
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          Oops! The page you`re looking for doesn`t exist.
-        </motion.p>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Link to="/" className="home-link">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Return to Home Page
-            </motion.button>
-          </Link>
-        </motion.div>
-      </motion.div>
-    </motion.section>
+      </div>
+      <HomeFooter />
+    </>
   );
 };
 

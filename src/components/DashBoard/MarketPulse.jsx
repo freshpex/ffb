@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaArrowUp, FaArrowDown, FaThermometerHalf, FaChartBar, FaBitcoin, FaSync } from 'react-icons/fa';
-import binanceService from '../../services/binanceService';
 
 const MarketPulse = () => {
   const [pulseData, setPulseData] = useState({
@@ -34,52 +33,65 @@ const MarketPulse = () => {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  useEffect(() => {
-    const fetchMarketData = async () => {
-      try {
-        setIsLoading(true);
+  // Function to simulate data fetching
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Add some random variations to data
+      setPulseData(prevData => {
+        const randomChange = (min, max) => Math.random() * (max - min) + min;
         
-        // Get BTC price from Binance to calculate recent change
-        const btcData = await binanceService.get24hrStats('BTCUSDT');
-        const ethData = await binanceService.get24hrStats('ETHUSDT');
-        
-        // Calculate BTC dominance (simplified calculation)
-        const btcMarketCap = parseFloat(btcData.lastPrice) * 19000000; // Approximate circulating supply
-        const ethMarketCap = parseFloat(ethData.lastPrice) * 120000000; // Approximate circulating supply
-        const totalMarketCap = btcMarketCap + ethMarketCap + 500000000000; // Add estimated remainder
-        const btcDominance = (btcMarketCap / totalMarketCap) * 100;
-        
-        // Update pulse data with real values where possible
-        setPulseData(prevData => ({
-          ...prevData,
+        return {
+          fearGreedIndex: {
+            ...prevData.fearGreedIndex,
+            value: Math.min(100, Math.max(0, Math.round(prevData.fearGreedIndex.value + randomChange(-5, 5)))),
+            change: randomChange(-2, 2).toFixed(1),
+            chartData: [...prevData.fearGreedIndex.chartData.slice(1), 
+                       Math.min(100, Math.max(0, Math.round(prevData.fearGreedIndex.value + randomChange(-3, 3))))]
+          },
           btcDominance: {
             ...prevData.btcDominance,
-            value: btcDominance.toFixed(1),
-            change: parseFloat((btcDominance - prevData.btcDominance.chartData[prevData.btcDominance.chartData.length - 2]).toFixed(1)),
-            chartData: [...prevData.btcDominance.chartData.slice(1), btcDominance]
+            value: Math.max(30, Math.min(90, (parseFloat(prevData.btcDominance.value) + randomChange(-0.5, 0.5)).toFixed(1))),
+            change: randomChange(-1, 1).toFixed(1),
+            chartData: [...prevData.btcDominance.chartData.slice(1), 
+                       parseFloat(prevData.btcDominance.value) + randomChange(-0.3, 0.3)]
           },
           totalMarketCap: {
             ...prevData.totalMarketCap,
-            value: (totalMarketCap / 1000000000000).toFixed(1),
-            change: parseFloat(((totalMarketCap / 1000000000000 - prevData.totalMarketCap.value) / prevData.totalMarketCap.value * 100).toFixed(1)),
-            chartData: [...prevData.totalMarketCap.chartData.slice(1), totalMarketCap / 1000000000000]
+            value: Math.max(0.5, (parseFloat(prevData.totalMarketCap.value) + randomChange(-0.05, 0.05)).toFixed(1)),
+            change: randomChange(-1, 3).toFixed(1),
+            chartData: [...prevData.totalMarketCap.chartData.slice(1), 
+                       parseFloat(prevData.totalMarketCap.value) + randomChange(-0.02, 0.02)]
+          },
+          btcHashRate: {
+            ...prevData.btcHashRate,
+            value: Math.max(200, (parseFloat(prevData.btcHashRate.value) + randomChange(-10, 10)).toFixed(1)),
+            change: randomChange(-2, 8).toFixed(1),
+            chartData: [...prevData.btcHashRate.chartData.slice(1), 
+                       parseFloat(prevData.btcHashRate.value) + randomChange(-5, 5)]
           }
-        }));
-        
-        setLastUpdate(new Date());
-      } catch (err) {
-        console.error('Error fetching market pulse data:', err);
-        setError('Failed to update market data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
+        };
+      });
+      
+      setLastUpdate(new Date());
+    } catch (err) {
+      console.error('Error fetching market pulse data:', err);
+      setError('Failed to update market data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     // Initial fetch
-    fetchMarketData();
+    fetchData();
     
     // Update every 5 minutes
-    const intervalId = setInterval(fetchMarketData, 5 * 60 * 1000);
+    const intervalId = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -148,136 +160,125 @@ const MarketPulse = () => {
     visible: { opacity: 1, y: 0 }
   };
 
-  const handleRefresh = () => {
-    // Manually trigger data refresh
-    const fetchMarketData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Simulate API call with delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Update last update timestamp
-        setLastUpdate(new Date());
-        
-        // In a real implementation, we would fetch actual data here
-        
-      } catch (err) {
-        console.error('Error refreshing market data:', err);
-        setError('Failed to refresh market data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchMarketData();
-  };
-
   return (
-    <motion.div 
-      className="dashboard-card"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="card-header">
-        <h2 className="card-title">
-          <FaThermometerHalf /> Market Pulse
+    <div className="w-full bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold text-white flex items-center">
+          <FaThermometerHalf className="mr-2 text-primary-500" /> Market Pulse
         </h2>
-        <div className="card-actions">
-          <span className="last-update">
+        <div className="flex items-center space-x-3">
+          <span className="text-sm text-gray-400">
             Last updated: {formatLastUpdate(lastUpdate)}
           </span>
           <button 
-            className="refresh-btn"
-            onClick={handleRefresh}
+            className={`p-2 text-gray-400 hover:text-primary-500 rounded-full hover:bg-gray-700 transition-colors ${isLoading ? 'animate-spin text-primary-500' : ''}`}
+            onClick={fetchData}
             disabled={isLoading}
+            aria-label="Refresh data"
           >
-            <FaSync className={isLoading ? 'rotating' : ''} />
+            <FaSync />
           </button>
         </div>
       </div>
       
-      <div className="card-body">
+      <div className="p-6">
         {error && (
-          <div className="alert alert-error">
-            {error} 
-            <button onClick={() => setError(null)}>Dismiss</button>
+          <div className="mb-4 px-4 py-3 bg-red-900/30 border border-red-500 rounded-md text-red-400 flex justify-between items-center">
+            {error}
+            <button 
+              className="text-gray-400 hover:text-white"
+              onClick={() => setError(null)}
+              aria-label="Dismiss error"
+            >
+              &times;
+            </button>
           </div>
         )}
         
         <motion.div 
-          className="market-pulse"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          <motion.div className="pulse-item" variants={itemVariants}>
-            <div className="pulse-header">
-              <h3 className="pulse-title">Fear & Greed Index</h3>
+          <motion.div 
+            className="bg-gray-900 rounded-lg p-4 hover:shadow-lg transition-all duration-300"
+            variants={itemVariants}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-medium text-gray-400">Fear & Greed Index</h3>
             </div>
-            <h4 className="pulse-value" style={{ color: getSentimentColor(pulseData.fearGreedIndex.value) }}>
+            <h4 className="text-2xl font-bold" style={{ color: getSentimentColor(pulseData.fearGreedIndex.value) }}>
               {pulseData.fearGreedIndex.value} - {pulseData.fearGreedIndex.status}
             </h4>
-            <div className={`pulse-trend ${pulseData.fearGreedIndex.change > 0 ? 'positive' : 'negative'}`}>
-              {pulseData.fearGreedIndex.change > 0 ? <FaArrowUp /> : <FaArrowDown />}
+            <div className={`flex items-center text-sm mt-1 mb-3 ${pulseData.fearGreedIndex.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {pulseData.fearGreedIndex.change > 0 ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
               {Math.abs(pulseData.fearGreedIndex.change)} points
             </div>
-            <div className="pulse-chart">
+            <div className="h-12 w-full">
               {renderMiniChart(pulseData.fearGreedIndex.chartData, getSentimentColor(pulseData.fearGreedIndex.value), pulseData.fearGreedIndex.change > 0)}
             </div>
           </motion.div>
           
-          <motion.div className="pulse-item" variants={itemVariants}>
-            <div className="pulse-header">
-              <h3 className="pulse-title">BTC Dominance</h3>
+          <motion.div 
+            className="bg-gray-900 rounded-lg p-4 hover:shadow-lg transition-all duration-300"
+            variants={itemVariants}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-medium text-gray-400">BTC Dominance</h3>
             </div>
-            <h4 className="pulse-value">
+            <h4 className="text-2xl font-bold text-white">
               {pulseData.btcDominance.value}%
             </h4>
-            <div className={`pulse-trend ${pulseData.btcDominance.change > 0 ? 'positive' : 'negative'}`}>
-              {pulseData.btcDominance.change > 0 ? <FaArrowUp /> : <FaArrowDown />}
+            <div className={`flex items-center text-sm mt-1 mb-3 ${pulseData.btcDominance.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {pulseData.btcDominance.change > 0 ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
               {Math.abs(pulseData.btcDominance.change)}%
             </div>
-            <div className="pulse-chart">
+            <div className="h-12 w-full">
               {renderMiniChart(pulseData.btcDominance.chartData, '#f7931a', pulseData.btcDominance.change > 0)}
             </div>
           </motion.div>
           
-          <motion.div className="pulse-item" variants={itemVariants}>
-            <div className="pulse-header">
-              <h3 className="pulse-title">Total Market Cap</h3>
+          <motion.div 
+            className="bg-gray-900 rounded-lg p-4 hover:shadow-lg transition-all duration-300"
+            variants={itemVariants}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-medium text-gray-400">Total Market Cap</h3>
             </div>
-            <h4 className="pulse-value">
+            <h4 className="text-2xl font-bold text-white">
               ${pulseData.totalMarketCap.value}{pulseData.totalMarketCap.unit}
             </h4>
-            <div className={`pulse-trend ${pulseData.totalMarketCap.change > 0 ? 'positive' : 'negative'}`}>
-              {pulseData.totalMarketCap.change > 0 ? <FaArrowUp /> : <FaArrowDown />}
+            <div className={`flex items-center text-sm mt-1 mb-3 ${pulseData.totalMarketCap.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {pulseData.totalMarketCap.change > 0 ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
               {Math.abs(pulseData.totalMarketCap.change)}%
             </div>
-            <div className="pulse-chart">
+            <div className="h-12 w-full">
               {renderMiniChart(pulseData.totalMarketCap.chartData, '#2196f3', pulseData.totalMarketCap.change > 0)}
             </div>
           </motion.div>
           
-          <motion.div className="pulse-item" variants={itemVariants}>
-            <div className="pulse-header">
-              <h3 className="pulse-title">BTC Hash Rate</h3>
+          <motion.div 
+            className="bg-gray-900 rounded-lg p-4 hover:shadow-lg transition-all duration-300"
+            variants={itemVariants}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-medium text-gray-400">BTC Hash Rate</h3>
             </div>
-            <h4 className="pulse-value">
+            <h4 className="text-2xl font-bold text-white">
               {pulseData.btcHashRate.value} {pulseData.btcHashRate.unit}
             </h4>
-            <div className={`pulse-trend ${pulseData.btcHashRate.change > 0 ? 'positive' : 'negative'}`}>
-              {pulseData.btcHashRate.change > 0 ? <FaArrowUp /> : <FaArrowDown />}
+            <div className={`flex items-center text-sm mt-1 mb-3 ${pulseData.btcHashRate.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {pulseData.btcHashRate.change > 0 ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
               {Math.abs(pulseData.btcHashRate.change)}%
             </div>
-            <div className="pulse-chart">
+            <div className="h-12 w-full">
               {renderMiniChart(pulseData.btcHashRate.chartData, '#9c27b0', pulseData.btcHashRate.change > 0)}
             </div>
           </motion.div>
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

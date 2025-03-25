@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaInfoCircle, FaEye } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const DashBoardData = () => {
-  // Example data - this would typically come from an API or context
+  // Example data - this would typically come from Redux
   const data = [
     {
       id: "TRX123456",
@@ -43,34 +44,47 @@ const DashBoardData = () => {
     visible: { opacity: 1, y: 0 }
   };
 
+  // Status badge styles
+  const statusClasses = {
+    Completed: "bg-green-500/20 text-green-400",
+    Pending: "bg-yellow-500/20 text-yellow-400",
+    Failed: "bg-red-500/20 text-red-400"
+  };
+
   return (
     <motion.div 
-      className="dashboard-card"
+      className="bg-gray-800 rounded-lg shadow-lg overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="card-header">
-        <h2 className="card-title">Recent Transactions</h2>
-        <button className="view-all-btn">View All</button>
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold text-white">Recent Transactions</h2>
+        <Link 
+          to="/login/deposittransaction" 
+          className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+        >
+          View All
+        </Link>
       </div>
       
-      <div className="card-body">
+      <div className="p-6">
         {data.length > 0 ? (
-          <div className="table-responsive">
+          <div className="overflow-x-auto">
             <motion.table 
-              className="transaction-table"
+              className="w-full"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
             >
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Status</th>
+              <thead className="text-left">
+                <tr className="border-b border-gray-700">
+                  <th className="pb-3 px-2 text-sm font-medium text-gray-400">Transaction ID</th>
+                  <th className="pb-3 px-2 text-sm font-medium text-gray-400">Date</th>
+                  <th className="pb-3 px-2 text-sm font-medium text-gray-400">Type</th>
+                  <th className="pb-3 px-2 text-sm font-medium text-gray-400">Amount</th>
+                  <th className="pb-3 px-2 text-sm font-medium text-gray-400">Status</th>
+                  <th className="pb-3 px-2 text-sm font-medium text-gray-400">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,16 +92,21 @@ const DashBoardData = () => {
                   <motion.tr 
                     key={transaction.id}
                     variants={itemVariants}
-                    whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+                    className="hover:bg-gray-700/30 transition-colors"
                   >
-                    <td>{transaction.id}</td>
-                    <td>{new Date(transaction.date).toLocaleDateString()}</td>
-                    <td>{transaction.type}</td>
-                    <td className="transaction-amount">${transaction.amount}</td>
-                    <td>
-                      <span className={`transaction-status status-${transaction.status.toLowerCase()}`}>
+                    <td className="py-3 px-2 text-gray-300">{transaction.id}</td>
+                    <td className="py-3 px-2 text-gray-300">{new Date(transaction.date).toLocaleDateString()}</td>
+                    <td className="py-3 px-2 text-gray-300">{transaction.type}</td>
+                    <td className="py-3 px-2 font-medium text-white">${transaction.amount}</td>
+                    <td className="py-3 px-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClasses[transaction.status]}`}>
                         {transaction.status}
                       </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      <button className="p-2 text-gray-400 hover:text-primary-500 transition-colors rounded-full hover:bg-gray-700">
+                        <FaEye size={16} />
+                      </button>
                     </td>
                   </motion.tr>
                 ))}
@@ -95,10 +114,10 @@ const DashBoardData = () => {
             </motion.table>
           </div>
         ) : (
-          <div className="empty-state">
-            <FaInfoCircle className="empty-state-icon" />
-            <h3>No transactions yet</h3>
-            <p>When you make transactions, they will appear here</p>
+          <div className="flex flex-col items-center justify-center py-10">
+            <FaInfoCircle className="text-4xl text-gray-600 mb-3" />
+            <h3 className="text-lg font-medium text-gray-300 mb-2">No transactions yet</h3>
+            <p className="text-gray-400 text-center">When you make transactions, they will appear here</p>
           </div>
         )}
       </div>

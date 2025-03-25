@@ -2,11 +2,11 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import "/src/css/index.css"
-import "/src/css/dashboard.css";
-import "/src/css/dashboardMobile.css";
 import { BrowserRouter } from "react-router-dom";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { Provider } from 'react-redux';
+import store from './redux/store';
 
 // AOS animation library
 AOS.init({
@@ -18,7 +18,9 @@ AOS.init({
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <React.StrictMode>
-      <App />
+      <Provider store={store}>
+        <App />
+      </Provider>
     </React.StrictMode>
   </BrowserRouter>
 );

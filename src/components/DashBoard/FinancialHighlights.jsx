@@ -44,25 +44,27 @@ const FinancialHighlights = () => {
 
   return (
     <motion.div 
-      className="dashboard-card"
+      className="bg-gray-800 rounded-lg shadow-lg overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="card-header">
-        <h2 className="card-title">Financial Highlights</h2>
-        <Link to="/login/investmentplans" className="view-all-btn">
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold text-white flex items-center">
+          <FaChartPie className="mr-2 text-primary-500" /> Financial Highlights
+        </h2>
+        <Link to="/login/investmentplans" className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
           View Investment Plans
         </Link>
       </div>
       
-      <div className="card-body">
+      <div className="p-6">
         {portfolioData.totalInvestment > 0 ? (
-          <div className="portfolio-container">
-            <div className="portfolio-chart-container">
-              <h3>Portfolio Allocation</h3>
-              <div className="portfolio-chart">
-                <svg viewBox="0 0 100 100" className="pie-chart">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-gray-900 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-white mb-4">Portfolio Allocation</h3>
+              <div className="relative w-48 h-48 mx-auto">
+                <svg viewBox="0 0 100 100" className="w-full h-full">
                   {portfolioData.allocation.reduce((acc, item, i) => {
                     const startAngle = acc.angle;
                     const angle = (item.percentage / 100) * 360;
@@ -93,8 +95,8 @@ const FinancialHighlights = () => {
                         key={i}
                         d={pathData}
                         fill={item.color}
-                        stroke="#fff"
-                        strokeWidth="0.5"
+                        stroke="#1f2937"
+                        strokeWidth="1"
                       />
                     );
                     
@@ -107,35 +109,82 @@ const FinancialHighlights = () => {
               </div>
             </div>
             
-            <div className="portfolio-breakdown">
-              <h3>Asset Breakdown</h3>
-              {portfolioData.allocation.map((item, index) => (
-                <div className="portfolio-item" key={index}>
-                  <div className="portfolio-item-name">
-                    <div 
-                      className="portfolio-item-icon" 
-                      style={{ backgroundColor: item.color }}
-                    ></div>
-                    {item.name}
-                  </div>
-                  <div>
-                    <div className="portfolio-item-value">{formatCurrency((item.percentage / 100) * portfolioData.currentValue)}</div>
-                    <div className="portfolio-item-percentage">{item.percentage}%</div>
-                  </div>
+            <div className="bg-gray-900 rounded-lg p-6">
+              <h3 className="text-lg font-medium text-white mb-4">Asset Breakdown</h3>
+              <motion.div
+                className="space-y-3"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {portfolioData.allocation.map((item, index) => (
+                  <motion.div 
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg"
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: item.color }}></div>
+                      <span className="text-gray-200">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-gray-200 font-medium">
+                        {formatCurrency((item.percentage / 100) * portfolioData.currentValue)}
+                      </div>
+                      <div className="text-xs text-gray-400">{item.percentage}%</div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+            
+            <div className="lg:col-span-2 bg-gray-900 rounded-lg p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Total Investment</h4>
+                  <p className="text-xl font-bold text-white">{formatCurrency(portfolioData.totalInvestment)}</p>
                 </div>
-              ))}
+                
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Current Value</h4>
+                  <p className="text-xl font-bold text-white">{formatCurrency(portfolioData.currentValue)}</p>
+                </div>
+                
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Total Profit</h4>
+                  <p className={`text-xl font-bold ${portfolioData.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatCurrency(portfolioData.totalProfit)}
+                  </p>
+                </div>
+                
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Profit %</h4>
+                  <p className={`text-xl font-bold flex items-center justify-center ${portfolioData.profitPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {portfolioData.profitPercentage >= 0 ? 
+                      <FaArrowUp className="mr-1" /> : 
+                      <FaArrowDown className="mr-1" />
+                    }
+                    {Math.abs(portfolioData.profitPercentage).toFixed(2)}%
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="empty-portfolio">
-            <div className="empty-state">
-              <FaChartPie className="empty-state-icon" />
-              <h3>No active investments</h3>
-              <p>Start your investment journey by exploring our investment plans</p>
-              <Link to="/login/investmentplans" className="form-btn">
-                Explore Investment Plans
-              </Link>
+          <div className="bg-gray-900 rounded-lg py-12 px-6 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-800 flex items-center justify-center text-gray-500">
+              <FaChartPie size={24} />
             </div>
+            <h3 className="text-xl font-medium text-gray-200 mb-2">No active investments</h3>
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
+              Start your investment journey by exploring our investment plans. Diversify your portfolio and grow your wealth with us.
+            </p>
+            <Link 
+              to="/login/investmentplans" 
+              className="inline-flex items-center justify-center px-5 py-3 font-medium rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
+            >
+              Explore Investment Plans
+            </Link>
           </div>
         )}
       </div>
