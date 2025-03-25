@@ -24,7 +24,7 @@
     "react-router": "^6.20.0",
     "react-router-dom": "^6.20.0",
     "tradingview-widget": "^0.0.1",
-    "vite": "^6.2.1"
+    "vite": "^6.2.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
