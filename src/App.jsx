@@ -21,6 +21,8 @@ const WithdrawTransaction = lazy(() => import("./components/DashBoard/WithdrawTr
 const AccountSettings = lazy(() => import("./components/DashBoard/AccountSettings"));
 const InvestmentPlans = lazy(() => import("./components/DashBoard/InvestmentPlans"));
 const TradingDashboard = lazy(() => import("./components/DashBoard/TradingDashboard"));
+const ReferralProgram = lazy(() => import("./components/DashBoard/ReferralProgram"));
+const EducationCenter = lazy(() => import("./components/DashBoard/EducationCenter"));
 
 // Error page
 const ErrorPage = lazy(() => import("./components/ErrorPage"));
@@ -78,6 +80,16 @@ function App() {
             <Route path="/login/trading" element={
               <ProtectedRoute>
                 <TradingDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/login/referral" element={
+              <ProtectedRoute>
+                <ReferralProgram />
+              </ProtectedRoute>
+            } />
+            <Route path="/login/education" element={
+              <ProtectedRoute>
+                <EducationCenter />
               </ProtectedRoute>
             } />
 

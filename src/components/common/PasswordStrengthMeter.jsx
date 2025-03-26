@@ -1,89 +1,97 @@
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
 
-const PasswordStrengthMeter = ({ password }) => {
-  const [strength, setStrength] = useState(0);
-  const [label, setLabel] = useState('');
-  
+const PasswordStrengthMeter = ({ password, onScoreChange }) => {
+  const [score, setScore] = useState(0);
+
   useEffect(() => {
-    calculateStrength(password);
-  }, [password]);
-  
-  const calculateStrength = (password) => {
-    // Start with a base score
-    let score = 0;
+    // Basic password strength calculation
+    let currentScore = 0;
     
-    // If password is empty, return score of 0
-    if (!password) {
-      setStrength(0);
-      setLabel('');
-      return;
+    // Length check
+    if (password.length >= 8) {
+      currentScore += 1;
     }
     
-    // Award points based on complexity
+    // Uppercase letters check
+    if (/[A-Z]/.test(password)) {
+      currentScore += 1;
+    }
     
-    // Length
-    if (password.length >= 8) score += 1;
-    if (password.length >= 12) score += 1;
+    // Lowercase letters check
+    if (/[a-z]/.test(password)) {
+      currentScore += 1;
+    }
     
-    // Contains uppercase
-    if (/[A-Z]/.test(password)) score += 1;
+    // Numbers check
+    if (/[0-9]/.test(password)) {
+      currentScore += 1;
+    }
     
-    // Contains lowercase
-    if (/[a-z]/.test(password)) score += 1;
+    // Special characters check
+    if (/[^A-Za-z0-9]/.test(password)) {
+      currentScore += 1;
+    }
+
+    setScore(currentScore);
     
-    // Contains numbers
-    if (/\d/.test(password)) score += 1;
+    // Notify parent component of score change
+    if (onScoreChange) {
+      onScoreChange(currentScore);
+    }
+  }, [password, onScoreChange]);
+
+  // Get color and label based on score
+  const getStrengthInfo = () => {
+    if (password.length === 0) {
+      return { color: 'bg-gray-600', label: '', width: '0%' };
+    }
     
-    // Contains special characters
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-    
-    // Set strength label based on score
-    let strengthLabel = '';
-    if (score <= 2) {
-      strengthLabel = 'Weak';
-    } else if (score <= 4) {
-      strengthLabel = 'Moderate';
+    if (score < 2) {
+      return { color: 'bg-red-500', label: 'Weak', width: '20%' };
+    } else if (score < 3) {
+      return { color: 'bg-orange-500', label: 'Fair', width: '40%' };
+    } else if (score < 4) {
+      return { color: 'bg-yellow-500', label: 'Good', width: '60%' };
+    } else if (score < 5) {
+      return { color: 'bg-green-500', label: 'Strong', width: '80%' };
     } else {
-      strengthLabel = 'Strong';
+      return { color: 'bg-primary-500', label: 'Excellent', width: '100%' };
     }
-    
-    // Normalize score to 0-100 range
-    const normalizedScore = Math.min(100, Math.round((score / 6) * 100));
-    
-    setStrength(normalizedScore);
-    setLabel(strengthLabel);
   };
-  
-  // Get color based on strength
-  const getColor = () => {
-    if (strength < 33) return '#ff4b5c'; // Red for weak
-    if (strength < 66) return '#ff9800'; // Orange/amber for moderate
-    return '#4caf50'; // Green for strong
-  };
-  
-  if (!password) return null;
-  
+
+  const { color, label, width } = getStrengthInfo();
+
   return (
-    <div className="password-strength-meter">
-      <div className="strength-bar-container">
+    <div className="mt-2">
+      <div className="h-1 w-full bg-gray-700 rounded overflow-hidden">
         <div 
-          className="strength-bar" 
-          style={{ 
-            width: `${strength}%`,
-            backgroundColor: getColor()
-          }}
+          className={`h-full ${color} transition-all duration-300`} 
+          style={{ width }}
         ></div>
       </div>
-      <div className="strength-text" style={{ color: getColor() }}>
-        {label}
-      </div>
+      
+      {password.length > 0 && (
+        <div className="flex justify-between items-center mt-1">
+          <p className="text-xs text-gray-400">Password strength</p>
+          <p className={`text-xs font-medium ${
+            score < 2 ? 'text-red-400' : 
+            score < 3 ? 'text-orange-400' : 
+            score < 4 ? 'text-yellow-400' : 
+            score < 5 ? 'text-green-400' : 
+            'text-primary-400'
+          }`}>
+            {label}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
 
 PasswordStrengthMeter.propTypes = {
-  password: PropTypes.string.isRequired
+  password: PropTypes.string.isRequired,
+  onScoreChange: PropTypes.func
 };
 
 export default PasswordStrengthMeter;

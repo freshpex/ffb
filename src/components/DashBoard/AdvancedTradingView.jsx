@@ -10,7 +10,7 @@ const AdvancedTradingView = () => {
   const containerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [symbol, setSymbol] = useState('BTCUSDT');
-  const [timeframe, setTimeframe] = useState('60'); // Default to 1h
+  const [timeframe, setTimeframe] = useState('60');
   const [chartType, setChartType] = useState('candlestick');
   const [showDepthChart, setShowDepthChart] = useState(false);
   const [showOrderbook, setShowOrderbook] = useState(false);

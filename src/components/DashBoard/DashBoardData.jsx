@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { FaInfoCircle, FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { AiOutlineDashboard, AiOutlineCloudUpload, AiOutlineCloudDownload, 
+  AiOutlineLineChart, AiOutlineDollar, AiOutlineUserAdd, AiOutlineBook, 
+  AiOutlineSetting, AiOutlineBell, AiOutlineLogout, AiOutlineGift, 
+  AiOutlineQuestionCircle, AiOutlineProfile, AiOutlineLock } from "react-icons/ai";
+import { FaGraduationCap, FaChartLine, FaUsers, FaMoneyBillWave } from "react-icons/fa";
 
 const DashBoardData = () => {
   // Example data - this would typically come from Redux
@@ -124,5 +129,140 @@ const DashBoardData = () => {
     </motion.div>
   );
 };
+
+export const LINKS = [
+  {
+    id: 1,
+    title: 'Dashboard',
+    path: '/login/home',
+    icon: <AiOutlineDashboard />,
+  },
+  {
+    id: 2,
+    title: 'Deposit',
+    path: '/login/deposit',
+    icon: <AiOutlineCloudUpload />,
+  },
+  {
+    id: 3,
+    title: 'Withdraw',
+    path: '/login/withdraw',
+    icon: <AiOutlineCloudDownload />,
+  },
+  {
+    id: 4,
+    title: 'Trading Platform',
+    path: '/login/trading',
+    icon: <FaChartLine />,
+  },
+  {
+    id: 5,
+    title: 'Investment Plans',
+    path: '/login/investments',
+    icon: <FaMoneyBillWave />,
+  },
+  {
+    id: 6,
+    title: 'Referral Program',
+    path: '/login/referral',
+    icon: <FaUsers />,
+  },
+  {
+    id: 7,
+    title: 'Education Center',
+    path: '/login/education',
+    icon: <FaGraduationCap />,
+  },
+  {
+    id: 8,
+    title: 'Account Settings',
+    path: '/login/settings',
+    icon: <AiOutlineSetting />,
+  },
+  {
+    id: 9,
+    title: 'Logout',
+    path: '/login/logout',
+    icon: <AiOutlineLogout />,
+  },
+];
+
+export const dashBoardCards = [
+  {
+    id: 1,
+    title: "Total Balance",
+    icon: <AiOutlineDollar />,
+    isMoney: true,
+    value: 24500,
+    color1: "#EBFAF4",
+    color2: "#42C086",
+  },
+  {
+    id: 2,
+    title: "Total Profit/Loss",
+    icon: <AiOutlineLineChart />,
+    isMoney: true,
+    value: 3750,
+    color1: "#EBF3FA",
+    color2: "#4299C0",
+  },
+  {
+    id: 3,
+    title: "Active Investments",
+    icon: <AiOutlineDollar />,
+    isMoney: false,
+    value: 2,
+    color1: "#F8EBFA",
+    color2: "#B042C0",
+  },
+  {
+    id: 4,
+    title: "Referral Bonus",
+    icon: <AiOutlineUserAdd />,
+    isMoney: true,
+    value: 2100,
+    color1: "#FAF8EB",
+    color2: "#C0AD42",
+  },
+];
+
+export const dropdownLinks = [
+  {
+    id: 1,
+    title: "My Profile",
+    icon: <AiOutlineProfile />,
+    path: "/login/settings",
+  },
+  {
+    id: 2,
+    title: "Security Settings",
+    icon: <AiOutlineLock />,
+    path: "/login/settings/security",
+  },
+  {
+    id: 3,
+    title: "Notifications",
+    icon: <AiOutlineBell />,
+    path: "/login/notifications",
+  },
+  {
+    id: 4,
+    title: "Referral Program",
+    icon: <AiOutlineGift />,
+    path: "/login/referral",
+  },
+  {
+    id: 5,
+    title: "Help & Support",
+    icon: <AiOutlineQuestionCircle />,
+    path: "/login/support",
+  },
+  {
+    id: 6,
+    title: "Logout",
+    icon: <AiOutlineLogout />,
+    path: "/login/logout",
+  },
+];
 
 export default DashBoardData;

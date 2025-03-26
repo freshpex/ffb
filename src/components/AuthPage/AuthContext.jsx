@@ -315,7 +315,7 @@ export function AuthContextProvider({ children }) {
     logout,
     resetPassword,
     refreshUserData,
-    getUserProfile, // Add this function to the context value
+    getUserProfile,
     isAdmin,
   };
 
@@ -326,6 +326,6 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-export const UserAuth = useAuth;
+export const AuthProvider = AuthContextProvider;
 
 export default AuthContext;

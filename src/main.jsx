@@ -1,26 +1,21 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import "/src/css/index.css"
-import { BrowserRouter } from "react-router-dom";
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import App from './App';
 import store from './redux/store';
+import { AuthContextProvider } from './components/AuthPage/AuthContext';
+import './css/index.css';
+import './css/tailwind.css';
 
-// AOS animation library
-AOS.init({
-  duration: 800,
-  easing: 'ease-in-out',
-  once: false,
-});
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <React.StrictMode>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </React.StrictMode>
-  </BrowserRouter>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <BrowserRouter>
+        <AuthContextProvider>
+          <App />
+        </AuthContextProvider>
+      </BrowserRouter>
+    </Provider>
+  </React.StrictMode>
 );
