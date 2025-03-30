@@ -7,14 +7,12 @@ import {
   FaBitcoin, 
   FaEthereum, 
   FaUniversity,
-  FaExclamationCircle,
   FaInfoCircle,
   FaArrowRight,
   FaCheckCircle
 } from "react-icons/fa";
 import DashboardLayout from "./DashboardLayout";
 import FormInput from "../common/FormInput";
-import FormSelect from "../common/FormSelect";
 import Button from "../common/Button";
 import Alert from "../common/Alert";
 import { 
@@ -24,7 +22,7 @@ import {
   selectWithdrawalError,
   selectPendingWithdrawal
 } from "../../redux/slices/withdrawalSlice";
-import { selectUserPaymentMethods } from "../../redux/slices/userSlice";
+import { selectPaymentMethods } from "../../redux/slices/userSlice";
 
 const Withdraw = () => {
   const dispatch = useDispatch();
@@ -33,11 +31,8 @@ const Withdraw = () => {
   // Redux state
   const withdrawalLimits = useSelector(selectWithdrawalLimits);
   const withdrawalStatus = useSelector(selectWithdrawalStatus);
-  const withdrawalError = useSelector(selectWithdrawalError);
   const pendingWithdrawal = useSelector(selectPendingWithdrawal);
-  const savedPaymentMethods = useSelector(selectUserPaymentMethods);
-  
-  // Local state
+  const savedPaymentMethods = useSelector(selectPaymentMethods);
   const [formData, setFormData] = useState({
     amount: "",
     method: "",
@@ -129,7 +124,7 @@ const Withdraw = () => {
     if (!validateForm()) return;
     
     try {
-      await dispatch(submitWithdrawal({
+      dispatch(submitWithdrawal({
         amount: formData.amount,
         method: formData.method,
         address: formData.address,
@@ -140,7 +135,7 @@ const Withdraw = () => {
     } catch (error) {
       setAlert({
         type: "error",
-        message: error.message || "Failed to process withdrawal"
+        message: "Failed to submit withdrawal request. Please try again."
       });
     }
   };
@@ -308,7 +303,9 @@ const Withdraw = () => {
                         <div>
                           <p className="text-white font-medium capitalize">{method.type}</p>
                           <p className="text-gray-400 text-sm truncate">
-                            {method.address.substring(0, 8)}...{method.address.substring(method.address.length - 8)}
+                            {method.address 
+                              ? `${method.address.substring(0, 8)}...${method.address.substring(method.address.length - 8)}`
+                              : 'No address provided'}
                           </p>
                         </div>
                       </div>

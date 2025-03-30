@@ -1,22 +1,26 @@
-import { Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import Loader from "../Loader";
+import Loader from "../common/Loader";
 
-const ProtectedRoute = ({ children, adminRequired = false }) => {
-  const { user, userData, loading } = useAuth();
+const ProtectedRoute = ({ children }) => {
+  const { token, loading } = useAuth();
+  const location = useLocation();
+  const [showLoader, setShowLoader] = useState(true);
   
+  console.log("Authentication state:", { token, loading, showLoader });
+
   if (loading) {
-    return <Loader />;
+    return <Loader text="Authenticating..." />;
   }
 
-  if (!user) {
-    return <Navigate to="/login" />;
+  // Only check for token existence
+  if (!token) {
+    console.log("Access denied - no token found - redirecting to login");
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (adminRequired && userData && userData.role !== 'admin' && userData.role !== 'superadmin') {
-    return <Navigate to="/login/dashboardpage" />;
-  }
-
+  console.log("Access granted to protected route");
   return children;
 };
 

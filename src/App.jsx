@@ -23,6 +23,8 @@ const InvestmentPlans = lazy(() => import("./components/DashBoard/InvestmentPlan
 const TradingDashboard = lazy(() => import("./components/DashBoard/TradingDashboard"));
 const ReferralProgram = lazy(() => import("./components/DashBoard/ReferralProgram"));
 const EducationCenter = lazy(() => import("./components/DashBoard/EducationCenter"));
+const ATMCardsPage = lazy(() => import("./components/DashBoard/ATMCards/ATMCardsPage"));
+const CardDetailsPage = lazy(() => import("./components/DashBoard/ATMCards/CardDetailsPage"));
 
 // Error page
 const ErrorPage = lazy(() => import("./components/ErrorPage"));
@@ -41,7 +43,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
 
-            {/* Protected Dashboard routes */}
+            {/* Protected Dashboard routes*/}
             <Route path="/login/dashboardpage" element={
               <ProtectedRoute>
                 <DashBoardPage />
@@ -90,6 +92,16 @@ function App() {
             <Route path="/login/education" element={
               <ProtectedRoute>
                 <EducationCenter />
+              </ProtectedRoute>
+            } />
+            <Route path="/login/cards" element={
+              <ProtectedRoute>
+                <ATMCardsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/login/cards/:cardId" element={
+              <ProtectedRoute>
+                <CardDetailsPage />
               </ProtectedRoute>
             } />
 

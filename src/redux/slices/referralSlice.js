@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import mockApiService from '../../services/mockApiService';
 
 // Mock referral data
 const mockReferrals = [
@@ -80,7 +81,70 @@ const initialState = {
     conversionRate: 75 // percentage
   },
   status: 'idle',
-  error: null
+  error: null,
+
+  // Add commission data to the state
+  commissions: [
+    {
+      id: 'comm_1',
+      referralId: 'ref_1',
+      referralName: 'John Smith',
+      type: 'deposit',
+      amount: 1000.00,
+      commission: 50.00,
+      status: 'paid',
+      date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'comm_2',
+      referralId: 'ref_2',
+      referralName: 'Jane Doe',
+      type: 'trade',
+      amount: 5000.00,
+      commission: 25.00,
+      status: 'paid',
+      date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'comm_3',
+      referralId: 'ref_1',
+      referralName: 'John Smith',
+      type: 'deposit',
+      amount: 2000.00,
+      commission: 100.00,
+      status: 'pending',
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'comm_4',
+      referralId: 'ref_3',
+      referralName: 'Michael Brown',
+      type: 'trade',
+      amount: 10000.00,
+      commission: 50.00,
+      status: 'processing',
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'comm_5',
+      referralId: 'ref_4',
+      referralName: 'Emily Wilson',
+      type: 'deposit',
+      amount: 3000.00,
+      commission: 150.00,
+      status: 'pending',
+      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ],
+
+  // Update the stats to include commission information
+  stats: {
+    totalEarnings: 375.00,
+    paidCommissions: 75.00,
+    pendingCommissions: 250.00,
+    processingCommissions: 50.00,
+    commissionRate: 5,
+  }
 };
 
 const referralSlice = createSlice({
@@ -212,5 +276,6 @@ export const selectReferralCode = state => state.referral?.referralCode || '';
 export const selectReferralStatistics = state => state.referral?.statistics || initialState.statistics;
 export const selectReferralStatus = state => state.referral?.status || 'idle';
 export const selectReferralError = state => state.referral?.error;
+export const selectReferralCommissions = (state) => state.referral?.commissions || [];
 
 export default referralSlice.reducer;

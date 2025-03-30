@@ -1,63 +1,62 @@
-import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
-import PropTypes from "prop-types";
-import { FaTimes, FaInfoCircle, FaMoneyBillWave, FaChartLine, FaCalendarAlt } from "react-icons/fa";
-import Button from "../common/Button";
-import Alert from "../common/Alert";
-import { makeInvestment, selectInvestmentStatus } from "../../redux/slices/investmentSlice";
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import PropTypes from 'prop-types';
+import { 
+  makeInvestment, 
+  updateInvestmentForm, 
+  selectInvestmentForm, 
+  selectInvestmentStatus 
+} from '../../redux/slices/investmentSlice';
+import { 
+  FaTimes, 
+  FaInfoCircle, 
+  FaMoneyBillWave, 
+  FaPercent, 
+  FaCalendarAlt, 
+  FaArrowRight,
+  FaExclamationCircle 
+} from 'react-icons/fa';
+import Loader from '../common/Loader';
 
-const InvestmentModal = ({ isOpen, onClose, plan }) => {
+const InvestmentModal = ({ plan, onClose, userBalance }) => {
   const dispatch = useDispatch();
-  const investmentStatus = useSelector(selectInvestmentStatus);
-  
-  const [amount, setAmount] = useState("");
-  const [error, setError] = useState("");
-  
-  // Reset form when plan changes
-  useEffect(() => {
-    if (plan) {
-      setAmount(plan.minAmount.toString());
-      setError("");
-    }
-  }, [plan]);
-  
-  if (!plan) return null;
-  
-  // Format currency
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
-  };
+  const form = useSelector(selectInvestmentForm);
+  const status = useSelector(selectInvestmentStatus);
+  const [errors, setErrors] = useState({});
   
   const handleAmountChange = (e) => {
-    setAmount(e.target.value);
-    setError("");
+    const value = e.target.value;
+    if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+      dispatch(updateInvestmentForm({ amount: value }));
+      
+      // Clear errors when user types
+      if (errors.amount) {
+        setErrors({ ...errors, amount: null });
+      }
+    }
   };
   
   const validateForm = () => {
-    const numAmount = parseFloat(amount);
+    const newErrors = {};
+    const amount = parseFloat(form.amount);
     
-    if (!amount || isNaN(numAmount)) {
-      setError("Please enter a valid amount");
-      return false;
+    if (!form.amount || isNaN(amount) || amount <= 0) {
+      newErrors.amount = 'Please enter a valid amount';
+    } else if (amount < plan.minAmount) {
+      newErrors.amount = `Minimum investment is $${plan.minAmount.toLocaleString()}`;
+    } else if (plan.maxAmount && amount > plan.maxAmount) {
+      newErrors.amount = `Maximum investment is $${plan.maxAmount.toLocaleString()}`;
+    } else if (amount > userBalance) {
+      newErrors.amount = 'Amount exceeds your available balance';
     }
     
-    if (numAmount < plan.minAmount) {
-      setError(`Minimum investment amount is ${formatCurrency(plan.minAmount)}`);
-      return false;
-    }
-    
-    if (plan.maxAmount && numAmount > plan.maxAmount) {
-      setError(`Maximum investment amount is ${formatCurrency(plan.maxAmount)}`);
-      return false;
-    }
-    
-    return true;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  const calculateReturns = () => {
+    const amount = parseFloat(form.amount) || 0;
+    return (amount * plan.roi / 100).toFixed(2);
   };
   
   const handleSubmit = async (e) => {
@@ -66,40 +65,25 @@ const InvestmentModal = ({ isOpen, onClose, plan }) => {
     if (!validateForm()) return;
     
     try {
-      await dispatch(makeInvestment(plan.id, amount));
-      // The success will be handled by a modal shown from parent component
-    } catch (err) {
-      setError(err.message || 'Failed to process investment');
+      await dispatch(makeInvestment({
+        planId: plan.id,
+        amount: form.amount
+      }));
+      
+      onClose();
+    } catch (error) {
+      console.error('Investment failed:', error);
     }
   };
   
-  // Calculate expected return
-  const calculateReturn = () => {
-    const investmentAmount = parseFloat(amount) || 0;
-    const expectedReturn = investmentAmount * (plan.roi / 100);
-    return expectedReturn;
-  };
-  
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div 
-            className="bg-gray-800 rounded-lg w-full max-w-lg overflow-hidden"
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
-              <h3 className="text-xl font-semibold text-white">Invest in {plan.name}</h3>
-              <button
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-75 flex items-center justify-center p-4">
+      <div className="relative w-full max-w-lg mx-auto">
+        <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-100">Invest in {plan.name}</h2>
+              <button 
                 onClick={onClose}
                 className="text-gray-400 hover:text-white transition-colors"
               >
@@ -107,139 +91,157 @@ const InvestmentModal = ({ isOpen, onClose, plan }) => {
               </button>
             </div>
             
-            <div className="p-6">
-              {error && (
-                <Alert 
-                  type="error" 
-                  message={error}
-                  onDismiss={() => setError("")}
-                  className="mb-4"
-                />
-              )}
-              
-              <div className="mb-6">
-                <div className="flex items-start mb-4">
-                  <FaInfoCircle className="text-primary-500 mt-1 mr-3 flex-shrink-0" />
-                  <p className="text-gray-300 text-sm">
-                    You are about to invest in our {plan.name}. Please specify the amount you wish to invest
-                    and review the details below before confirming.
+            <div className="mb-6">
+              <div className="bg-gray-700/30 p-4 rounded-lg">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-gray-400 text-xs mb-1 flex items-center">
+                      <FaPercent className="mr-1" size={10} />
+                      RETURN
+                    </p>
+                    <p className="text-primary-500 font-bold">{plan.roi}%</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-xs mb-1 flex items-center">
+                      <FaCalendarAlt className="mr-1" size={10} />
+                      DURATION
+                    </p>
+                    <p className="text-gray-200 font-bold">{plan.duration} Days</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-xs mb-1 flex items-center">
+                      <FaMoneyBillWave className="mr-1" size={10} />
+                      MIN AMOUNT
+                    </p>
+                    <p className="text-gray-200 font-bold">${plan.minAmount}</p>
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <p className="text-gray-400 text-xs mb-1 flex items-center">
+                    <FaInfoCircle className="mr-1" size={10} />
+                    DESCRIPTION
                   </p>
+                  <p className="text-gray-200 text-sm">{plan.description}</p>
                 </div>
-                
-                <div className="bg-gray-900 rounded-lg p-4 mb-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex items-center">
-                      <FaChartLine className="text-green-500 mr-3" />
-                      <div>
-                        <p className="text-xs text-gray-400">ROI</p>
-                        <p className="text-white font-medium">{plan.roi}%</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <FaCalendarAlt className="text-blue-500 mr-3" />
-                      <div>
-                        <p className="text-xs text-gray-400">Duration</p>
-                        <p className="text-white font-medium">{plan.duration} days</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <FaMoneyBillWave className="text-amber-500 mr-3" />
-                      <div>
-                        <p className="text-xs text-gray-400">Min Investment</p>
-                        <p className="text-white font-medium">{formatCurrency(plan.minAmount)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <FaMoneyBillWave className="text-amber-500 mr-3" />
-                      <div>
-                        <p className="text-xs text-gray-400">Max Investment</p>
-                        <p className="text-white font-medium">
-                          {plan.maxAmount ? formatCurrency(plan.maxAmount) : 'Unlimited'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Investment Amount ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={handleAmountChange}
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white"
-                      placeholder="Enter amount to invest"
-                      min={plan.minAmount}
-                      max={plan.maxAmount || undefined}
-                      step="100"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="bg-gray-900 rounded-lg p-4 mb-6">
-                    <h4 className="text-white font-medium mb-3">Investment Summary</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Investment Amount:</span>
-                        <span className="text-white font-medium">
-                          {amount ? formatCurrency(parseFloat(amount)) : '$0.00'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Expected Return (ROI):</span>
-                        <span className="text-green-400 font-medium">
-                          {formatCurrency(calculateReturn())}
-                        </span>
-                      </div>
-                      <div className="flex justify-between pt-2 border-t border-gray-700">
-                        <span className="text-gray-400">Total at maturity:</span>
-                        <span className="text-white font-medium">
-                          {amount ? formatCurrency(parseFloat(amount) + calculateReturn()) : '$0.00'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end space-x-3">
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      onClick={onClose}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit"
-                      isLoading={investmentStatus === 'loading'}
-                      disabled={investmentStatus === 'loading'}
-                    >
-                      Confirm Investment
-                    </Button>
-                  </div>
-                </form>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            
+            <form onSubmit={handleSubmit}>
+              <div className="mb-6">
+                <label htmlFor="amount" className="block text-gray-300 text-sm font-medium mb-2">
+                  Investment Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    id="amount"
+                    className={`block w-full pl-8 pr-12 py-3 bg-gray-700 border ${
+                      errors.amount ? 'border-red-500' : 'border-gray-600'
+                    } rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500`}
+                    placeholder="0.00"
+                    value={form.amount}
+                    onChange={handleAmountChange}
+                    disabled={status === 'loading'}
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <button
+                      type="button"
+                      className="text-primary-500 hover:text-primary-400 text-xs font-bold"
+                      onClick={() => dispatch(updateInvestmentForm({ amount: userBalance.toFixed(2) }))}
+                    >
+                      MAX
+                    </button>
+                  </div>
+                </div>
+                {errors.amount && (
+                  <p className="mt-1 text-sm text-red-500">{errors.amount}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-400">
+                  Available balance: ${userBalance.toLocaleString()}
+                </p>
+              </div>
+              
+              <div className="bg-gray-700/30 p-4 rounded-lg mb-6">
+                <div className="flex justify-between text-gray-300">
+                  <span>Investment Amount:</span>
+                  <span className="font-medium">${parseFloat(form.amount || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-gray-300 mt-2">
+                  <span>Expected Return:</span>
+                  <span className="font-medium text-green-500">+${calculateReturns()}</span>
+                </div>
+                <div className="flex justify-between text-gray-300 mt-2">
+                  <span>Duration:</span>
+                  <span className="font-medium">{plan.duration} days</span>
+                </div>
+                <div className="flex justify-between text-gray-300 mt-2">
+                  <span>Maturity Date:</span>
+                  <span className="font-medium">
+                    {new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg mb-6 text-sm text-gray-300">
+                <div className="flex">
+                  <FaInfoCircle className="text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p>
+                      By investing, you agree to the terms and conditions of this investment plan. 
+                      Early withdrawals may be subject to fees or reduced returns.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="mr-4 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600"
+                  disabled={status === 'loading'}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center"
+                  disabled={status === 'loading' || !form.amount || parseFloat(form.amount) <= 0}
+                >
+                  {status === 'loading' ? (
+                    <Loader size="sm" className="mr-2" />
+                  ) : (
+                    <>
+                      <span>Confirm Investment</span>
+                      <FaArrowRight className="ml-2" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
 InvestmentModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
   plan: PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
     minAmount: PropTypes.number.isRequired,
     maxAmount: PropTypes.number,
     roi: PropTypes.number.isRequired,
-    duration: PropTypes.number.isRequired,
-  })
+    duration: PropTypes.number.isRequired
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
+  userBalance: PropTypes.number.isRequired
 };
 
 export default InvestmentModal;

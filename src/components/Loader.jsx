@@ -1,22 +1,10 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 
-const Loader = () => {
+const Loader = memo(() => {
   return (
     <div className="loader">
-      <motion.div
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{
-          duration: 1,
-          ease: [0, 0.71, 0.2, 1.01],
-          scale: {
-            type: "spring",
-            damping: 10,
-            stiffness: 100,
-            restDelta: 0.001
-          }
-        }}
-      >
+      <div>
         <motion.svg 
           xmlns="http://www.w3.org/2000/svg" 
           fill="#f9a231" 
@@ -25,29 +13,31 @@ const Loader = () => {
           viewBox="0 0 512 512"
           animate={{
             rotate: [0, 0, 0, 0, 0],
-            scale: [1, 1.2, 1.2, 1, 1],
+            scale: [1, 1.1, 1.1, 1, 1],
           }}
           transition={{
-            duration: 2,
+            duration: 1.5,
             ease: "easeInOut",
             times: [0, 0.2, 0.5, 0.8, 1],
             repeat: Infinity,
-            repeatDelay: 0.5
+            repeatDelay: 0.3
           }}
         >
           <path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V400c0 44.2 35.8 80 80 80H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H80c-8.8 0-16-7.2-16-16V64zm406.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L320 210.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L240 221.3l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0l128-128z"/>
         </motion.svg>
-      </motion.div>
+      </div>
       <motion.h2
         className="loader-text"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
       >
         Fidelity First Brokers
       </motion.h2>
     </div>
   );
-};
+});
+
+Loader.displayName = 'MainLoader';
 
 export default Loader;

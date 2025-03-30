@@ -8,9 +8,10 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../../firebase";
-import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const MOCK_USERS_KEY = 'ffb_mock_users';
+const CURRENT_USER_KEY = 'ffb_current_user';
+const AUTH_TOKEN_KEY = 'ffb_auth_token';
 
 const AuthContext = createContext();
 
@@ -19,6 +20,37 @@ export function AuthContextProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
+
+  console.log("AuthContext - Initial State:", { token, userData: !!userData, user: !!user, loading });
+
+  // Helper function to get mock users from localStorage
+  const getMockUsers = () => {
+    const usersJson = localStorage.getItem(MOCK_USERS_KEY);
+    return usersJson ? JSON.parse(usersJson) : {};
+  };
+
+  // Helper function to save mock users to localStorage
+  const saveMockUsers = (users) => {
+    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+  };
+
+  // Helper function to save current user data to localStorage
+  const saveCurrentUser = (userData) => {
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
+  };
+
+  // Helper function to get current user data from localStorage
+  const getCurrentUser = () => {
+    const userJson = localStorage.getItem(CURRENT_USER_KEY);
+    return userJson ? JSON.parse(userJson) : null;
+  };
+
+  // Helper function to save auth token
+  const saveToken = (authToken) => {
+    localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+    setToken(authToken);
+  };
 
   // Register user
   const createUser = async (email, password, firstName, lastName) => {
@@ -32,13 +64,32 @@ export function AuthContextProvider({ children }) {
         displayName: `${firstName} ${lastName}`
       });
       
-      // Create user in our backend
-      await axios.post(`${API_URL}/auth/register`, {
+      // Create mock user data (no backend call)
+      const mockUserId = `user_${Date.now()}`;
+      const mockUserData = {
+        id: mockUserId,
         uid: userCredential.user.uid,
         email,
         firstName,
-        lastName
-      });
+        lastName,
+        role: "user",
+        balance: 5000, // Default starting balance
+        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        createdAt: new Date().toISOString()
+      };
+      
+      // Save to mock storage
+      const mockUsers = getMockUsers();
+      mockUsers[userCredential.user.uid] = mockUserData;
+      saveMockUsers(mockUsers);
+      
+      // Set user data in state and storage
+      setUserData(mockUserData);
+      saveCurrentUser(mockUserData);
+      
+      // Generate a mock token and save it
+      const mockToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
+      saveToken(mockToken);
       
       return userCredential;
     } catch (error) {
@@ -48,49 +99,67 @@ export function AuthContextProvider({ children }) {
     }
   };
 
-  // Sign in user with improved error handling
-  const signIn = async (email, password) => {
+  // Login user
+  const logIn = async (email, password) => {
     try {
       setAuthError(null);
-      const result = await signInWithEmailAndPassword(auth, email, password);
       
-      // Ensure the user exists in MongoDB by sending auth info
-      try {
-        await syncUserWithBackend(result.user);
-      } catch (syncError) {
-        console.error("User sync with backend failed:", syncError);
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Login successful:", userCredential.user.email);
+      
+      // Get user data
+      const mockUsers = getMockUsers();
+      const mockUserData = mockUsers[userCredential.user.uid];
+      
+      if (mockUserData) {
+        console.log("User data found in storage");
+        setUserData(mockUserData);
+        saveCurrentUser(mockUserData);
+      } else {
+        console.log("Creating default user data");
+        // Create default user data if none exists
+        const defaultUserData = {
+          id: `user_${Date.now()}`,
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          firstName: userCredential.user.displayName ? userCredential.user.displayName.split(' ')[0] : 'User',
+          lastName: userCredential.user.displayName ? userCredential.user.displayName.split(' ').slice(1).join(' ') : '',
+          role: "user",
+          balance: 10000,
+          referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          createdAt: new Date().toISOString()
+        };
         
-        // Check if it's a network error
-        if (syncError.code === 'ERR_NETWORK' || syncError.code === 'ECONNABORTED') {
-          // For network errors, we'll still allow login but warn the user
-          console.warn("Backend sync failed due to network issues, allowing login to continue");
-          
-          // Set a warning message instead of throwing
-          setAuthError("Warning: Login successful but server synchronization failed. Some features may be limited.");
-          
-          // Return the result without signing out
-          return result;
-        }
-        
-        // For other errors, we'll follow the original behavior
-        await signOut(auth);
-        const errorMessage = "Unable to synchronize your account with our database. Please try again or contact support.";
-        setAuthError(errorMessage);
-        throw new Error(errorMessage);
+        mockUsers[userCredential.user.uid] = defaultUserData;
+        saveMockUsers(mockUsers);
+        setUserData(defaultUserData);
+        saveCurrentUser(defaultUserData);
       }
       
-      return result;
+      // Generate a mock token and save it
+      const mockToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
+      saveToken(mockToken);
+      
+      return userCredential;
     } catch (error) {
       console.error("Login error:", error);
-      setAuthError(error.message);
       throw error;
     }
   };
+
+  // Keep signIn as an alias for logIn for consistency
+  const signIn = logIn;
 
   // Sign out user
   const logout = async () => {
     setAuthError(null);
     setUserData(null);
+    localStorage.removeItem(CURRENT_USER_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    setToken(null);
     return signOut(auth);
   };
 
@@ -107,191 +176,145 @@ export function AuthContextProvider({ children }) {
     }
   };
 
-  // Sync user data with backend MongoDB
-  const syncUserWithBackend = async (firebaseUser) => {
-    if (!firebaseUser) return null;
-    
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 1000;
-    
-    const syncWithRetry = async (retryCount = 0) => {
-      try {
-        const token = await firebaseUser.getIdToken();
-        
-        // Send user data to backend sync endpoint 
-        const response = await axios.post(`${API_URL}/auth/sync`, {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName || '',
-          firebaseToken: token
-        }, {
-          timeout: 10000
-        });
-        
-        return response;
-      } catch (error) {
-        if (retryCount < MAX_RETRIES && 
-            (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED')) {
-          console.warn(`Network error during sync, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
-          
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-          
-          return syncWithRetry(retryCount + 1);
-        }
-        
-        console.error("Error syncing user with backend:", error);
-        throw error;
-      }
-    };
-    
-    return syncWithRetry();
-  };
-
-  // Function to fetch user data - this is what's missing
+  // Function to fetch user data - now using mock data
   const getUserProfile = async () => {
     try {
       if (!user) {
         console.warn("Cannot fetch user profile: User is not logged in");
-        return null;
-      }
-      
-      let token;
-      try {
-        token = await user.getIdToken();
-      } catch (tokenError) {
-        console.error("Error getting auth token:", tokenError);
-        return null;
-      }
-      
-      const response = await axios.get(`${API_URL}/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 10000, // 10 second timeout
-      });
-      
-      setUserData(response.data);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      
-      // Fallback to cached data if available
-      if (userData) {
-        return userData;
-      }
-      
-      // Create minimal profile data as fallback
-      const fallbackData = {
-        email: user?.email,
-        firstName: user?.displayName?.split(' ')[0] || 'User',
-        lastName: user?.displayName?.split(' ').slice(1).join(' ') || '',
-        balance: 0,
-        role: 'user'
-      };
-      
-      setUserData(fallbackData);
-      return fallbackData;
-    }
-  };
-
-  const fetchUserData = async (uid) => {
-    try {
-      if (!user) {
-        console.warn("Cannot fetch user data: User is not logged in");
-        return null;
-      }
-      
-      let token;
-      try {
-        token = await user.getIdToken();
-      } catch (tokenError) {
-        console.error("Error getting auth token:", tokenError);
-        return null;
-      }
-      
-      if (!token) {
-        console.warn("Cannot fetch user data: Auth token is not available");
-        return null;
-      }
-      
-      try {
-        const response = await axios.get(`${API_URL}/users/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setUserData(response.data);
-        return response.data;
-      } catch (error) {
-        if (error.response && (error.response.status === 404 || error.response.status === 401)) {
-          console.log("User exists in Firebase but not in MongoDB. Attempting to sync...");
-          
-          await syncUserWithBackend(user);
-          
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          try {
-            const retryResponse = await axios.get(`${API_URL}/users/profile`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            setUserData(retryResponse.data);
-            return retryResponse.data;
-          } catch (retryError) {
-            console.error("Failed to fetch user data after sync:", retryError);
-            const minimalUserData = {
-              email: user.email,
-              firstName: user.displayName ? user.displayName.split(' ')[0] : 'User',
-              lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
-              balance: 0,
-              role: 'user'
-            };
-            setUserData(minimalUserData);
-            return minimalUserData;
+        
+        // Try to load user data from localStorage if token exists
+        if (token) {
+          const cachedUser = getCurrentUser();
+          if (cachedUser) {
+            console.log("Loading user data from localStorage using token");
+            setUserData(cachedUser);
+            return cachedUser;
           }
         }
-        throw error;
+        
+        return null;
       }
+      
+      // Get mock user data
+      const mockUsers = getMockUsers();
+      const mockUserData = mockUsers[user.uid];
+      
+      if (mockUserData) {
+        setUserData(mockUserData);
+        saveCurrentUser(mockUserData);
+        return mockUserData;
+      }
+      
+      // If no mock data found, create a default user profile
+      const defaultUserData = {
+        id: `user_${Date.now()}`,
+        uid: user.uid,
+        email: user.email,
+        firstName: user.displayName ? user.displayName.split(' ')[0] : 'User',
+        lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
+        role: "user",
+        balance: 10000,
+        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        createdAt: new Date().toISOString()
+      };
+      
+      // Save to mock storage
+      mockUsers[user.uid] = defaultUserData;
+      saveMockUsers(mockUsers);
+      setUserData(defaultUserData);
+      saveCurrentUser(defaultUserData);
+      
+      return defaultUserData;
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error fetching user profile:", error);
       return null;
     }
   };
 
+  const fetchUserData = async () => {
+    return await getUserProfile();
+  };
+
+  // Initialize with stored token
+  useEffect(() => {
+    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (storedToken) {
+      console.log("Found stored token on initialization");
+      setToken(storedToken);
+      
+      // Try to get user data but don't block on it
+      const storedUser = getCurrentUser();
+      if (storedUser) {
+        console.log("Also found stored user data");
+        setUserData(storedUser);
+
+        setLoading(false);
+      }
+    }
+  }, []);
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log("Auth state changed:", currentUser ? currentUser.email : "No user");
       setUser(currentUser);
       
       if (currentUser) {
         try {
-          try {
-            await syncUserWithBackend(currentUser);
-          } catch (syncError) {
-            console.error("Backend sync failed on auth state change:", syncError);
-            return null;
+          // Try to load from localStorage first (faster)
+          const cachedUser = getCurrentUser();
+          if (cachedUser && cachedUser.uid === currentUser.uid) {
+            console.log("Setting user data from cache");
+            setUserData(cachedUser);
           }
           
-          try {
-            await fetchUserData(currentUser.uid);
-          } catch (fetchError) {
-            console.error("Failed to fetch user data after auth state change:", fetchError);
-            return null;
+          // Check if we have a token
+          const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+          if (storedToken) {
+            console.log("Token found in localStorage");
+            setToken(storedToken);
+          } else {
+            console.log("No token in localStorage, generating new one");
+            const newToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
+            saveToken(newToken);
+          }
+          
+
+          if (!userData || userData.uid !== currentUser.uid) {
+            await getUserProfile();
           }
         } catch (error) {
           console.error("Failed to process auth state change:", error);
-          return null;
+        } finally {
+          // Always set loading to false when we're done
+          setLoading(false);
         }
       } else {
-        setUserData(null);
+
+        if (token) {
+          console.log("Firebase user is null but token exists - checking for user data");
+          const cachedUser = getCurrentUser();
+          if (cachedUser) {
+            console.log("Found cached user data with token, keeping session");
+            setUserData(cachedUser);
+          } else {
+            console.log("No cached user data found with token, clearing session");
+            localStorage.removeItem(CURRENT_USER_KEY);
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            setToken(null);
+            setUserData(null);
+          }
+        } else {
+          console.log("No user and no token - session is cleared");
+          setUserData(null);
+        }
+        
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
     
     return () => unsubscribe();
   }, []);
-
+  
   // Refresh user data
   const refreshUserData = async () => {
     if (user) {
@@ -305,18 +328,30 @@ export function AuthContextProvider({ children }) {
     return userData?.role === 'admin' || userData?.role === 'superadmin';
   };
 
+  // Debug auth state
+  useEffect(() => {
+    console.log("Auth state updated:", {
+      userExists: !!user,
+      userDataExists: !!userData,
+      hasToken: !!token,
+      isLoading: loading
+    });
+  }, [user, userData, token, loading]);
+
   const value = {
     user,
     userData,
     loading,
     authError,
+    token,
     createUser,
     signIn,
+    logIn,
     logout,
     resetPassword,
     refreshUserData,
     getUserProfile,
-    isAdmin,
+    isAdmin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -326,6 +361,7 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
+export const UserAuth = useAuth;
 export const AuthProvider = AuthContextProvider;
 
 export default AuthContext;

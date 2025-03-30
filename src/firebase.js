@@ -27,6 +27,26 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Add error event listeners to Firebase auth
+auth.onAuthStateChanged(
+  (user) => {
+    if (user) {
+      console.log("Firebase auth state change: User is logged in");
+    } else {
+      console.log("Firebase auth state change: User is logged out");
+    }
+  },
+  (error) => {
+    console.error("Firebase auth error:", error);
+  }
+);
+
+// Handle auth errors globally
+auth.useDeviceLanguage();
+auth.onError = (error) => {
+  console.error("Firebase auth global error:", error);
+};
+
 // Authentication functions
 export const registerWithEmailAndPassword = async (email, password) => {
   try {

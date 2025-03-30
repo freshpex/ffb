@@ -22,7 +22,9 @@ import {
   FaFilter,
   FaTimes,
   FaChevronDown,
-  FaPercent
+  FaPercent,
+  FaRegClock,
+  FaFileDownload
 } from 'react-icons/fa';
 import DashboardLayout from './DashboardLayout';
 import Button from '../common/Button';

@@ -1,136 +1,116 @@
-import { motion } from "framer-motion";
-import PropTypes from "prop-types";
-import { FaCheckCircle, FaInfoCircle, FaArrowRight, FaStar } from "react-icons/fa";
-import Button from "../common/Button";
+import PropTypes from 'prop-types';
+import { FaPercent, FaCalendarAlt, FaMoneyBillWave, FaArrowRight, FaInfoCircle, FaTag } from 'react-icons/fa';
 
-const InvestmentPlanCard = ({ plan, onInvest, isActive = false }) => {
-  // Determine color classes based on plan color
-  const getColorClasses = () => {
-    switch (plan.color) {
-      case 'blue':
-        return {
-          bg: 'bg-blue-500/10',
-          border: 'border-blue-500/30',
-          text: 'text-blue-400',
-          badge: 'bg-blue-500/20 text-blue-400'
-        };
-      case 'green':
-        return {
-          bg: 'bg-green-500/10',
-          border: 'border-green-500/30',
-          text: 'text-green-400',
-          badge: 'bg-green-500/20 text-green-400'
-        };
-      case 'purple':
-        return {
-          bg: 'bg-purple-500/10',
-          border: 'border-purple-500/30',
-          text: 'text-purple-400',
-          badge: 'bg-purple-500/20 text-purple-400'
-        };
-      case 'amber':
-        return {
-          bg: 'bg-amber-500/10',
-          border: 'border-amber-500/30',
-          text: 'text-amber-400',
-          badge: 'bg-amber-500/20 text-amber-400'
-        };
-      default:
-        return {
-          bg: 'bg-primary-500/10',
-          border: 'border-primary-500/30',
-          text: 'text-primary-400',
-          badge: 'bg-primary-500/20 text-primary-400'
-        };
+const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
+  // Check if user has enough balance to invest in this plan
+  const canInvest = userBalance >= plan.minAmount;
+  
+  // Determine risk color - Added null check for riskLevel
+  const getRiskColor = (riskLevel) => {
+    if (!riskLevel) return 'text-gray-400'; // Default color if riskLevel is undefined
+    
+    switch (riskLevel.toLowerCase()) {
+      case 'low': return 'text-green-500';
+      case 'medium': return 'text-yellow-500';
+      case 'high': return 'text-orange-500';
+      case 'very high': return 'text-red-500';
+      default: return 'text-gray-400';
     }
   };
-
-  const colors = getColorClasses();
-  
-  // Format price range
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-  
-  const priceRange = `${formatAmount(plan.minAmount)} - ${plan.maxAmount ? formatAmount(plan.maxAmount) : '∞'}`;
   
   return (
-    <motion.div 
-      className={`relative rounded-xl overflow-hidden ${isActive ? 'border-2 border-primary-500' : 'border border-gray-700'} bg-gray-800 h-full flex flex-col`}
-      whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)' }}
-      transition={{ duration: 0.2 }}
-      layout
-    >
-      {/* Tag if available */}
-      {plan.tag && (
-        <div className="absolute top-4 right-4">
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colors.badge} flex items-center`}>
-            {plan.tag === 'Popular' && <FaStar className="mr-1" />}
-            {plan.tag}
+    <div className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:shadow-primary-900/20 hover:-translate-y-1 border border-gray-700 ${plan.recommended ? 'ring-2 ring-primary-500' : ''}`}>
+      {plan.recommended && (
+        <div className="bg-primary-500 text-white text-xs font-bold px-3 py-1 text-center">
+          RECOMMENDED
+        </div>
+      )}
+      
+      <div className="p-5">
+        <div className="flex justify-between items-start">
+          <h3 className="text-xl font-bold text-gray-100">{plan.name}</h3>
+          <span className={`text-sm font-medium ${getRiskColor(plan.riskLevel)}`}>
+            {plan.riskLevel || 'Unknown'} Risk
           </span>
         </div>
-      )}
-
-      {/* Recommended badge */}
-      {plan.recommended && (
-        <div className="absolute top-0 left-0 w-full">
-          <div className="bg-primary-500 text-white text-xs font-medium py-1 px-3 text-center">
-            Recommended
+        
+        <p className="text-gray-400 mt-2 text-sm">{plan.description}</p>
+        
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="bg-gray-700/50 rounded-lg p-3">
+            <div className="flex items-center text-gray-400 text-xs mb-1">
+              <FaPercent className="mr-1" size={12} />
+              <span>RETURN</span>
+            </div>
+            <div className="text-xl font-bold text-primary-500">{plan.roi}%</div>
           </div>
-        </div>
-      )}
-
-      <div className={`p-6 rounded-t-xl ${colors.bg}`}>
-        <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-        <p className="text-gray-400 text-sm">{plan.description}</p>
-      </div>
-      
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="mb-6">
-          <span className="text-3xl font-bold text-white">{plan.roi}%</span>
-          <span className="text-gray-400 ml-1">/ {plan.duration} days</span>
-          <p className={`text-sm ${colors.text} mt-1`}>ROI per term</p>
-        </div>
-        
-        <div className="mb-6">
-          <p className="text-sm text-gray-400 mb-1">Investment Range</p>
-          <p className="text-white font-medium">{priceRange}</p>
-        </div>
-        
-        <div className="mb-6">
-          <p className="text-sm text-gray-400 mb-1">Risk Level</p>
-          <div className="flex items-center">
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${colors.badge}`}>
-              {plan.risk}
-            </span>
+          
+          <div className="bg-gray-700/50 rounded-lg p-3">
+            <div className="flex items-center text-gray-400 text-xs mb-1">
+              <FaCalendarAlt className="mr-1" size={12} />
+              <span>DURATION</span>
+            </div>
+            <div className="text-xl font-bold text-gray-100">{plan.duration} Days</div>
           </div>
         </div>
         
-        <div className="mb-6 flex-1">
-          <p className="text-sm text-gray-400 mb-2">Features</p>
-          <ul className="space-y-2">
-            {plan.features.map((feature, index) => (
+        <div className="mt-4 bg-gray-700/50 rounded-lg p-3">
+          <div className="flex items-center text-gray-400 text-xs mb-1">
+            <FaMoneyBillWave className="mr-1" size={12} />
+            <span>INVESTMENT AMOUNT</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="text-gray-100">
+              <span className="text-lg font-bold">${plan.minAmount.toLocaleString()}</span>
+              {plan.maxAmount ? 
+                <span className="text-gray-400"> - ${plan.maxAmount.toLocaleString()}</span> : 
+                <span className="text-gray-400"> and above</span>
+              }
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <h4 className="text-gray-300 text-sm font-medium mb-2 flex items-center">
+            <FaInfoCircle className="mr-1" size={14} />
+            Features
+          </h4>
+          <ul className="text-gray-400 text-sm space-y-1">
+            {plan.features && plan.features.map((feature, index) => (
               <li key={index} className="flex items-start">
-                <FaCheckCircle className={`${colors.text} mt-1 mr-2 flex-shrink-0`} />
-                <span className="text-gray-300 text-sm">{feature}</span>
+                <FaTag className="mr-2 mt-1 text-primary-500 flex-shrink-0" size={10} />
+                <span>{feature}</span>
               </li>
             ))}
           </ul>
         </div>
         
-        <Button
-          onClick={() => onInvest(plan.id)}
-          fullWidth
+        <button
+          onClick={onClick}
+          disabled={!canInvest}
+          className={`mt-5 w-full py-3 rounded-lg flex items-center justify-center font-medium
+            ${canInvest ? 
+              'bg-primary-600 text-white hover:bg-primary-700' : 
+              'bg-gray-700 text-gray-400 cursor-not-allowed'}
+          `}
         >
-          Invest Now <FaArrowRight className="ml-2" />
-        </Button>
+          {canInvest ? (
+            <>
+              <span>Invest Now</span>
+              <FaArrowRight className="ml-2" size={14} />
+            </>
+          ) : (
+            <span>Insufficient Balance</span>
+          )}
+        </button>
+        
+        {!canInvest && (
+          <p className="text-xs text-red-400 mt-2 text-center">
+            You need at least ${plan.minAmount.toLocaleString()} to invest in this plan
+          </p>
+        )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -143,14 +123,12 @@ InvestmentPlanCard.propTypes = {
     maxAmount: PropTypes.number,
     roi: PropTypes.number.isRequired,
     duration: PropTypes.number.isRequired,
-    features: PropTypes.arrayOf(PropTypes.string).isRequired,
-    risk: PropTypes.string.isRequired,
-    recommended: PropTypes.bool,
-    tag: PropTypes.string,
-    color: PropTypes.string
+    features: PropTypes.arrayOf(PropTypes.string),
+    riskLevel: PropTypes.string,
+    recommended: PropTypes.bool
   }).isRequired,
-  onInvest: PropTypes.func.isRequired,
-  isActive: PropTypes.bool
+  userBalance: PropTypes.number.isRequired,
+  onClick: PropTypes.func.isRequired
 };
 
 export default InvestmentPlanCard;

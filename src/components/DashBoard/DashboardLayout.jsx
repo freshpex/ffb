@@ -5,7 +5,7 @@ import {
   FaUser, FaUserTie, FaCaretDown, FaSignOutAlt, FaHistory, 
   FaBars, FaTimes, FaPlusCircle, FaMinusCircle,
   FaHome, FaCog, FaBell, FaChartLine, FaMoneyBillWave,
-  FaKey, FaExchangeAlt
+  FaKey, FaExchangeAlt, FaCreditCard
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import PropTypes from "prop-types";
@@ -209,6 +209,24 @@ const DashboardLayout = ({ children }) => {
                 isActive={isActive('/login/accountsettings')}
                 collapsed={sidebarCollapsed}
                 onClick={() => navigateTo('/login/accountsettings')}
+              />
+
+              <NavItem 
+                to="/login/cards" 
+                icon={<FaCreditCard />} 
+                label="Payment Cards"
+                isActive={isActive('/login/cards')}
+                collapsed={sidebarCollapsed}
+                onClick={() => navigateTo('/login/cards')}
+              />
+
+              <NavItem 
+                to="/login/tradingplatform" 
+                icon={<FaChartLine />} 
+                label="Trading Platform"
+                isActive={isActive('/login/tradingplatform')}
+                collapsed={sidebarCollapsed}
+                onClick={() => navigateTo('/login/tradingplatform')}
               />
               
               <li>

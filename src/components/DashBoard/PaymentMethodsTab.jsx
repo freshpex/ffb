@@ -1,394 +1,413 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  FaBitcoin, 
-  FaEthereum, 
-  FaCreditCard, 
-  FaPlus,
-  FaUniversity
-} from 'react-icons/fa';
-import FormInput from '../common/FormInput';
-import Button from '../common/Button';
-import PaymentMethodCard from './PaymentMethodCard';
-import Alert from '../common/Alert';
-import { 
-  selectUserPaymentMethods,
+import {
+  selectPaymentMethods,
+  selectUserLoading,
+  selectUserError,
   addPaymentMethod,
   removePaymentMethod,
-  updatePaymentMethod
+  setDefaultPaymentMethod
 } from '../../redux/slices/userSlice';
+import { FaCreditCard, FaPlus, FaTrash, FaCheck, FaTimes, FaSpinner, FaUniversity } from 'react-icons/fa';
+import FormInput from '../common/FormInput';
+import Button from '../common/Button';
+import Alert from '../common/Alert';
+import PaymentMethodCard from './PaymentMethodCard';
 
 const PaymentMethodsTab = () => {
   const dispatch = useDispatch();
-  const paymentMethods = useSelector(selectUserPaymentMethods);
+  const paymentMethods = useSelector(selectPaymentMethods);
+  const isLoading = useSelector(selectUserLoading);
+  const error = useSelector(selectUserError);
   
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
-    type: 'bitcoin',
-    address: '',
+  const [paymentType, setPaymentType] = useState('card');
+  const [success, setSuccess] = useState('');
+  
+  const [cardFormData, setCardFormData] = useState({
     cardNumber: '',
-    expiryDate: '',
+    cardholderName: '',
+    expiryMonth: '',
+    expiryYear: '',
     cvv: '',
+    isDefault: false
+  });
+  
+  const [bankFormData, setBankFormData] = useState({
+    accountName: '',
     accountNumber: '',
     routingNumber: '',
-    bankName: ''
+    bankName: '',
+    isDefault: false
   });
-  const [message, setMessage] = useState(null);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  
+  const handleCardChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setCardFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
-
-  const handleAddNew = () => {
-    setShowAddForm(true);
-    setEditingId(null);
-    setFormData({
-      type: 'bitcoin',
-      address: '',
-      cardNumber: '',
-      expiryDate: '',
-      cvv: '',
-      accountNumber: '',
-      routingNumber: '',
-      bankName: ''
-    });
+  
+  const handleBankChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setBankFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
-
-  const handleEdit = (method) => {
-    setShowAddForm(true);
-    setEditingId(method.id);
-    setFormData({
-      type: method.type,
-      address: method.address || '',
-      cardNumber: method.cardNumber || '',
-      expiryDate: method.expiryDate || '',
-      cvv: method.cvv || '',
-      accountNumber: method.accountNumber || '',
-      routingNumber: method.routingNumber || '',
-      bankName: method.bankName || ''
-    });
-  };
-
-  const handleDelete = (id) => {
-    dispatch(removePaymentMethod(id));
-    setMessage({
-      type: 'success',
-      text: 'Payment method deleted successfully!'
-    });
-    setTimeout(() => setMessage(null), 3000);
-  };
-
-  const handleSubmit = (e) => {
+  
+  const handleCardSubmit = async (e) => {
     e.preventDefault();
     
-    const newMethod = {
-      id: editingId || Date.now().toString(),
-      type: formData.type,
-      ...getTypeSpecificData()
-    };
+    try {
+      // Format the card data for submission
+      const formattedCardData = {
+        type: 'card',
+        name: `${cardFormData.cardholderName} (${cardFormData.cardNumber.slice(-4)})`,
+        last4: cardFormData.cardNumber.slice(-4),
+        expiryMonth: parseInt(cardFormData.expiryMonth),
+        expiryYear: parseInt(cardFormData.expiryYear),
+        isDefault: cardFormData.isDefault
+      };
+      
+      const result = await dispatch(addPaymentMethod(formattedCardData));
+      
+      if (result.success) {
+        setCardFormData({
+          cardNumber: '',
+          cardholderName: '',
+          expiryMonth: '',
+          expiryYear: '',
+          cvv: '',
+          isDefault: false
+        });
+        setShowAddForm(false);
+        setSuccess('Payment method added successfully');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to add payment method:', error);
+    }
+  };
+  
+  const handleBankSubmit = async (e) => {
+    e.preventDefault();
     
-    if (editingId) {
-      dispatch(updatePaymentMethod(newMethod));
-      setMessage({
-        type: 'success',
-        text: 'Payment method updated successfully!'
-      });
-    } else {
-      dispatch(addPaymentMethod(newMethod));
-      setMessage({
-        type: 'success',
-        text: 'Payment method added successfully!'
-      });
-    }
-    
-    setShowAddForm(false);
-    setEditingId(null);
-    setTimeout(() => setMessage(null), 3000);
-  };
-
-  const getTypeSpecificData = () => {
-    switch (formData.type) {
-      case 'bitcoin':
-      case 'ethereum':
-        return { address: formData.address };
-      case 'card':
-        return { 
-          cardNumber: formData.cardNumber,
-          expiryDate: formData.expiryDate,
-          cvv: formData.cvv
-        };
-      case 'bank':
-        return {
-          accountNumber: formData.accountNumber,
-          routingNumber: formData.routingNumber,
-          bankName: formData.bankName
-        };
-      default:
-        return {};
+    try {
+      // Format the bank data for submission
+      const formattedBankData = {
+        type: 'bank_account',
+        name: `${bankFormData.bankName} (${bankFormData.accountNumber.slice(-4)})`,
+        last4: bankFormData.accountNumber.slice(-4),
+        bankName: bankFormData.bankName,
+        accountName: bankFormData.accountName,
+        isDefault: bankFormData.isDefault
+      };
+      
+      const result = await dispatch(addPaymentMethod(formattedBankData));
+      
+      if (result.success) {
+        setBankFormData({
+          accountName: '',
+          accountNumber: '',
+          routingNumber: '',
+          bankName: '',
+          isDefault: false
+        });
+        setShowAddForm(false);
+        setSuccess('Payment method added successfully');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to add payment method:', error);
     }
   };
-
-  const getMethodIcon = (type) => {
-    switch (type) {
-      case 'bitcoin':
-        return <FaBitcoin />;
-      case 'ethereum':
-        return <FaEthereum />;
-      case 'card':
-        return <FaCreditCard />;
-      case 'bank':
-        return <FaUniversity />;
-      default:
-        return <FaBitcoin />;
+  
+  const handleRemove = async (paymentMethodId) => {
+    if (window.confirm('Are you sure you want to remove this payment method?')) {
+      try {
+        await dispatch(removePaymentMethod(paymentMethodId));
+        setSuccess('Payment method removed successfully');
+        setTimeout(() => setSuccess(''), 3000);
+      } catch (error) {
+        console.error('Failed to remove payment method:', error);
+      }
     }
   };
-
-  const getMethodDetails = (method) => {
-    switch (method.type) {
-      case 'bitcoin':
-      case 'ethereum':
-        return maskAddress(method.address);
-      case 'card':
-        return `**** **** **** ${method.cardNumber.slice(-4)}`;
-      case 'bank':
-        return `${method.bankName} ****${method.accountNumber.slice(-4)}`;
-      default:
-        return '';
+  
+  const handleSetDefault = async (paymentMethodId) => {
+    try {
+      await dispatch(setDefaultPaymentMethod(paymentMethodId));
+      setSuccess('Default payment method updated');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Failed to set default payment method:', error);
     }
   };
-
-  const maskAddress = (address) => {
-    if (!address) return '';
-    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-  };
-
+  
   return (
     <div>
-      {message && (
-        <Alert 
-          type={message.type} 
-          message={message.text} 
-          onDismiss={() => setMessage(null)} 
-        />
-      )}
+      <h2 className="text-xl font-semibold text-gray-100 mb-6">Payment Methods</h2>
       
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-medium text-gray-200">Your Payment Methods</h3>
-        {!showAddForm && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleAddNew}
+      {error && <Alert type="error" message={error} className="mb-4" />}
+      {success && <Alert type="success" message={success} className="mb-4" />}
+      
+      {paymentMethods.length === 0 ? (
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center mb-6">
+          <FaCreditCard className="mx-auto text-gray-500 mb-3" size={32} />
+          <p className="text-gray-400 mb-4">You haven't added any payment methods yet.</p>
+          <Button
+            type="button" 
+            variant="primary"
+            onClick={() => setShowAddForm(true)}
           >
-            <FaPlus className="mr-2" /> Add New
+            Add Payment Method
           </Button>
-        )}
-      </div>
-      
-      {showAddForm ? (
-        <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg mb-6">
-          <h4 className="text-lg font-medium text-gray-200 mb-4">
-            {editingId ? 'Edit Payment Method' : 'Add New Payment Method'}
-          </h4>
+        </div>
+      ) : (
+        <div className="mb-6">
+          <h3 className="text-lg font-medium text-gray-300 mb-3">Your Saved Payment Methods</h3>
           
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-200 mb-2">
-              Payment Type
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <label className={`
-                flex flex-col items-center p-3 border rounded-lg cursor-pointer
-                ${formData.type === 'bitcoin' 
-                  ? 'border-primary-500 bg-primary-900/20' 
-                  : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="type"
-                  value="bitcoin"
-                  checked={formData.type === 'bitcoin'}
-                  onChange={handleChange}
-                  className="sr-only"
-                />
-                <FaBitcoin className="text-2xl mb-2 text-yellow-500" />
-                <span className="text-sm">Bitcoin</span>
-              </label>
-              
-              <label className={`
-                flex flex-col items-center p-3 border rounded-lg cursor-pointer
-                ${formData.type === 'ethereum' 
-                  ? 'border-primary-500 bg-primary-900/20' 
-                  : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="type"
-                  value="ethereum"
-                  checked={formData.type === 'ethereum'}
-                  onChange={handleChange}
-                  className="sr-only"
-                />
-                <FaEthereum className="text-2xl mb-2 text-blue-400" />
-                <span className="text-sm">Ethereum</span>
-              </label>
-              
-              <label className={`
-                flex flex-col items-center p-3 border rounded-lg cursor-pointer
-                ${formData.type === 'card' 
-                  ? 'border-primary-500 bg-primary-900/20' 
-                  : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="type"
-                  value="card"
-                  checked={formData.type === 'card'}
-                  onChange={handleChange}
-                  className="sr-only"
-                />
-                <FaCreditCard className="text-2xl mb-2 text-gray-300" />
-                <span className="text-sm">Credit Card</span>
-              </label>
-              
-              <label className={`
-                flex flex-col items-center p-3 border rounded-lg cursor-pointer
-                ${formData.type === 'bank' 
-                  ? 'border-primary-500 bg-primary-900/20' 
-                  : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900'
-                }
-              `}>
-                <input
-                  type="radio"
-                  name="type"
-                  value="bank"
-                  checked={formData.type === 'bank'}
-                  onChange={handleChange}
-                  className="sr-only"
-                />
-                <FaUniversity className="text-2xl mb-2 text-gray-300" />
-                <span className="text-sm">Bank Account</span>
-              </label>
-            </div>
+          <div className="space-y-4">
+            {paymentMethods.map(method => (
+              <PaymentMethodCard
+                key={method.id}
+                method={method}
+                onRemove={() => handleRemove(method.id)}
+                onSetDefault={() => handleSetDefault(method.id)}
+              />
+            ))}
           </div>
           
-          {(formData.type === 'bitcoin' || formData.type === 'ethereum') && (
-            <FormInput
-              label={`${formData.type === 'bitcoin' ? 'Bitcoin' : 'Ethereum'} Wallet Address`}
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder={`Enter your ${formData.type === 'bitcoin' ? 'Bitcoin' : 'Ethereum'} wallet address`}
-              required
-            />
+          {!showAddForm && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddForm(true)}
+                icon={<FaPlus className="mr-2" />}
+              >
+                Add New Payment Method
+              </Button>
+            </div>
           )}
+        </div>
+      )}
+      
+      {showAddForm && (
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-300">
+              Add New Payment Method
+            </h3>
+            <button
+              onClick={() => setShowAddForm(false)}
+              className="text-gray-400 hover:text-gray-200"
+            >
+              <FaTimes size={20} />
+            </button>
+          </div>
           
-          {formData.type === 'card' && (
-            <>
-              <FormInput
-                label="Card Number"
-                name="cardNumber"
-                value={formData.cardNumber}
-                onChange={handleChange}
-                placeholder="Enter card number"
-                required
-              />
-              
-              <div className="grid grid-cols-2 gap-4">
+          <div className="flex border-b border-gray-700 mb-4">
+            <button
+              className={`px-4 py-2 font-medium text-sm relative ${
+                paymentType === 'card' 
+                  ? 'text-primary-500 border-b-2 border-primary-500' 
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+              onClick={() => setPaymentType('card')}
+            >
+              <span className="flex items-center">
+                <FaCreditCard className="mr-2" /> Credit / Debit Card
+              </span>
+            </button>
+            
+            <button
+              className={`px-4 py-2 font-medium text-sm relative ${
+                paymentType === 'bank' 
+                  ? 'text-primary-500 border-b-2 border-primary-500' 
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+              onClick={() => setPaymentType('bank')}
+            >
+              <span className="flex items-center">
+                <FaUniversity className="mr-2" /> Bank Account
+              </span>
+            </button>
+          </div>
+          
+          {paymentType === 'card' ? (
+            <form onSubmit={handleCardSubmit}>
+              <div className="grid grid-cols-1 gap-4 mb-4">
                 <FormInput
-                  label="Expiry Date"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleChange}
-                  placeholder="MM/YY"
+                  label="Card Number"
+                  name="cardNumber"
+                  value={cardFormData.cardNumber}
+                  onChange={handleCardChange}
+                  placeholder="1234 5678 9012 3456"
                   required
                 />
                 
                 <FormInput
-                  label="CVV"
-                  name="cvv"
-                  value={formData.cvv}
-                  onChange={handleChange}
-                  placeholder="CVV"
+                  label="Cardholder Name"
+                  name="cardholderName"
+                  value={cardFormData.cardholderName}
+                  onChange={handleCardChange}
+                  placeholder="Name as it appears on card"
                   required
                 />
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <FormInput
+                      label="Expiry Month"
+                      name="expiryMonth"
+                      value={cardFormData.expiryMonth}
+                      onChange={handleCardChange}
+                      placeholder="MM"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <FormInput
+                      label="Expiry Year"
+                      name="expiryYear"
+                      value={cardFormData.expiryYear}
+                      onChange={handleCardChange}
+                      placeholder="YYYY"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <FormInput
+                      label="CVV"
+                      name="cvv"
+                      value={cardFormData.cvv}
+                      onChange={handleCardChange}
+                      placeholder="123"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="defaultCard"
+                    name="isDefault"
+                    checked={cardFormData.isDefault}
+                    onChange={handleCardChange}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-600 rounded bg-gray-700"
+                  />
+                  <label htmlFor="defaultCard" className="ml-2 block text-sm text-gray-300">
+                    Set as default payment method
+                  </label>
+                </div>
               </div>
-            </>
-          )}
-          
-          {formData.type === 'bank' && (
-            <>
-              <FormInput
-                label="Bank Name"
-                name="bankName"
-                value={formData.bankName}
-                onChange={handleChange}
-                placeholder="Enter bank name"
-                required
-              />
               
-              <FormInput
-                label="Account Number"
-                name="accountNumber"
-                value={formData.accountNumber}
-                onChange={handleChange}
-                placeholder="Enter account number"
-                required
-              />
-              
-              <FormInput
-                label="Routing Number"
-                name="routingNumber"
-                value={formData.routingNumber}
-                onChange={handleChange}
-                placeholder="Enter routing number"
-                required
-              />
-            </>
-          )}
-          
-          <div className="flex space-x-3 mt-6">
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => setShowAddForm(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit">
-              {editingId ? 'Update Method' : 'Add Method'}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <div className="space-y-4">
-          {paymentMethods.length > 0 ? (
-            paymentMethods.map(method => (
-              <PaymentMethodCard
-                key={method.id}
-                icon={getMethodIcon(method.type)}
-                name={method.type.charAt(0).toUpperCase() + method.type.slice(1)}
-                details={getMethodDetails(method)}
-                onEdit={() => handleEdit(method)}
-                onDelete={() => handleDelete(method.id)}
-              />
-            ))
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancel
+                </Button>
+                
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isLoading}
+                  icon={isLoading ? <FaSpinner className="animate-spin mr-2" /> : <FaCheck className="mr-2" />}
+                >
+                  {isLoading ? 'Adding...' : 'Add Card'}
+                </Button>
+              </div>
+            </form>
           ) : (
-            <div className="bg-gray-800 rounded-lg p-8 text-center">
-              <div className="text-4xl text-gray-600 mb-3 flex justify-center">
-                <FaCreditCard />
+            <form onSubmit={handleBankSubmit}>
+              <div className="grid grid-cols-1 gap-4 mb-4">
+                <FormInput
+                  label="Account Holder Name"
+                  name="accountName"
+                  value={bankFormData.accountName}
+                  onChange={handleBankChange}
+                  placeholder="Full name on account"
+                  required
+                />
+                
+                <FormInput
+                  label="Account Number"
+                  name="accountNumber"
+                  value={bankFormData.accountNumber}
+                  onChange={handleBankChange}
+                  placeholder="Account number"
+                  required
+                />
+                
+                <FormInput
+                  label="Routing Number"
+                  name="routingNumber"
+                  value={bankFormData.routingNumber}
+                  onChange={handleBankChange}
+                  placeholder="Routing number"
+                  required
+                />
+                
+                <FormInput
+                  label="Bank Name"
+                  name="bankName"
+                  value={bankFormData.bankName}
+                  onChange={handleBankChange}
+                  placeholder="Name of your bank"
+                  required
+                />
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="defaultBank"
+                    name="isDefault"
+                    checked={bankFormData.isDefault}
+                    onChange={handleBankChange}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-600 rounded bg-gray-700"
+                  />
+                  <label htmlFor="defaultBank" className="ml-2 block text-sm text-gray-300">
+                    Set as default payment method
+                  </label>
+                </div>
               </div>
-              <h4 className="text-lg font-medium text-gray-300 mb-2">No Payment Methods</h4>
-              <p className="text-gray-400 mb-4">Add a payment method to make withdrawals easier</p>
-              <Button onClick={handleAddNew}>
-                <FaPlus className="mr-2" /> Add Payment Method
-              </Button>
-            </div>
+              
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Cancel
+                </Button>
+                
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isLoading}
+                  icon={isLoading ? <FaSpinner className="animate-spin mr-2" /> : <FaCheck className="mr-2" />}
+                >
+                  {isLoading ? 'Adding...' : 'Add Bank Account'}
+                </Button>
+              </div>
+            </form>
           )}
+          
+          <div className="mt-4 bg-blue-900/20 border border-blue-500/30 p-3 rounded-md">
+            <p className="text-xs text-gray-300">
+              <FaInfoCircle className="inline-block mr-1 text-blue-500" />
+              Your payment information is encrypted and securely stored. We comply with PCI DSS standards for handling financial data.
+            </p>
+          </div>
         </div>
       )}
     </div>

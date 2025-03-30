@@ -1,120 +1,80 @@
-import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { UserAuth } from "../AuthPage/AuthContext";
-import { motion } from "framer-motion";
-import TradingViewWidget from "./TradingViewWidget";
-import AdvancedTradingView from "./AdvancedTradingView";
-import DashBoardData from "./DashBoardData";
-import MarketOverview from "./MarketOverview";
-import MarketPulse from "./MarketPulse";
-import MarketNews from "./MarketNews";
-import FinancialHighlights from "./FinancialHighlights";
-import Loader from "../common/Loader";
-import InfoCard from "../common/InfoCard";
-import DashboardLayout from "./DashboardLayout";
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import DashboardLayout from './DashboardLayout';
+import AccountSummary from './AccountSummary';
+import RecentTransactions from './RecentTransactions';
+import InvestmentSummary from './InvestmentSummary';
+import MarketOverview from './MarketOverview';
+import QuickActions from './QuickActions';
+import PriceAlerts from './PriceAlerts';
+import FinancialHighlights from './FinancialHighlights';
+import MarketNews from './MarketNews';
+import MarketPulse from './MarketPulse';
 import { 
-  FaWallet, 
-  FaChartLine, 
-  FaRegCalendarAlt 
-} from "react-icons/fa";
-import { fetchDashboardData, selectAccountStats } from "../../redux/slices/dashboardSlice";
+  fetchDashboardData, 
+  selectDashboardStatus 
+} from '../../redux/slices/dashboardSlice';
+import NotificationsPanel from './NotificationsPanel';
 
 const DashBoardPage = () => {
-  const { user } = UserAuth();
   const dispatch = useDispatch();
-  
-  const accountStats = useSelector(selectAccountStats) || { 
-    balance: 0, 
-    earnings: 0, 
-    registered: new Date().toISOString() 
-  };
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [useAdvancedChart, setUseAdvancedChart] = useState(true);
-  
+  const dashboardStatus = useSelector(selectDashboardStatus);
+
   useEffect(() => {
-    // Fetch data from redux
+    // Load dashboard data when component mounts
     dispatch(fetchDashboardData());
-    
-    // Simulate loading delay
-    const delay = 2000;
-    const preloaderTimeout = setTimeout(() => {
-      setIsLoading(false);
-    }, delay);
-
-    // Clean up
-    return () => clearTimeout(preloaderTimeout);
   }, [dispatch]);
-
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  // Format date for display
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
-  };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Trading Widget with toggle option */}
-        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
-            <h2 className="text-xl font-bold text-white">Market Chart</h2>
-            <button 
-              onClick={() => setUseAdvancedChart(!useAdvancedChart)}
-              className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            >
-              {useAdvancedChart ? "Simple View" : "Advanced View"}
-            </button>
+      <div className="p-4 sm:p-6">
+        <h1 className="text-2xl font-bold mb-6 text-gray-100">Dashboard</h1>
+        
+        {/* Dashboard Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          {/* Main Column */}
+          <div className="lg:col-span-2 space-y-4 lg:space-y-6">
+            {/* Account Summary */}
+            <AccountSummary />
+            
+            {/* Financial Highlights */}
+            <FinancialHighlights />
+            
+            {/* Quick Actions */}
+            <QuickActions />
+            
+            {/* Market Overview */}
+            <MarketOverview />
+            
+            {/* Market Pulse - visible only on desktop */}
+            <div className="hidden lg:block">
+              <MarketPulse />
+            </div>
+            
+            {/* Recent Transactions */}
+            <RecentTransactions />
           </div>
-          <div className="w-full" style={{ height: useAdvancedChart ? '600px' : '400px' }}>
-            {useAdvancedChart ? <AdvancedTradingView /> : <TradingViewWidget />}
+          
+          {/* Sidebar Column */}
+          <div className="space-y-4 lg:space-y-6">
+            {/* Investment Summary */}
+            <InvestmentSummary />
+            
+            {/* Price Alerts */}
+            <PriceAlerts />
+            
+            {/* Market News */}
+            <MarketNews maxItems={3} />
+            
+            {/* Market Pulse - visible only on mobile */}
+            <div className="lg:hidden">
+              <MarketPulse />
+            </div>
+            
+            {/* Notifications */}
+            <NotificationsPanel maxItems={3} showViewAll />
           </div>
         </div>
-        
-        {/* Market Pulse */}
-        <MarketPulse />
-        
-        {/* Market Overview */}
-        <MarketOverview />
-        
-        {/* Market News Feed */}
-        <MarketNews />
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <InfoCard
-            icon={<FaWallet size={22} />}
-            title="Account Balance"
-            value={`$${accountStats.balance.toFixed(2)}`}
-            color="blue"
-            delay={0.1}
-          />
-          
-          <InfoCard
-            icon={<FaChartLine size={22} />}
-            title="Total Earnings"
-            value={`$${accountStats.earnings.toFixed(2)}`}
-            color="green"
-            delay={0.2}
-          />
-          
-          <InfoCard
-            icon={<FaRegCalendarAlt size={22} />}
-            title="Registered Date"
-            value={formatDate(accountStats.registered)}
-            color="amber"
-            delay={0.3}
-          />
-        </div>
-        
-        {/* Financial Highlights */}
-        <FinancialHighlights />
-        
-        {/* Recent Transactions */}
-        <DashBoardData />
       </div>
     </DashboardLayout>
   );

@@ -14,7 +14,8 @@ import {
   FaTimes, 
   FaArrowRight,
   FaChalkboardTeacher,
-  FaTag
+  FaTag,
+  FaRegClock 
 } from "react-icons/fa";
 import DashboardLayout from "./DashboardLayout";
 import Button from "../common/Button";

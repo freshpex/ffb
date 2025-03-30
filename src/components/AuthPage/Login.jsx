@@ -13,8 +13,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   
-  // Get the correct authentication function from contex
-  const { signIn } = useAuth();
+  const { logIn } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,9 +21,25 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Use the signIn function from AuthContext
-      await signIn(email, password);
-      navigate("/login/dashboardpage");
+      await logIn(email, password);
+      console.log("Login successful, checking for token");
+      
+      // Wait a bit to ensure token is set
+      setTimeout(() => {
+        // Only check for token before redirecting
+        const token = localStorage.getItem('ffb_auth_token');
+        
+        console.log("Before navigation check:", {
+          hasToken: !!token
+        });
+        
+        if (token) {
+          navigate("/login/dashboardpage");
+        } else {
+          setError("Authentication successful but token could not be created. Please try again.");
+          setLoading(false);
+        }
+      }, 300);
     } catch (err) {
       console.error("Login error:", err);
       setError(
@@ -33,9 +48,14 @@ const Login = () => {
           ? "Invalid email or password. Please try again."
           : err.message.includes("auth/too-many-requests")
           ? "Access temporarily disabled due to many failed login attempts. Try again later or reset your password."
+          : err.message.includes("timed out") 
+          ? "Login request timed out. Server may be busy. Please try again."
+          : err.message.includes("network-request-failed") || err.code === "ERR_NETWORK"
+          ? "Network connection error. Please check your internet connection."
+          : err.message.includes("Unable to synchronize")
+          ? "Backend synchronization failed. Please try again later."
           : "Failed to login. Please check your credentials and try again."
       );
-    } finally {
       setLoading(false);
     }
   };
