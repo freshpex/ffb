@@ -1,167 +1,171 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { selectOrderBook } from '../../redux/slices/tradingSlice';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+// Register Chart.js components
+Chart.register(...registerables);
 
 const MarketDepthChart = ({ symbol }) => {
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
   const orderBook = useSelector(selectOrderBook);
-  const [chartData, setChartData] = useState({
-    labels: [],
-    datasets: []
-  });
-
+  
   useEffect(() => {
-    if (!orderBook || !orderBook.bids || !orderBook.asks) return;
-
-    // Process the order book data for the chart
-    const processOrderBookData = () => {
-      // Sort bids (descending) and asks (ascending)
-      const bids = [...orderBook.bids].sort((a, b) => b.price - a.price);
+    if (!chartRef.current) return;
+    
+    // Destroy existing chart if it exists
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+    
+    const ctx = chartRef.current.getContext('2d');
+    
+    // Process data for depth chart
+    const processDepthData = () => {
+      if (!orderBook || !orderBook.asks || !orderBook.bids) {
+        return { bidData: [], askData: [], labels: [] };
+      }
+      
       const asks = [...orderBook.asks].sort((a, b) => a.price - b.price);
-
-      // Calculate cumulative amounts
-      let cumulativeBids = [];
-      let cumulativeAmount = 0;
+      const bids = [...orderBook.bids].sort((a, b) => b.price - a.price);
       
-      for (const bid of bids) {
-        cumulativeAmount += bid.amount;
-        cumulativeBids.push({ price: bid.price, amount: cumulativeAmount });
-      }
-
-      let cumulativeAsks = [];
-      cumulativeAmount = 0;
+      // Create cumulative sums
+      let bidSum = 0;
+      const bidData = bids.map(bid => {
+        bidSum += bid.quantity;
+        return { x: bid.price, y: bidSum };
+      });
       
-      for (const ask of asks) {
-        cumulativeAmount += ask.amount;
-        cumulativeAsks.push({ price: ask.price, amount: cumulativeAmount });
-      }
-
-      // Create data for chart
-      const bidPrices = cumulativeBids.map(bid => bid.price.toFixed(2));
-      const bidAmounts = cumulativeBids.map(bid => bid.amount);
+      let askSum = 0;
+      const askData = asks.map(ask => {
+        askSum += ask.quantity;
+        return { x: ask.price, y: askSum };
+      });
       
-      const askPrices = cumulativeAsks.map(ask => ask.price.toFixed(2));
-      const askAmounts = cumulativeAsks.map(ask => ask.amount);
-
-      // Combine for labels
-      const allPrices = [...bidPrices.reverse(), ...askPrices];
-
-      // Create chart data
-      setChartData({
-        labels: allPrices,
+      // Create labels (prices)
+      const allPrices = [...bidData.map(d => d.x), ...askData.map(d => d.x)];
+      const maxPrice = Math.max(...allPrices);
+      const minPrice = Math.min(...allPrices);
+      const priceRange = maxPrice - minPrice;
+      
+      return { bidData, askData, minPrice, maxPrice, priceRange };
+    };
+    
+    const { bidData, askData, minPrice, maxPrice, priceRange } = processDepthData();
+    
+    // Create the chart
+    chartInstance.current = new Chart(ctx, {
+      type: 'line',
+      data: {
         datasets: [
           {
             label: 'Bids',
-            data: [...bidAmounts.reverse(), ...Array(askPrices.length).fill(null)],
-            borderColor: 'rgba(46, 204, 113, 1)',
-            backgroundColor: 'rgba(46, 204, 113, 0.2)',
-            pointRadius: 0,
+            data: bidData,
+            borderColor: 'rgba(72, 187, 120, 0.8)',
+            backgroundColor: 'rgba(72, 187, 120, 0.2)',
             borderWidth: 2,
-            fill: true
+            fill: true,
+            tension: 0.1,
+            stepped: 'before'
           },
           {
             label: 'Asks',
-            data: [...Array(bidPrices.length).fill(null), ...askAmounts],
-            borderColor: 'rgba(231, 76, 60, 1)',
-            backgroundColor: 'rgba(231, 76, 60, 0.2)',
-            pointRadius: 0,
+            data: askData,
+            borderColor: 'rgba(245, 101, 101, 0.8)',
+            backgroundColor: 'rgba(245, 101, 101, 0.2)',
             borderWidth: 2,
-            fill: true
+            fill: true,
+            tension: 0.1,
+            stepped: 'after'
           }
         ]
-      });
-    };
-
-    processOrderBookData();
-  }, [orderBook]);
-
-  // Chart options
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      intersect: false,
-      mode: 'index',
-    },
-    scales: {
-      x: {
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
-        },
-        ticks: {
-          color: 'rgba(255, 255, 255, 0.7)',
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 10
-        },
-        title: {
-          display: true,
-          text: 'Price',
-          color: 'rgba(255, 255, 255, 0.9)'
-        }
       },
-      y: {
-        grid: {
-          color: 'rgba(255, 255, 255, 0.1)',
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'linear',
+            min: Math.max(0, minPrice - priceRange * 0.05),
+            max: maxPrice + priceRange * 0.05,
+            grid: {
+              color: 'rgba(75, 85, 99, 0.3)'
+            },
+            ticks: {
+              color: '#9CA3AF',
+              font: {
+                size: 10
+              }
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(75, 85, 99, 0.3)'
+            },
+            ticks: {
+              color: '#9CA3AF',
+              font: {
+                size: 10
+              }
+            }
+          }
         },
-        ticks: {
-          color: 'rgba(255, 255, 255, 0.7)',
+        plugins: {
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              title: (tooltipItems) => {
+                return `Price: ${tooltipItems[0].parsed.x.toFixed(2)}`;
+              },
+              label: (context) => {
+                const label = context.dataset.label || '';
+                return `${label}: ${context.parsed.y.toFixed(6)}`;
+              }
+            }
+          },
+          legend: {
+            labels: {
+              color: '#D1D5DB',
+              font: {
+                size: 11
+              }
+            }
+          }
         },
-        title: {
-          display: true,
-          text: 'Cumulative Amount',
-          color: 'rgba(255, 255, 255, 0.9)'
-        }
-      }
-    },
-    plugins: {
-      legend: {
-        labels: {
-          color: 'rgba(255, 255, 255, 0.9)'
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            const value = context.raw || 0;
-            return `${context.dataset.label}: ${value.toFixed(4)}`;
+        interaction: {
+          mode: 'nearest',
+          intersect: false,
+          axis: 'x'
+        },
+        animation: false,
+        elements: {
+          point: {
+            radius: 0
           }
         }
-      },
-      title: {
-        display: true,
-        text: `Market Depth - ${symbol}`,
-        color: 'rgba(255, 255, 255, 0.9)',
-        font: {
-          size: 16
-        }
       }
-    }
-  };
-
+    });
+    
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [orderBook]);
+  
   return (
-    <div className="w-full h-full p-4">
-      {chartData.labels.length > 0 ? (
-        <Line data={chartData} options={options} />
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-gray-400">Loading market depth data...</p>
-        </div>
-      )}
+    <div className="h-full flex flex-col">
+      <div className="p-3 border-b border-gray-700 flex items-center justify-between">
+        <h3 className="text-sm font-medium text-white">Market Depth</h3>
+        <div className="text-xs text-gray-400">{symbol}</div>
+      </div>
+      
+      <div className="flex-grow p-2">
+        <canvas ref={chartRef} className="w-full h-full"></canvas>
+      </div>
     </div>
   );
 };

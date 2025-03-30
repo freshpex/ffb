@@ -22,7 +22,7 @@ import {
 } from '../../../redux/slices/tradingSlice';
 import Button from '../../common/Button';
 
-const OrderForm = ({ className }) => {
+const OrderForm = ({ className = '' }) => {
   const dispatch = useDispatch();
   
   // Redux state
@@ -51,7 +51,7 @@ const OrderForm = ({ className }) => {
   const currentPrice = marketPrices[selectedAsset]?.current || 0;
   
   // Parse the selected asset to get base and quote assets
-  const [baseAsset, quoteAsset] = selectedAsset.split('/');
+  const [baseAsset, quoteAsset] = selectedAsset?.split('/') || ['', ''];
   
   // Find user's balance for the base asset (for sell orders)
   const baseAssetBalance = positions.find(pos => pos.symbol === baseAsset)?.amount || 0;
@@ -505,10 +505,6 @@ const OrderForm = ({ className }) => {
 
 OrderForm.propTypes = {
   className: PropTypes.string
-};
-
-OrderForm.defaultProps = {
-  className: ''
 };
 
 export default OrderForm;

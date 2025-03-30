@@ -1,85 +1,71 @@
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
-// Create TradingView widget component
-function TradingViewWidget({ symbol = 'BTCUSDT', theme = 'dark', interval = '1D' }) {
+// A simple wrapper around the TradingView Advanced Chart widget
+const TradingViewWidget = ({ symbol }) => {
   const container = useRef();
   
-  // Convert crypto pair format from BTC/USDT to BTCUSDT for TradingView
-  const formatSymbol = (symbolPair) => {
-    // Handle cases like "BTC/USDT"
-    if (symbolPair.includes('/')) {
-      return symbolPair.replace('/', '');
-    }
-    return symbolPair;
-  };
+  const safeSymbol = symbol || 'BTC/USD';
 
   useEffect(() => {
-    // Clear existing widget if any
-    if (container.current.hasChildNodes()) {
+    // Clear previous widget if it exists
+    if (container.current) {
       container.current.innerHTML = '';
     }
-    
-    const formattedSymbol = formatSymbol(symbol);
-    
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
+
+    // Create the script element for TradingView widget
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/tv.js";
     script.async = true;
     script.onload = () => {
-      if (typeof window.TradingView !== 'undefined') {
+      if (typeof TradingView !== 'undefined' && container.current) {
+        // Map our symbol format to TradingView format
+        // Remove slash and replace with nothing (BTC/USD -> BTCUSD)
+        const formattedSymbol = safeSymbol.replace('/', '');
+        
+        // eslint-disable-next-line no-new
         new window.TradingView.widget({
           autosize: true,
           symbol: `BINANCE:${formattedSymbol}`,
-          interval: interval,
-          timezone: 'Etc/UTC',
-          theme: theme,
-          style: '1',
-          locale: 'en',
-          toolbar_bg: '#f1f3f6',
+          interval: "60",
+          timezone: "Etc/UTC",
+          theme: "dark",
+          style: "1",
+          locale: "en",
+          toolbar_bg: "#1A202C",
           enable_publishing: false,
           allow_symbol_change: true,
-          container_id: 'tradingview_widget',
+          container_id: container.current.id,
           hide_side_toolbar: false,
-          studies: [
-            'MASimple@tv-basicstudies',
-            'RSI@tv-basicstudies'
-          ],
-          disabled_features: [
-            'use_localstorage_for_settings'
-          ],
-          enabled_features: [
-            'study_templates'
-          ],
+          backgroundColor: "#1A202C",
+          gridColor: "#2D3748",
+          hide_volume: false,
         });
       }
     };
-    
     container.current.appendChild(script);
-    
+
     return () => {
+      // Cleanup
       if (container.current) {
         container.current.innerHTML = '';
       }
     };
-  }, [symbol, theme, interval]);
+  }, [safeSymbol]);
 
   return (
-    <div className="tradingview-widget-container" style={{ height: '100%', width: '100%' }}>
-      <div id="tradingview_widget" ref={container} style={{ height: 'calc(100% - 32px)', width: '100%' }} />
-      <div className="tradingview-widget-copyright text-xs p-1 text-center text-gray-500">
-        <a href="https://www.tradingview.com/" rel="noopener noreferrer" target="_blank">
-          <span className="blue-text">Track all markets on TradingView</span>
-        </a>
-      </div>
+    <div className="w-full h-full bg-gray-800">
+      <div 
+        id={`tradingview_widget_${Math.floor(Math.random() * 1000000)}`} 
+        ref={container} 
+        className="h-full"
+      />
     </div>
   );
-}
-
-TradingViewWidget.propTypes = {
-  symbol: PropTypes.string,
-  theme: PropTypes.oneOf(['light', 'dark']),
-  interval: PropTypes.string
 };
 
-// Memoize component to prevent unnecessary re-renders
-export default memo(TradingViewWidget);
+TradingViewWidget.propTypes = {
+  symbol: PropTypes.string.isRequired
+};
+
+export default TradingViewWidget;

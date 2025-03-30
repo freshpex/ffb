@@ -1,42 +1,59 @@
 import { memo } from "react";
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
+import { motion } from "framer-motion";
 
-const Loader = memo(({ fullScreen = true, size = "default", text = "Loading..." }) => {
-  const sizes = {
-    small: "w-8 h-8",
-    default: "w-16 h-16",
-    large: "w-24 h-24"
+const Loader = memo(({ size = "default", color = "primary", className = "" }) => {
+  const sizeClasses = {
+    small: "w-5 h-5",
+    default: "w-8 h-8", 
+    large: "w-12 h-12",
+    lg: "w-12 h-12" // Added lg as an alias for large
   };
 
+  const colorClasses = {
+    primary: "text-primary-500",
+    white: "text-white",
+    gray: "text-gray-400"
+  };
 
-  const loaderContent = (
-    <div className="flex flex-col items-center justify-center">
-      <div
-        className={`${sizes[size]} border-4 border-t-primary-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin`}
-      />
-      {text && <p className="mt-4 text-gray-300 font-medium">{text}</p>}
+  return (
+    <div className={`flex justify-center items-center ${className}`}>
+      <motion.div
+        className={`${sizeClasses[size] || sizeClasses.default} ${colorClasses[color] || colorClasses.primary}`}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      >
+        <svg
+          className="w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      </motion.div>
     </div>
   );
-
-  // If fullScreen, render with a full screen overlay
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 bg-gray-900/90 z-50 flex items-center justify-center">
-        {loaderContent}
-      </div>
-    );
-  }
-
-  // Otherwise, render without the overlay
-  return loaderContent;
 });
 
 Loader.displayName = 'Loader';
 
 Loader.propTypes = {
-  fullScreen: PropTypes.bool,
-  size: PropTypes.oneOf(["small", "default", "large"]),
-  text: PropTypes.string
+  size: PropTypes.oneOf(["small", "default", "large", "lg"]),
+  color: PropTypes.oneOf(["primary", "white", "gray"]),
+  className: PropTypes.string
 };
 
 export default Loader;

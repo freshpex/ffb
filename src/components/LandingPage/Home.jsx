@@ -10,6 +10,7 @@ import HomeFooter from "./HomeFooter";
 import FloatingActionButton from "../FloatingActionButton";
 import { Suspense } from "react";
 import TradingViewChart from "./TradingViewChart";
+import '/src/css/index.css';
 
 const Home = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);

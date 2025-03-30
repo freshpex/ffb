@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const Loader = memo(() => {
   return (
-    <div className="loader">
+    <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-[#131920] to-[#2a3646]">
       <div>
         <motion.svg 
           xmlns="http://www.w3.org/2000/svg" 
@@ -27,7 +27,7 @@ const Loader = memo(() => {
         </motion.svg>
       </div>
       <motion.h2
-        className="loader-text"
+        className="text-white text-2xl font-bold mt-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.3 }}

@@ -7,7 +7,7 @@ import ContactSection1 from './ContactSection1';
 import ContactSection2 from './ContactSection2';
 import ContactSection3 from './ContactSection3';
 import ContactSection4 from './ContactSection4';
-import '../../css/contact.css';
+import '/src/css/contact.css';
 
 const ContactPage = () => {
   useEffect(() => {

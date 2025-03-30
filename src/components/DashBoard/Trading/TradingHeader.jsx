@@ -1,171 +1,254 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { 
-  FaChartBar, 
-  FaBook, 
-  FaTh, 
+  FaSearch, 
   FaStar, 
-  FaRegStar, 
-  FaCog, 
-  FaChevronDown,
-  FaDesktop,
-  FaChartLine,
-  FaTable
+  FaRegStar,
+  FaChevronDown, 
+  FaArrowUp, 
+  FaArrowDown,
+  FaBell
 } from 'react-icons/fa';
 import { 
+  selectAvailableAssets, 
   selectSelectedAsset, 
-  selectMarketPrices, 
-  toggleMarketFavorite,
-  selectAvailableAssets 
+  setSelectedAsset, 
+  selectMarketPrices,
+  fetchMarketData
 } from '../../../redux/slices/tradingSlice';
 
-const TradingHeader = ({ layout, setLayout, mobileTab, setMobileTab }) => {
+const TradingHeader = () => {
+  const dispatch = useDispatch();
+  const allAssets = selectAvailableAssets();
   const selectedAsset = useSelector(selectSelectedAsset);
-  const marketData = useSelector(selectMarketPrices);
-  const tradingPairs = useSelector(selectAvailableAssets);
+  const marketPrices = useSelector(selectMarketPrices);
   
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAssetSelector, setShowAssetSelector] = useState(false);
+  const [filteredAssets, setFilteredAssets] = useState(allAssets);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [favorites, setFavorites] = useState(['BTC/USD', 'ETH/USD']);
   
-  const currentSymbolData = selectedAsset && marketData ? 
-    marketData[selectedAsset] : null;
-  
-  const currentPairData = selectedAsset ? 
-    tradingPairs.find(pair => pair.symbol === selectedAsset) : null;
-  
-  // Format price with appropriate precision
+  // Format price with appropriate decimal places
   const formatPrice = (price) => {
-    if (!price) return '-';
-    if (!currentPairData) return price.toLocaleString();
-    
-    return price.toFixed(currentPairData.pricePrecision);
+    if (!price) return '0.00';
+    if (price < 1) return price.toFixed(6);
+    if (price < 10) return price.toFixed(4);
+    if (price < 1000) return price.toFixed(2);
+    return price.toFixed(2);
   };
   
-  // Price change percentage formatter
-  const formatChange = (change) => {
-    if (!change && change !== 0) return '-';
+  // Get current price and price change
+  const currentPrice = marketPrices[selectedAsset]?.current || 0;
+  const priceChange = marketPrices[selectedAsset]?.change || 0;
+  const isPriceUp = priceChange >= 0;
+  
+  // Filter assets based on search query and category
+  useEffect(() => {
+    let result = allAssets;
     
-    return (
-      <span className={change >= 0 ? 'text-green-500' : 'text-red-500'}>
-        {change >= 0 ? '+' : ''}{change.toFixed(2)}%
-      </span>
-    );
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      result = result.filter(asset => asset.category === selectedCategory);
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        asset => asset.name.toLowerCase().includes(query) || 
+                asset.symbol.toLowerCase().includes(query)
+      );
+    }
+    
+    setFilteredAssets(result);
+  }, [searchQuery, selectedCategory, allAssets]);
+  
+  // Handle asset selection
+  const handleAssetSelect = (symbol) => {
+    dispatch(setSelectedAsset(symbol));
+    setShowAssetSelector(false);
+    dispatch(fetchMarketData(symbol));
+  };
+  
+  // Toggle favorite
+  const toggleFavorite = (symbol, e) => {
+    e.stopPropagation();
+    if (favorites.includes(symbol)) {
+      setFavorites(favorites.filter(s => s !== symbol));
+    } else {
+      setFavorites([...favorites, symbol]);
+    }
   };
   
   return (
-    <div className="bg-gray-800 border-b border-gray-700 p-3">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-        {/* Symbol information */}
-        <div className="flex items-center mr-4 mb-3 sm:mb-0">
-          <div className="mr-3">
-            <h1 className="text-xl font-bold text-white flex items-center">
-              {selectedAsset || 'Select a Market'}
-              <button 
-                className="ml-2 text-gray-400 hover:text-yellow-400 focus:outline-none"
-                onClick={() => {
-                  /* Handle favorite toggle */
-                }}
-              >
-                {currentSymbolData?.isFavorite ? <FaStar className="text-yellow-400" /> : <FaRegStar />}
-              </button>
-            </h1>
-            {currentSymbolData && (
-              <div className="flex items-center text-sm">
-                <span className="text-gray-300 mr-3">Last: {formatPrice(currentSymbolData.current)}</span>
-                <span className="mr-3">{formatChange(currentSymbolData.change)}</span>
-                <span className="text-gray-400">24h Vol: {currentSymbolData.volume24h?.toLocaleString()}</span>
+    <div className="bg-gray-900 border-b border-gray-700 px-4 py-3">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        {/* Asset selector */}
+        <div className="relative">
+          <button
+            className="flex items-center bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+            onClick={() => setShowAssetSelector(!showAssetSelector)}
+          >
+            <span className="font-medium">{selectedAsset}</span>
+            <FaChevronDown className="ml-2 text-gray-400" />
+          </button>
+          
+          {/* Asset selector dropdown */}
+          {showAssetSelector && (
+            <div className="absolute left-0 mt-2 w-96 bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-700">
+              <div className="p-3 border-b border-gray-700">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search assets..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg pl-9 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
               </div>
-            )}
+              
+              <div className="p-2 border-b border-gray-700 flex space-x-1">
+                <button
+                  className={`px-3 py-1 text-xs rounded-lg ${
+                    selectedCategory === 'all' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  onClick={() => setSelectedCategory('all')}
+                >
+                  All
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs rounded-lg ${
+                    selectedCategory === 'crypto' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  onClick={() => setSelectedCategory('crypto')}
+                >
+                  Crypto
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs rounded-lg ${
+                    selectedCategory === 'forex' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  onClick={() => setSelectedCategory('forex')}
+                >
+                  Forex
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs rounded-lg ${
+                    selectedCategory === 'indices' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  onClick={() => setSelectedCategory('indices')}
+                >
+                  Indices
+                </button>
+                <button
+                  className={`px-3 py-1 text-xs rounded-lg ${
+                    selectedCategory === 'commodities' ? 'bg-primary-600 text-white' : 'text-gray-400 hover:bg-gray-700'
+                  }`}
+                  onClick={() => setSelectedCategory('commodities')}
+                >
+                  Commodities
+                </button>
+              </div>
+              
+              <div className="max-h-80 overflow-y-auto">
+                {filteredAssets.length > 0 ? (
+                  filteredAssets.map((asset) => (
+                    <div
+                      key={asset.symbol}
+                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-700 cursor-pointer"
+                      onClick={() => handleAssetSelect(asset.symbol)}
+                    >
+                      <div className="flex items-center">
+                        <button 
+                          onClick={(e) => toggleFavorite(asset.symbol, e)}
+                          className="text-gray-400 hover:text-yellow-500 mr-2"
+                        >
+                          {favorites.includes(asset.symbol) ? (
+                            <FaStar className="text-yellow-500" />
+                          ) : (
+                            <FaRegStar />
+                          )}
+                        </button>
+                        <div>
+                          <div className="text-white font-medium">{asset.name}</div>
+                          <div className="text-gray-400 text-sm">{asset.symbol}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="text-white">${formatPrice(marketPrices[asset.symbol]?.current)}</div>
+                        {marketPrices[asset.symbol] && (
+                          <div className={`text-xs ${marketPrices[asset.symbol].change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {marketPrices[asset.symbol].change >= 0 ? '+' : ''}
+                            {marketPrices[asset.symbol].change.toFixed(2)}%
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-6 text-center text-gray-400">No assets found matching your criteria</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Price info */}
+        <div className="flex items-center space-x-6">
+          <div>
+            <div className="text-gray-400 text-xs">Last Price</div>
+            <div className={`text-2xl font-bold ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
+              ${formatPrice(currentPrice)}
+            </div>
+          </div>
+          
+          <div>
+            <div className="text-gray-400 text-xs">24h Change</div>
+            <div className={`flex items-center ${isPriceUp ? 'text-green-500' : 'text-red-500'}`}>
+              {isPriceUp ? <FaArrowUp className="mr-1" /> : <FaArrowDown className="mr-1" />}
+              {isPriceUp ? '+' : ''}
+              {priceChange.toFixed(2)}%
+            </div>
+          </div>
+          
+          <div className="hidden lg:block">
+            <div className="text-gray-400 text-xs">24h High</div>
+            <div className="text-white">
+              ${formatPrice(marketPrices[selectedAsset]?.high24h || 0)}
+            </div>
+          </div>
+          
+          <div className="hidden lg:block">
+            <div className="text-gray-400 text-xs">24h Low</div>
+            <div className="text-white">
+              ${formatPrice(marketPrices[selectedAsset]?.low24h || 0)}
+            </div>
+          </div>
+          
+          <div className="hidden lg:block">
+            <div className="text-gray-400 text-xs">24h Volume</div>
+            <div className="text-white">
+              ${(marketPrices[selectedAsset]?.volume24h || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </div>
           </div>
         </div>
         
-        {/* Controls */}
-        <div className="flex items-center">
-          {/* Layout options */}
-          <div className="bg-gray-700 rounded-lg p-1 mr-3 hidden md:flex">
-            <button 
-              className={`p-2 rounded ${layout === 'standard' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              onClick={() => setLayout('standard')}
-              title="Standard View"
-            >
-              <FaTh size={16} />
-            </button>
-            <button 
-              className={`p-2 rounded ${layout === 'chart' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              onClick={() => setLayout('chart')}
-              title="Chart Focus"
-            >
-              <FaChartLine size={16} />
-            </button>
-            <button 
-              className={`p-2 rounded ${layout === 'orderbook' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              onClick={() => setLayout('orderbook')}
-              title="Orderbook Focus"
-            >
-              <FaTable size={16} />
-            </button>
-          </div>
-          
-          {/* Mobile tab selection - only visible on small screens */}
-          <div className="bg-gray-700 rounded-lg p-1 mr-3 flex sm:hidden">
-            <button 
-              className={`p-2 rounded ${mobileTab === 'chart' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              onClick={() => setMobileTab('chart')}
-              title="Chart"
-            >
-              <FaChartBar size={16} />
-            </button>
-            <button 
-              className={`p-2 rounded ${mobileTab === 'orderbook' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              onClick={() => setMobileTab('orderbook')}
-              title="Orderbook"
-            >
-              <FaBook size={16} />
-            </button>
-            <button 
-              className={`p-2 rounded ${mobileTab === 'order' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
-              onClick={() => setMobileTab('order')}
-              title="Place Order"
-            >
-              <FaCog size={16} />
-            </button>
-          </div>
-          
-          {/* Settings dropdown */}
-          <div className="relative">
-            <button 
-              className="flex items-center justify-between bg-gray-700 rounded-lg py-2 px-3 text-gray-300 hover:text-white"
-              onClick={() => setShowDropdown(!showDropdown)}
-            >
-              <FaCog className="mr-2" />
-              <span className="mr-1">Settings</span>
-              <FaChevronDown size={12} />
-            </button>
-            
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg z-20">
-                <div className="py-1">
-                  <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-600">
-                    <FaDesktop className="mr-2" /> Trading Preferences
-                  </a>
-                  <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-600">
-                    <FaChartLine className="mr-2" /> Chart Settings
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Alert button */}
+        <div className="hidden md:block">
+          <button 
+            className="bg-gray-800 hover:bg-gray-700 p-2 rounded-full"
+            title="Create price alert"
+          >
+            <FaBell className="text-gray-400" />
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-TradingHeader.propTypes = {
-  layout: PropTypes.string.isRequired,
-  setLayout: PropTypes.func.isRequired,
-  mobileTab: PropTypes.string.isRequired,
-  setMobileTab: PropTypes.func.isRequired
 };
 
 export default TradingHeader;

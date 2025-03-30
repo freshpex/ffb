@@ -1,54 +1,43 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  FaChartLine, 
-  FaWallet, 
-  FaHistory, 
-  FaExchangeAlt, 
-  FaAngleDown,
-  FaArrowUp,
-  FaArrowDown,
-  FaDollarSign,
-  FaRegClock,
-  FaInfoCircle,
-  FaSync,
-  FaTimes,
-  FaCheck,
-  FaBars,
-  FaChevronDown,
-  FaDatabase,
-  FaRedo
+import { 
+  FaBars, 
+  FaTimes, 
+  FaChevronDown, 
+  FaSync, 
+  FaInfoCircle 
 } from 'react-icons/fa';
-import DashboardLayout from './DashboardLayout';
-import Button from '../common/Button';
-import Alert from '../common/Alert';
-import TradingViewWidget from './TradingViewWidget';
-import MarketDepthChart from './MarketDepthChart';
-import LiveOrderbook from './LiveOrderbook';
-import {
-  setSelectedPair,
-  placeOrder,
-  cancelOrder,
-  updateMarketPrices,
+import { 
   selectTradingPairs,
-  selectSelectedPair,
+  selectSelectedAsset,
   selectPositions,
   selectOpenOrders,
   selectTradeHistory,
   selectOrderBook,
   selectRecentTrades,
   selectTradingStatus,
-  selectTradingError
+  selectTradingError,
+  selectUserBalance,
+  selectMarketPrices,
+  setSelectedPair,
+  cancelOrder,
+  placeOrder,
+  updateMarketPrices
 } from '../../redux/slices/tradingSlice';
-import { selectUserBalance } from '../../redux/slices/userSlice';
+import DashboardLayout from './DashboardLayout';
+import Button from '../common/Button';
+import Alert from '../common/Alert';
+import TradingViewWidget from './TradingViewWidget';
+import LiveOrderbook from './LiveOrderbook';
+import MarketDepthChart from './MarketDepthChart';
 
 const TradingPlatform = () => {
   const dispatch = useDispatch();
   
   // Redux state
   const tradingPairs = useSelector(selectTradingPairs);
-  const selectedPair = useSelector(selectSelectedPair);
+  const selectedPair = useSelector(selectSelectedAsset);
   const positions = useSelector(selectPositions);
   const openOrders = useSelector(selectOpenOrders);
   const tradeHistory = useSelector(selectTradeHistory);
@@ -57,6 +46,11 @@ const TradingPlatform = () => {
   const tradingStatus = useSelector(selectTradingStatus);
   const tradingError = useSelector(selectTradingError);
   const userBalance = useSelector(selectUserBalance);
+  const marketPrices = useSelector(selectMarketPrices);
+  
+  // Initialize with a default value if selectedPair is undefined
+  const defaultPair = 'BTC/USD';
+  const currentSelectedPair = selectedPair || defaultPair;
   
   // Local state
   const [orderForm, setOrderForm] = useState({
@@ -76,6 +70,19 @@ const TradingPlatform = () => {
   const [alertMessage, setAlertMessage] = useState({ type: '', message: '' });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
+  // Get the current selected pair information
+  const selectedPairInfo = tradingPairs.find(pair => pair.symbol === currentSelectedPair) || 
+    { symbol: currentSelectedPair, lastPrice: 0, priceChange: 0 };
+  const currentPairPrice = marketPrices[currentSelectedPair]?.current || 65000;
+  const priceChange = marketPrices[currentSelectedPair]?.change || 0;
+  
+  // Initialize with a default pair if needed
+  useEffect(() => {
+    if (!selectedPair && tradingPairs.length > 0) {
+      dispatch(setSelectedPair(defaultPair));
+    }
+  }, [dispatch, selectedPair, tradingPairs]);
+
   // Handle resizing
   useEffect(() => {
     const handleResize = () => {
@@ -663,7 +670,7 @@ const TradingPlatform = () => {
   const renderTradingView = () => (
     <div className="rounded-lg overflow-hidden bg-gray-800">
       <div className="h-[500px]">
-        <TradingViewWidget symbol={selectedPair.symbol} />
+        <TradingViewWidget symbol={currentSelectedPair} />
       </div>
     </div>
   );
@@ -671,10 +678,10 @@ const TradingPlatform = () => {
   const renderMarketData = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="bg-gray-800 rounded-lg overflow-hidden h-[400px]">
-        <LiveOrderbook symbol={selectedPair.symbol} />
+        <LiveOrderbook symbol={currentSelectedPair} />
       </div>
       <div className="bg-gray-800 rounded-lg overflow-hidden h-[400px]">
-        <MarketDepthChart symbol={selectedPair.symbol} />
+        <MarketDepthChart symbol={currentSelectedPair} />
       </div>
     </div>
   );

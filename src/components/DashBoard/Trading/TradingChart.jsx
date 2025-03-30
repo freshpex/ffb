@@ -1,234 +1,428 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
-  selectSelectedAsset,
+  createChart,
+  CandlestickSeries,
+  LineSeries,
+  AreaSeries,
+  HistogramSeries
+} from 'lightweight-charts';
+import { 
+  selectCandlesticks, 
+  selectSelectedAsset, 
+  selectChartTimeframe,
   setChartTimeframe,
-  selectChartTimeframe
+  fetchChartData,
+  toggleChartIndicator,
+  selectChartIndicators
 } from '../../../redux/slices/tradingSlice';
-import { createChart, CrosshairMode } from 'lightweight-charts';
+import { FaCog, FaChartLine, FaChartBar, FaChartArea, FaSpinner } from 'react-icons/fa';
 
 const TIMEFRAMES = [
-  { label: '5m', value: '5m' },
-  { label: '15m', value: '15m' },
-  { label: '1h', value: '1h' },
-  { label: '4h', value: '4h' },
-  { label: '1d', value: '1d' },
-  { label: '1w', value: '1w' }
+  { value: '1m', label: '1m' },
+  { value: '5m', label: '5m' },
+  { value: '15m', label: '15m' },
+  { value: '30m', label: '30m' },
+  { value: '1h', label: '1h' },
+  { value: '4h', label: '4h' },
+  { value: '1d', label: '1D' },
+  { value: '1w', label: '1W' },
 ];
-
-const generateMockCandlestickData = (symbol, timeframe, count = 200) => {
-  const data = [];
-  let basePrice;
-  
-  // Set base price based on symbol
-  if (symbol.includes('BTC')) {
-    basePrice = 65000;
-  } else if (symbol.includes('ETH')) {
-    basePrice = 3450;
-  } else if (symbol.includes('LTC')) {
-    basePrice = 78;
-  } else if (symbol.includes('XRP')) {
-    basePrice = 0.67;
-  } else {
-    basePrice = 100;
-  }
-  
-  // Generate random candles with trend tendencies
-  let currentPrice = basePrice;
-  const now = new Date();
-  let timeInterval;
-  
-  switch (timeframe) {
-    case '5m': timeInterval = 5 * 60 * 1000; break;
-    case '15m': timeInterval = 15 * 60 * 1000; break;
-    case '4h': timeInterval = 4 * 60 * 60 * 1000; break;
-    case '1d': timeInterval = 24 * 60 * 60 * 1000; break;
-    case '1w': timeInterval = 7 * 24 * 60 * 60 * 1000; break;
-    case '1h':
-    default: timeInterval = 60 * 60 * 1000;
-  }
-  
-  // Add some trend bias
-  const trendBias = Math.random() > 0.5 ? 1 : -1;
-  
-  for (let i = count; i >= 0; i--) {
-    const time = new Date(now.getTime() - (i * timeInterval));
-    
-    // Introduce some volatility based on timeframe
-    const volatilityFactor = timeframe === '1w' ? 0.05 : 
-                            timeframe === '1d' ? 0.03 : 
-                            timeframe === '4h' ? 0.02 : 0.01;
-    
-    const volatility = basePrice * volatilityFactor;
-    
-    // Random price movements with trend bias
-    const change = (Math.random() - 0.5 + trendBias * 0.1) * volatility;
-    currentPrice += change;
-    
-    // Ensure price doesn't go too extreme
-    if (currentPrice < basePrice * 0.7 || currentPrice > basePrice * 1.3) {
-      currentPrice = basePrice * (0.85 + Math.random() * 0.3);
-    }
-    
-    // Generate candle values
-    const open = currentPrice;
-    const high = open + (Math.random() * volatility * 0.5);
-    const low = open - (Math.random() * volatility * 0.5);
-    const close = (open + high + low) / 3 + (Math.random() - 0.5) * volatility * 0.3;
-    
-    data.push({
-      time: Math.floor(time.getTime() / 1000),
-      open,
-      high,
-      low,
-      close,
-      volume: Math.floor(Math.random() * basePrice * 100)
-    });
-  }
-  
-  return data;
-};
 
 const TradingChart = () => {
   const dispatch = useDispatch();
-  const chartContainerRef = useRef(null);
+  const candlesticks = useSelector(selectCandlesticks);
   const selectedAsset = useSelector(selectSelectedAsset);
   const timeframe = useSelector(selectChartTimeframe);
+  const indicators = useSelector(selectChartIndicators);
   
-  const [chart, setChart] = useState(null);
-  const [candleSeries, setCandleSeries] = useState(null);
-  const [volumeSeries, setVolumeSeries] = useState(null);
+  const chartContainerRef = useRef(null);
+  const chartInstanceRef = useRef(null);
+  const candlestickSeriesRef = useRef(null);
+  const indicatorSeriesRef = useRef({});
+  
+  const [chartType, setChartType] = useState('candles');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Initialize chart
   useEffect(() => {
-    if (!chartContainerRef.current) return;
-    
-    // Clear previous chart
-    chartContainerRef.current.innerHTML = '';
-    
-    const newChart = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: chartContainerRef.current.clientHeight,
-      layout: {
-        backgroundColor: '#1A202C', // Match with Tailwind gray-800
-        textColor: '#E2E8F0',
-        fontFamily: 'Inter, sans-serif'
-      },
-      grid: {
-        vertLines: { color: 'rgba(42, 46, 57, 0.6)' },
-        horzLines: { color: 'rgba(42, 46, 57, 0.6)' }
-      },
-      crosshair: {
-        mode: CrosshairMode.Normal
-      },
-      timeScale: {
-        borderColor: 'rgba(197, 203, 206, 0.3)',
-        timeVisible: true
-      },
-      rightPriceScale: {
-        borderColor: 'rgba(197, 203, 206, 0.3)'
+    if (chartContainerRef.current) {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.remove();
+        chartInstanceRef.current = null;
+        candlestickSeriesRef.current = null;
+        indicatorSeriesRef.current = {};
       }
-    });
-    
-    // Create series
-    const newCandleSeries = newChart.addCandlestickSeries({
-      upColor: '#4CAF50', // Green for up candles
-      downColor: '#F44336', // Red for down candles
-      borderUpColor: '#4CAF50',
-      borderDownColor: '#F44336',
-      wickUpColor: '#4CAF50',
-      wickDownColor: '#F44336'
-    });
-    
-    const newVolumeSeries = newChart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume'
-      },
-      priceScaleId: '',
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0
-      }
-    });
-    
-    setChart(newChart);
-    setCandleSeries(newCandleSeries);
-    setVolumeSeries(newVolumeSeries);
-    
-    // Handle resize
-    const handleResize = () => {
-      if (newChart) {
-        newChart.applyOptions({
+      
+      try {
+        const chart = createChart(chartContainerRef.current, {
           width: chartContainerRef.current.clientWidth,
-          height: chartContainerRef.current.clientHeight
+          height: 500,
+          layout: {
+            background: { type: 'solid', color: '#1A202C' },
+            textColor: '#D9D9D9',
+          },
+          grid: {
+            vertLines: { color: '#2D3748' },
+            horzLines: { color: '#2D3748' },
+          },
+          crosshair: {
+            mode: 0,
+          },
+          priceScale: {
+            borderColor: '#4A5568',
+          },
+          timeScale: {
+            borderColor: '#4A5568',
+            timeVisible: true,
+          },
         });
+        
+        chartInstanceRef.current = chart;
+      } catch (err) {
+        console.error("Failed to create chart:", err);
+        setError("Failed to initialize chart component");
       }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (newChart) {
-        newChart.remove();
-      }
-    };
+      
+      // Handle window resize
+      const handleResize = () => {
+        if (chartInstanceRef.current && chartContainerRef.current) {
+          chartInstanceRef.current.applyOptions({
+            width: chartContainerRef.current.clientWidth,
+          });
+        }
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (chartInstanceRef.current) {
+          chartInstanceRef.current.remove();
+          chartInstanceRef.current = null;
+        }
+      };
+    }
   }, []);
   
-  // Update chart data when asset or timeframe changes
   useEffect(() => {
-    if (!candleSeries || !volumeSeries || !selectedAsset) return;
-    
-    // Generate mock data for the selected asset and timeframe
-    const candleData = generateMockCandlestickData(selectedAsset, timeframe);
-    
-    // Generate volume data from candle data
-    const volumeData = candleData.map(candle => ({
-      time: candle.time,
-      value: candle.volume,
-      color: candle.close > candle.open ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)'
-    }));
-    
-    // Set chart data
-    candleSeries.setData(candleData);
-    volumeSeries.setData(volumeData);
-    
-    // Fit content
-    if (chart) {
-      chart.timeScale().fitContent();
+    if (!chartInstanceRef.current || !candlesticks || candlesticks.length === 0) {
+      return;
     }
-  }, [selectedAsset, timeframe, candleSeries, volumeSeries, chart]);
+    
+    try {
+      // Remove existing series
+      if (candlestickSeriesRef.current) {
+        chartInstanceRef.current.removeSeries(candlestickSeriesRef.current);
+        candlestickSeriesRef.current = null;
+      }
+      
+      // Create new series based on chart type
+      let newSeries;
+      switch (chartType) {
+        case 'candles':
+          newSeries = new CandlestickSeries({
+            upColor: '#48BB78',
+            downColor: '#F56565',
+            borderUpColor: '#48BB78',
+            borderDownColor: '#F56565',
+            wickUpColor: '#48BB78',
+            wickDownColor: '#F56565',
+          });
+          break;
+        case 'line':
+          newSeries = new LineSeries({
+            color: '#4299E1',
+            lineWidth: 2,
+            priceLineVisible: false,
+          });
+          break;
+        case 'area':
+          newSeries = new AreaSeries({
+            topColor: 'rgba(66, 153, 225, 0.6)',
+            bottomColor: 'rgba(66, 153, 225, 0.1)',
+            lineColor: '#4299E1',
+            lineWidth: 2,
+          });
+          break;
+        case 'bars':
+          newSeries = new CandlestickSeries({
+            upColor: '#48BB78',
+            downColor: '#F56565',
+          });
+          break;
+        default:
+          newSeries = new CandlestickSeries({
+            upColor: '#48BB78',
+            downColor: '#F56565',
+            borderUpColor: '#48BB78',
+            borderDownColor: '#F56565',
+            wickUpColor: '#48BB78',
+            wickDownColor: '#F56565',
+          });
+      }
+      
+      // Add series to chart
+      chartInstanceRef.current.addSeries(newSeries);
+      
+      // Save reference to series
+      candlestickSeriesRef.current = newSeries;
+      
+      // Format data based on chart type
+      let formattedData;
+      if (chartType === 'candles' || chartType === 'bars') {
+        // For candlestick and bar charts, ensure proper data format
+        formattedData = candlesticks.map(candle => ({
+          time: candle.time,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close
+        }));
+      } else {
+        // For line and area charts, we only need close prices
+        formattedData = candlesticks.map(candle => ({
+          time: candle.time,
+          value: candle.close,
+        }));
+      }
+      
+      // Set data to series
+      if (candlestickSeriesRef.current) {
+        candlestickSeriesRef.current.setData(formattedData);
+      
+        // Fit content
+        chartInstanceRef.current.timeScale().fitContent();
+      
+        // Update indicators
+        updateIndicators();
+      }
+    } catch (err) {
+      console.error("Error updating chart series:", err);
+      setError("Failed to update chart data");
+    }
+  }, [chartType, candlesticks]);
+  
+  // Update data when selected asset or timeframe changes
+  useEffect(() => {
+    const fetchData = async () => {
+      if (selectedAsset && timeframe) {
+        setLoading(true);
+        setError(null);
+        
+        try {
+          await dispatch(fetchChartData({ symbol: selectedAsset, timeframe }));
+          setLoading(false);
+        } catch (err) {
+          setError('Failed to load chart data');
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchData();
+  }, [dispatch, selectedAsset, timeframe]);
+  
+  // Function to update indicators
+  const updateIndicators = () => {
+    try {
+      // Clear existing indicators
+      Object.values(indicatorSeriesRef.current).forEach(series => {
+        if (chartInstanceRef.current && series) {
+          chartInstanceRef.current.removeSeries(series);
+        }
+      });
+      indicatorSeriesRef.current = {};
+      
+      // Add active indicators
+      if (chartInstanceRef.current && candlestickSeriesRef.current && 
+          candlesticks && candlesticks.length > 0) {
+        // Simple Moving Averages
+        if (indicators.sma) {
+          const sma20Data = calculateSMA(candlesticks, 20);
+          const sma50Data = calculateSMA(candlesticks, 50);
+          
+          const sma20Series = new LineSeries({
+            color: '#38B2AC',
+            lineWidth: 1,
+            title: 'SMA 20',
+          });
+          chartInstanceRef.current.addSeries(sma20Series);
+          sma20Series.setData(sma20Data);
+          indicatorSeriesRef.current.sma20 = sma20Series;
+          
+          const sma50Series = new LineSeries({
+            color: '#805AD5',
+            lineWidth: 1,
+            title: 'SMA 50',
+          });
+          chartInstanceRef.current.addSeries(sma50Series);
+          sma50Series.setData(sma50Data);
+          indicatorSeriesRef.current.sma50 = sma50Series;
+        }
+        
+        // Volume indicator
+        if (indicators.volume && chartType === 'candles') {
+          const volumeSeries = new HistogramSeries({
+            color: '#4A5568',
+            priceFormat: {
+              type: 'volume',
+            },
+            priceScaleId: '',
+            scaleMargins: {
+              top: 0.8,
+              bottom: 0,
+            },
+          });
+          chartInstanceRef.current.addSeries(volumeSeries);
+          
+          const volumeData = candlesticks.map(candle => ({
+            time: candle.time,
+            value: candle.volume,
+            color: candle.close >= candle.open ? 'rgba(72, 187, 120, 0.5)' : 'rgba(245, 101, 101, 0.5)',
+          }));
+          
+          volumeSeries.setData(volumeData);
+          indicatorSeriesRef.current.volume = volumeSeries;
+        }
+      }
+    } catch (err) {
+      console.error("Error updating indicators:", err);
+    }
+  };
+  
+  // Helper function to calculate Simple Moving Average
+  const calculateSMA = (data, period) => {
+    const result = [];
+    
+    for (let i = period - 1; i < data.length; i++) {
+      let sum = 0;
+      for (let j = 0; j < period; j++) {
+        sum += data[i - j].close;
+      }
+      const value = sum / period;
+      
+      result.push({
+        time: data[i].time,
+        value: value,
+      });
+    }
+    
+    return result;
+  };
+  
+  // Toggle chart indicator
+  const handleToggleIndicator = (indicator) => {
+    dispatch(toggleChartIndicator(indicator));
+  };
+  
+  // Handle timeframe change
+  const handleTimeframeChange = (newTimeframe) => {
+    dispatch(setChartTimeframe(newTimeframe));
+  };
   
   return (
-    <div className="h-full flex flex-col bg-gray-800">
-      <div className="border-b border-gray-700 p-3 flex justify-between items-center">
-        <div className="flex overflow-x-auto">
-          {TIMEFRAMES.map(tf => (
+    <div className="h-full flex flex-col">
+      {/* Chart toolbar */}
+      <div className="px-4 py-2 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
+        {/* Chart type selection */}
+        <div className="flex items-center space-x-2">
+          <button
+            className={`p-2 rounded ${chartType === 'candles' ? 'bg-gray-700 text-primary-500' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setChartType('candles')}
+            title="Candlestick"
+          >
+            <FaChartBar />
+          </button>
+          <button
+            className={`p-2 rounded ${chartType === 'line' ? 'bg-gray-700 text-primary-500' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setChartType('line')}
+            title="Line"
+          >
+            <FaChartLine />
+          </button>
+          <button
+            className={`p-2 rounded ${chartType === 'area' ? 'bg-gray-700 text-primary-500' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setChartType('area')}
+            title="Area"
+          >
+            <FaChartArea />
+          </button>
+          
+          <div className="mx-2 h-5 border-l border-gray-600"></div>
+          
+          {/* Indicators */}
+          <div className="relative group">
+            <button
+              className="p-2 rounded text-gray-400 hover:text-white"
+              title="Indicators"
+            >
+              <FaCog />
+            </button>
+            <div className="absolute left-0 mt-1 w-48 bg-gray-800 rounded shadow-lg border border-gray-700 hidden group-hover:block z-10">
+              <div className="p-2">
+                <div className="px-3 py-2 text-sm text-gray-300 font-medium">Indicators</div>
+                <div className="p-2 space-y-2">
+                  <label className="flex items-center text-sm text-gray-400">
+                    <input
+                      type="checkbox"
+                      checked={indicators.sma}
+                      onChange={() => handleToggleIndicator('sma')}
+                      className="mr-2"
+                    />
+                    Moving Averages
+                  </label>
+                  <label className="flex items-center text-sm text-gray-400">
+                    <input
+                      type="checkbox"
+                      checked={indicators.volume}
+                      onChange={() => handleToggleIndicator('volume')}
+                      className="mr-2"
+                    />
+                    Volume
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Timeframe selection */}
+        <div className="flex">
+          {TIMEFRAMES.map((tf) => (
             <button
               key={tf.value}
-              className={`px-3 py-1 mr-1 text-xs rounded ${
-                timeframe === tf.value 
-                  ? 'bg-primary-600 text-white' 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              className={`px-2 py-1 text-xs font-medium rounded ${
+                timeframe === tf.value
+                  ? 'bg-primary-500 text-white'
+                  : 'text-gray-400 hover:text-white'
               }`}
-              onClick={() => dispatch(setChartTimeframe(tf.value))}
+              onClick={() => handleTimeframeChange(tf.value)}
             >
               {tf.label}
             </button>
           ))}
         </div>
-        
-        <div className="text-gray-400 text-xs">
-          {selectedAsset ? `${selectedAsset} / ${timeframe}` : 'Select a market'}
-        </div>
       </div>
       
+      {/* Chart container */}
       <div className="flex-grow relative">
-        <div 
-          ref={chartContainerRef} 
-          className="absolute inset-0"
-        />
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 z-10">
+            <FaSpinner className="animate-spin text-primary-500" size={30} />
+          </div>
+        )}
+        
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 z-10">
+            <div className="bg-red-900/80 text-white px-4 py-2 rounded">
+              {error}
+            </div>
+          </div>
+        )}
+        
+        <div ref={chartContainerRef} className="w-full h-full" />
       </div>
     </div>
   );
