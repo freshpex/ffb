@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
-  createChart,
-  CandlestickSeries,
-  LineSeries,
-  AreaSeries,
-  HistogramSeries
+  createChart
 } from 'lightweight-charts';
 import { 
   selectCandlesticks, 
@@ -122,7 +118,7 @@ const TradingChart = () => {
       let newSeries;
       switch (chartType) {
         case 'candles':
-          newSeries = new CandlestickSeries({
+          newSeries = chartInstanceRef.current.addCandlestickSeries({
             upColor: '#48BB78',
             downColor: '#F56565',
             borderUpColor: '#48BB78',
@@ -132,14 +128,14 @@ const TradingChart = () => {
           });
           break;
         case 'line':
-          newSeries = new LineSeries({
+          newSeries = chartInstanceRef.current.addLineSeries({
             color: '#4299E1',
             lineWidth: 2,
             priceLineVisible: false,
           });
           break;
         case 'area':
-          newSeries = new AreaSeries({
+          newSeries = chartInstanceRef.current.addAreaSeries({
             topColor: 'rgba(66, 153, 225, 0.6)',
             bottomColor: 'rgba(66, 153, 225, 0.1)',
             lineColor: '#4299E1',
@@ -147,13 +143,13 @@ const TradingChart = () => {
           });
           break;
         case 'bars':
-          newSeries = new CandlestickSeries({
+          newSeries = chartInstanceRef.current.addBarSeries({
             upColor: '#48BB78',
             downColor: '#F56565',
           });
           break;
         default:
-          newSeries = new CandlestickSeries({
+          newSeries = chartInstanceRef.current.addCandlestickSeries({
             upColor: '#48BB78',
             downColor: '#F56565',
             borderUpColor: '#48BB78',
@@ -163,16 +159,12 @@ const TradingChart = () => {
           });
       }
       
-      // Add series to chart
-      chartInstanceRef.current.addSeries(newSeries);
-      
       // Save reference to series
       candlestickSeriesRef.current = newSeries;
       
       // Format data based on chart type
       let formattedData;
       if (chartType === 'candles' || chartType === 'bars') {
-        // For candlestick and bar charts, ensure proper data format
         formattedData = candlesticks.map(candle => ({
           time: candle.time,
           open: candle.open,
@@ -181,7 +173,6 @@ const TradingChart = () => {
           close: candle.close
         }));
       } else {
-        // For line and area charts, we only need close prices
         formattedData = candlesticks.map(candle => ({
           time: candle.time,
           value: candle.close,
@@ -243,28 +234,26 @@ const TradingChart = () => {
           const sma20Data = calculateSMA(candlesticks, 20);
           const sma50Data = calculateSMA(candlesticks, 50);
           
-          const sma20Series = new LineSeries({
+          const sma20Series = chartInstanceRef.current.addLineSeries({
             color: '#38B2AC',
             lineWidth: 1,
             title: 'SMA 20',
           });
-          chartInstanceRef.current.addSeries(sma20Series);
           sma20Series.setData(sma20Data);
           indicatorSeriesRef.current.sma20 = sma20Series;
           
-          const sma50Series = new LineSeries({
+          const sma50Series = chartInstanceRef.current.addLineSeries({
             color: '#805AD5',
             lineWidth: 1,
             title: 'SMA 50',
           });
-          chartInstanceRef.current.addSeries(sma50Series);
           sma50Series.setData(sma50Data);
           indicatorSeriesRef.current.sma50 = sma50Series;
         }
         
         // Volume indicator
         if (indicators.volume && chartType === 'candles') {
-          const volumeSeries = new HistogramSeries({
+          const volumeSeries = chartInstanceRef.current.addHistogramSeries({
             color: '#4A5568',
             priceFormat: {
               type: 'volume',
@@ -275,7 +264,6 @@ const TradingChart = () => {
               bottom: 0,
             },
           });
-          chartInstanceRef.current.addSeries(volumeSeries);
           
           const volumeData = candlesticks.map(candle => ({
             time: candle.time,

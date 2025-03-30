@@ -16,7 +16,8 @@ import {
 } from '../../redux/slices/tradingSlice';
 import DashboardLayout from './DashboardLayout';
 import TradingHeader from './Trading/TradingHeader';
-import TradingChart from './Trading/TradingChart';
+// Use SimpleTradingChart instead of TradingChart
+import SimpleTradingChart from './Trading/SimpleTradingChart';
 import OrderForm from './Trading/OrderForm';
 import Loader from '../common/Loader';
 
@@ -75,7 +76,6 @@ const TradingDashboard = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-screen">
-          {/* Fixed from lg to large */}
           <Loader size="large" />
         </div>
       </DashboardLayout>
@@ -119,7 +119,7 @@ const TradingDashboard = () => {
               </div>
               
               <div className="flex-grow">
-                {activeTab === 'chart' && <TradingChart />}
+                {activeTab === 'chart' && <SimpleTradingChart />}
                 {activeTab === 'orderbook' && <div className="p-4">Order Book Component</div>}
                 {activeTab === 'trades' && <div className="p-4">Recent Trades Component</div>}
               </div>
