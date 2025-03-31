@@ -10,13 +10,11 @@ import HomeFooter from "./HomeFooter";
 import FloatingActionButton from "../FloatingActionButton";
 import { Suspense } from "react";
 import TradingViewChart from "./TradingViewChart";
-import '/src/css/index.css';
 
 const Home = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // Logic to determine if dark mode should be enabled
     const darkModeEnabled = window.matchMedia("(prefers-color-scheme: dark)").matches;
     setIsDarkMode(darkModeEnabled);
   }, []);

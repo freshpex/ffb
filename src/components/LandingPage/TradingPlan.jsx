@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const TradingPlan = () => {
   const navigate = useNavigate();
@@ -67,54 +68,70 @@ const TradingPlan = () => {
   ];
 
   return (
-    <>
-      <section className="tradingplansection" data-aos="fade-up">
-        <h1>SELECT A TRADING PLAN</h1>
-        <div className="innerbox">
+    <section className="py-20 px-4 bg-gray-900">
+      <div className="max-w-7xl mx-auto" data-aos="fade-up">
+        <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">SELECT A TRADING PLAN</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {plans.map((plan, index) => (
-            <div 
-              className={`box ${plan.featured ? 'featured-plan' : ''}`} 
+            <motion.div 
+              className={`bg-gray-800 rounded-xl overflow-hidden shadow-lg border ${
+                plan.featured ? 'border-primary-500 shadow-primary-500/20' : 'border-gray-700'
+              } relative`}
               key={index}
               data-aos="fade-up"
               data-aos-delay={index * 100}
+              whileHover={{ y: -10 }}
+              transition={{ duration: 0.3 }}
             >
-              {plan.featured && <div className="ribbon">Popular</div>}
-              <h3>{plan.title}</h3>
-              <div className="plan-details">
-                <div className="plan-feature">
-                  <span className="feature-label">Weekly Interest:</span>
-                  <span className="feature-value">{plan.weeklyInterest}</span>
+              {plan.featured && (
+                <div className="absolute top-0 right-0 bg-primary-500 text-white text-xs font-bold py-1 px-3 transform translate-x-2 -translate-y-1/3 rotate-45">
+                  Popular
                 </div>
-                <div className="plan-feature">
-                  <span className="feature-label">Investment Sum:</span>
-                  <span className="feature-value">{plan.investmentSum}</span>
+              )}
+              
+              <div className="p-6">
+                <h3 className={`text-xl font-bold ${plan.featured ? 'text-primary-500' : 'text-white'} mb-4 text-center`}>
+                  {plan.title}
+                </h3>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                    <span className="text-gray-400">Weekly Interest:</span>
+                    <span className="text-white font-medium">{plan.weeklyInterest}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                    <span className="text-gray-400">Investment Sum:</span>
+                    <span className="text-white font-medium">{plan.investmentSum}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                    <span className="text-gray-400">Trading/Withdrawal Commission:</span>
+                    <span className="text-white font-medium">{plan.commission}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                    <span className="text-gray-400">Referral Bonus:</span>
+                    <span className="text-white font-medium">{plan.referralBonus}</span>
+                  </div>
                 </div>
-                <div className="plan-feature">
-                  <span className="feature-label">Trading/Withdrawal Commission:</span>
-                  <span className="feature-value">{plan.commission}</span>
-                </div>
-                <div className="plan-feature">
-                  <span className="feature-label">Referral Bonus:</span>
-                  <span className="feature-value">{plan.referralBonus}</span>
-                </div>
-              </div>
 
-              <h2 className="price">{plan.price}</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-center text-primary-500 mb-6">{plan.price}</h2>
 
-              <button className={`plan-button ${plan.featured ? 'featured-button' : ''}`}>
                 <Link
-                  to={`/signup`}
-                  className="link"
-                  onClick={() => navigateTo(`/signup`)}
+                  to="/signup"
+                  onClick={() => navigateTo("/signup")}
+                  className={`block w-full text-center py-3 px-4 rounded-lg font-bold transition-colors duration-300 ${
+                    plan.featured 
+                      ? 'bg-primary-600 hover:bg-primary-700 text-white' 
+                      : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  }`}
                 >
                   APPLY NOW
                 </Link>
-              </button>
-            </div>
+              </div>
+            </motion.div>
           ))}
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

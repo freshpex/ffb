@@ -1,164 +1,154 @@
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram } from "react-icons/fa";
-import { MdEmail, MdLocationOn, MdPhone } from "react-icons/md";
+import { Link } from "react-router-dom";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube, FaPhoneAlt, FaMapMarkerAlt, FaEnvelope } from "react-icons/fa";
 
 const HomeFooter = () => {
-  const navigate = useNavigate();
-
-  const navigateTo = (url) => {
-    console.log("clicked");
-    navigate(url);
-  };
-  
-  const footerLinkSections = [
-    {
-      title: "Navigation",
-      links: [
-        { name: "Home", path: "/" },
-        { name: "About Us", path: "/components/About/AboutPage" },
-        { name: "Services", path: "/services" },
-        { name: "Pricing", path: "/pricing" },
-        { name: "Contact Us", path: "/contact" },
-      ]
-    },
-    {
-      title: "Accounts",
-      links: [
-        { name: "FAQ", path: "/" },
-        { name: "Login", path: "/login" },
-        { name: "Sign Up", path: "/signup" },
-        { name: "Learn More", path: "/services" },
-      ]
-    },
-    {
-      title: "Legal",
-      links: [
-        { name: "Legal information", path: "/" },
-        { name: "Privacy Policy", path: "/" },
-        { name: "Regulations", path: "/" },
-        { name: "Risk Disclaimer", path: "/" },
-      ]
-    },
-    {
-      title: "Invest",
-      links: [
-        { name: "Forex", path: "/" },
-        { name: "Commodities", path: "/" },
-        { name: "Stocks", path: "/" },
-        { name: "Cryptocurrencies", path: "/" },
-        { name: "Cashback Rebates", path: "/" },
-      ]
-    },
-    {
-      title: "Earn",
-      links: [
-        { name: "Cash Plus", path: "/" },
-        { name: "Staking", path: "/" },
-        { name: "Best Stocks", path: "/" },
-        { name: "Tell-a-Friend", path: "/" },
-        { name: "Affiliate programme", path: "/" },
-      ]
-    }
-  ];
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer>
-      <div className="footer-top">
-        <div className="container">
-          <div className="footer-contact" data-aos="fade-up">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              Contact Us
-            </motion.h2>
-            <motion.div 
-              className="contact-info"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <p><MdLocationOn size={20} /> Richmond Hill Road, Kingstown, St. Vincent</p>
-              <p><MdPhone size={20} /> +44 28 2544 7780</p>
-              <p><MdEmail size={20} /> support@ffbinvestment.net</p>
-            </motion.div>
-            <motion.div 
-              className="social-links"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <a href="#" className="social-icon"><FaFacebookF /></a>
-              <a href="#" className="social-icon"><FaTwitter /></a>
-              <a href="#" className="social-icon"><FaLinkedinIn /></a>
-              <a href="#" className="social-icon"><FaInstagram /></a>
-            </motion.div>
-          </div>
-          
-          <div className="inner__footer">
-            <motion.div 
-              className="box logo-box"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="logo">
-                <Link className="link" to={"/"}>
-                  <h1>FFB</h1>
-                  <p>Fidelity First Brokers</p>
-                </Link>
+    <footer className="bg-gray-900 text-white pt-16 pb-8">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Company Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <img src="/favicon.ico" alt="Logo" className="h-10 w-auto" />
+              <div>
+                <h3 className="text-white text-lg font-bold">Fidelity First</h3>
+                <span className="text-primary-500 text-xs">Brokers & Investment</span>
               </div>
-              <p className="footer-description">
-                Your trusted partner in financial investments. Access global markets with confidence and expert support.
-              </p>
-            </motion.div>
+            </div>
+            <p className="text-gray-400 text-sm">
+              Our mission is to provide reliable and profitable investment opportunities for all our clients while maintaining the highest standards of transparency and security.
+            </p>
+            <div className="flex space-x-4">
+              <a href="#" className="text-gray-400 hover:text-primary-500 transition-colors">
+                <FaFacebook size={20} />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary-500 transition-colors">
+                <FaTwitter size={20} />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary-500 transition-colors">
+                <FaInstagram size={20} />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary-500 transition-colors">
+                <FaLinkedin size={20} />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary-500 transition-colors">
+                <FaYoutube size={20} />
+              </a>
+            </div>
+          </div>
 
-            {footerLinkSections.map((section, index) => (
-              <motion.ul 
-                className="box" 
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <li className="footer-title">{section.title}</li>
-                {section.links.map((link, i) => (
-                  <motion.li 
-                    key={i}
-                    whileHover={{ x: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <Link
-                      to={link.path}
-                      className="link"
-                      onClick={() => navigateTo(link.path)}
-                    >
-                      {link.name}
-                    </Link>
-                  </motion.li>
-                ))}
-              </motion.ul>
-            ))}
+          {/* Quick Links */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/services" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Services
+                </Link>
+              </li>
+              <li>
+                <Link to="/pricing" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Pricing
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Contact
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Services */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold mb-4 text-white">Our Services</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/services" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Investment Plans
+                </Link>
+              </li>
+              <li>
+                <Link to="/services" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Forex Trading
+                </Link>
+              </li>
+              <li>
+                <Link to="/services" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Cryptocurrency Trading
+                </Link>
+              </li>
+              <li>
+                <Link to="/services" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Stock Trading
+                </Link>
+              </li>
+              <li>
+                <Link to="/services" className="text-gray-400 hover:text-primary-500 transition-colors flex items-center">
+                  <span className="mr-2">→</span> Retirement Planning
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold mb-4 text-white">Contact Us</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start text-gray-400">
+                <FaMapMarkerAlt className="mt-1 mr-3 text-primary-500 flex-shrink-0" />
+                <span>1234 Wall Street, New York, NY 10005, United States</span>
+              </li>
+              <li className="flex items-center text-gray-400">
+                <FaPhoneAlt className="mr-3 text-primary-500 flex-shrink-0" />
+                <span>+1 (555) 123-4567</span>
+              </li>
+              <li className="flex items-center text-gray-400">
+                <FaEnvelope className="mr-3 text-primary-500 flex-shrink-0" />
+                <span>info@fidelityfirstbrokers.com</span>
+              </li>
+            </ul>
+            <div className="pt-4">
+              <Link to="/contact" className="px-6 py-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white transition-colors duration-300 inline-block">
+                Get in Touch
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-800 my-8"></div>
+
+        {/* Copyright */}
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-500 text-sm">
+            © {currentYear} Fidelity First Brokers. All rights reserved.
+          </p>
+          <div className="flex space-x-4 mt-4 md:mt-0">
+            <Link to="/privacy" className="text-gray-500 hover:text-primary-500 text-sm transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-gray-500 hover:text-primary-500 text-sm transition-colors">
+              Terms of Service
+            </Link>
+            <Link to="/disclaimer" className="text-gray-500 hover:text-primary-500 text-sm transition-colors">
+              Disclaimer
+            </Link>
           </div>
         </div>
       </div>
-      
-      <motion.div 
-        className="footer-bottom"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-      >
-        <p>&copy; FFB {new Date().getFullYear()} || All rights reserved</p>
-        <p className="footer-disclaimer">
-          This website is operated by FP Markets LLC. FP Markets LLC is a company registered with FSA of St. Vincent and the Grenadines, with registration number 126 LLC 2019 and registered address at Richmond Hill Road, Kingstown, VC0100, St. Vincent and the Grenadines.
-        </p>
-        <p className="footer-risk">
-          Risk Warning: Derivative products are highly leveraged, carry a high level of risk and may not be appropriate for all investors. Please consider our legal documents before investing.
-        </p>
-      </motion.div>
     </footer>
   );
 };

@@ -1,67 +1,113 @@
-import picture1 from "/src/assets/images/assets_3@2x.955776ab.png";
-import picture2 from "/src/assets/images/assets_2@2x.5a4a98a0.png";
-import picture3 from "/src/assets/images/assets_1@2x.8f2f47cf.png";
-import map from "/src/assets/images/istockphoto-1435226213-170667a.webp";
-import { Link, useNavigate } from "react-router-dom";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { FaUsers, FaShieldAlt, FaChartLine, FaGlobeAmericas } from "react-icons/fa";
 
 const AboutSection2 = () => {
-    const navigate = useNavigate();
-    const navigateTo = (url) => {
-        console.log("clicked");
-        navigate(url);
-      };
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
+  
+  const values = [
+    {
+      id: 1,
+      title: "Client-Centric Approach",
+      description: "We prioritize our clients' needs and goals, ensuring personalized solutions and exceptional service.",
+      icon: <FaUsers />,
+      color: "bg-blue-500/20 text-blue-400"
+    },
+    {
+      id: 2,
+      title: "Integrity & Transparency",
+      description: "We operate with the highest ethical standards, ensuring complete transparency in all our dealings.",
+      icon: <FaShieldAlt />,
+      color: "bg-green-500/20 text-green-400"
+    },
+    {
+      id: 3,
+      title: "Innovation & Excellence",
+      description: "We continuously innovate and improve our services to deliver exceptional investment solutions.",
+      icon: <FaChartLine />,
+      color: "bg-purple-500/20 text-purple-400"
+    },
+    {
+      id: 4,
+      title: "Global Perspective",
+      description: "We leverage our global network and expertise to identify the best investment opportunities worldwide.",
+      icon: <FaGlobeAmericas />,
+      color: "bg-red-500/20 text-red-400"
+    }
+  ];
 
   return (
-    <>
-      <section className="aboutsection2">
-        <div className="topbox">
-          <div className="box1">
-            <img src={picture3} alt="" />
-            <p>
-              We constantly <span>improve our trading platform</span> trying to
-              make it the best on the market
+    <section className="py-20 px-4 bg-gray-900/80">
+      <div className="container mx-auto max-w-6xl">
+        <div className="text-center mb-16">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold text-white mb-4"
+          >
+            Our Values & Mission
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="max-w-3xl mx-auto"
+          >
+            <p className="text-gray-400 text-lg mb-6">
+              At Fidelity First Brokers, we are guided by our commitment to excellence, integrity, and client success. Our mission is to empower individuals and organizations to achieve their financial aspirations through intelligent investment strategies and personalized guidance.
             </p>
-          </div>
-          <div className="box2">
-            <img src={picture2} alt="box" />
-            <p>
-              <span>We prioritise transparency </span>
-              by regularly disclosing our earnings and cash reserves on a
-              quarterly basis.
+            <p className="text-gray-400 text-lg">
+              We believe in building long-term relationships with our clients based on trust, transparency, and consistent results. Our values shape every aspect of our business and ensure that we always put our clients first.
             </p>
-          </div>
-          <div className="box3">
-            <img src={picture1} alt="box" />
-            <p>
-              Our <span> award - winning trading solutions </span>are shaped to
-              help you achieve your trading ambitions
-            </p>
-          </div>
+          </motion.div>
         </div>
-
-        <div className="bottombox">
-          <div className="box1">
-            <h1>Our company</h1>
-            <p>
-              With almost 20 years experience, FFB is affiliated to one of the largest stock
-              exchange-listed FX & CFD brokers in the world. We have offices in
-              over 7 countries including UK, Poland, Germany, France and Chile.
-            </p>
-            <button><Link
-              to={`/signup`}
-              className="link"
-              onClick={() => navigateTo(`/signup`)}
+        
+        <motion.div
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        >
+          {values.map((value) => (
+            <motion.div
+              key={value.id}
+              variants={itemVariants}
+              className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-primary-500 transition-all duration-300"
             >
-              GET STARTED
-            </Link></button>
-          </div>
-
-          <div className="box2">
-            <img src={map} alt="map" />
-          </div>
-        </div>
-      </section>
-    </>
+              <div className={`w-16 h-16 rounded-full ${value.color} flex items-center justify-center mb-5 text-2xl`}>
+                {value.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">{value.title}</h3>
+              <p className="text-gray-400">
+                {value.description}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
   );
 };
 

@@ -1,281 +1,140 @@
-import { useState, useEffect, useRef } from "react";
-import TradingViewWidget from "./TradingViewWidget";
-import { TiThMenu } from "react-icons/ti";
-import { MdClose } from "react-icons/md";
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaBars, FaTimes } from 'react-icons/fa';
 
 const Header = () => {
-  const [menu, setMenu] = useState(false);
-  const [toggle, setToggle] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
-  const menuRef = useRef(null);
-  const hamburgerRef = useRef(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // Add scroll event listener to create sticky header effect
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
       } else {
-        setScrolled(false);
+        setIsScrolled(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Add event listener to detect clicks outside of menu
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Don't close menu if clicking on hamburger icon
-      if (hamburgerRef.current && hamburgerRef.current.contains(event.target)) {
-        return;
-      }
-      
-      // Close menu if it's open and the click is outside the menu
-      if (menu && menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenu(false);
-        setToggle(false);
-      }
-    };
-
-    // Add event listener when menu is open
-    if (menu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    
-    // Clean up the event listener
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [menu]);
-
-  const handleMenuBtn = (e) => {
-    e.stopPropagation();
-    setToggle(!toggle);
-    setMenu(!menu);
-  };
-
-  window.onscroll = () => {
-    setMenu(false);
-    setToggle(false);
-  };
-
-  const navigateTo = (url) => {
-    navigate(url);
-    // Close the menu when navigating
-    setMenu(false);
-    setToggle(false);
-  };
-
   return (
-    <>
-      <header className={scrolled ? "header-scrolled" : ""} style={{ zIndex: 50 }}>
-        <motion.div 
-          className="logo"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Link className="link" to={"/"}>
-            <h1>FFB</h1>
-            <p>Fidelity First Brokers</p>
-          </Link>
-        </motion.div>
-        
-        {/* Positioning the widget container with proper z-index */}
-        <motion.div 
-          className="widgetbox"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          style={{ position: "relative", zIndex: 5 }}
-        >
-          <TradingViewWidget />
-        </motion.div>
-        
-        <motion.div 
-          className="header__btn"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          style={{ position: "relative", zIndex: 20 }}
-        >
-          <Link
-              to={`/login`}
-              className="link"
-              onClick={() => navigateTo(`/login`)}
-            >
-            <motion.button 
-              className="login-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >            
-                Login
-            </motion.button>
-          
-          </Link>
-          
-          
-          <Link
-              to={`/signup`}
-              className="link"
-              onClick={() => navigateTo(`/signup`)}
-            >
-            <motion.button 
-              className="signup-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-                Sign Up
-            </motion.button>
-          </Link>
-        </motion.div>
-        
-        {!menu && !toggle ? (
-          <div ref={hamburgerRef} style={{ display: 'flex', alignItems: 'center' }}>
-            <TiThMenu 
-              id="menubtn" 
-              size={65} // Increased size from 50 to 65
-              onClick={handleMenuBtn} 
-              style={{ 
-                position: "relative", 
-                zIndex: 50, 
-                cursor: "pointer",
-                fontSize: "40px" // Additional size enhancement
-              }}
-            />
+    <header className={`fixed w-full top-0 z-50 transition-all duration-300 bg-gray-900/95 backdrop-blur-md shadow-lg`}>
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <Link to="/" className="flex items-center">
+          <div className="flex items-center gap-2">
+            <img src="/favicon.ico" alt="Logo" className="h-10 w-auto" />
+            <div>
+              <h1 className="text-white text-xl font-bold">Fidelity First</h1>
+            </div>
           </div>
-        ) : (
-          <div ref={hamburgerRef} style={{ display: 'flex', alignItems: 'center' }}>
-            <MdClose 
-              id="menubtn" 
-              size={65}
-              onClick={handleMenuBtn} 
-              style={{ 
-                position: "relative", 
-                zIndex: 50, 
-                cursor: "pointer",
-                fontSize: "40px"
-              }}
-            />
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/" className="text-white hover:text-primary-500 transition-colors font-medium">
+            Home
+          </Link>
+          <Link to="/about" className="text-white hover:text-primary-500 transition-colors font-medium">
+            About
+          </Link>
+          <Link to="/services" className="text-white hover:text-primary-500 transition-colors font-medium">
+            Services
+          </Link>
+          <Link to="/pricing" className="text-white hover:text-primary-500 transition-colors font-medium">
+            Pricing
+          </Link>
+          <Link to="/contact" className="text-white hover:text-primary-500 transition-colors font-medium">
+            Contact
+          </Link>
+          <div className="flex space-x-3">
+            <Link to="/login" className="px-6 py-2 rounded-full text-white hover:bg-white/10 border border-white/30 transition-all duration-300">
+              Login
+            </Link>
+            <Link to="/signup" className="px-6 py-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white transition-colors duration-300">
+              Sign Up
+            </Link>
           </div>
-        )}
-      </header>
-      
-      <nav>
-        <motion.ul 
-          className="navlists"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, staggerChildren: 0.1 }}
+        </nav>
+
+        {/* Mobile Navigation Button */}
+        <button
+          className="md:hidden text-white p-2"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
-          {["Home", "About Us", "Services", "Pricing", "Contact Us"].map((item, index) => (
-            <motion.li 
-              key={index}
-              whileHover={{ y: -3 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
+          {isMobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden bg-gray-900/95 backdrop-blur-md"
+          >
+            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
               <Link 
-                to={
-                  item === "Home" ? "/" : 
-                  item === "About Us" ? "/about" :
-                  item === "Contact Us" ? "/contact" :
-                  `/${item.toLowerCase().replace(' ', '')}`
-                } 
-                className="link"
-                onClick={() => navigateTo(
-                  item === "Home" ? "/" : 
-                  item === "About Us" ? "/about" :
-                  item === "Contact Us" ? "/contact" :
-                  `/${item.toLowerCase().replace(' ', '')}`
-                )}
+                to="/" 
+                className="text-white py-2 hover:text-primary-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                {item}
+                Home
               </Link>
-            </motion.li>
-          ))}
-        </motion.ul>
-      </nav>
-      
-      {/* mobile menu with ref for click outside detection */}
-      {menu && (
-        <motion.nav
-          ref={menuRef}
-          className={toggle && menu ? "mobile__menu active" : "mobile__menu"}
-          initial={{ opacity: 0, x: "100%" }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: "100%" }}
-          transition={{ 
-            type: "tween",
-            duration: 0.2,
-            ease: "easeOut"
-          }}
-        >
-          <ul className="nav">
-            {["Home", "About Us", "Services", "Pricing", "Contact Us"].map((item, index) => (
-              <motion.li 
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.2 }}
+              <Link 
+                to="/about" 
+                className="text-white py-2 hover:text-primary-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                <Link
-                  to={
-                    item === "Home" ? "/" : 
-                    item === "About Us" ? "/about" :
-                    item === "Contact Us" ? "/contact" :
-                    `/${item.toLowerCase().replace(' ', '')}`
-                  }
-                  className="link"
-                  onClick={() => navigateTo(
-                    item === "Home" ? "/" : 
-                    item === "About Us" ? "/about" :
-                    item === "Contact Us" ? "/contact" :
-                    `/${item.toLowerCase().replace(' ', '')}`
-                  )}
+                About
+              </Link>
+              <Link 
+                to="/services" 
+                className="text-white py-2 hover:text-primary-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Services
+              </Link>
+              <Link 
+                to="/pricing" 
+                className="text-white py-2 hover:text-primary-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+              <Link 
+                to="/contact" 
+                className="text-white py-2 hover:text-primary-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </Link>
+              <div className="flex flex-col space-y-2 pt-3 border-t border-gray-700">
+                <Link 
+                  to="/login" 
+                  className="px-6 py-3 rounded-full text-white text-center hover:bg-white/10 border border-white/30 transition-all duration-300"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {item}
+                  Login
                 </Link>
-              </motion.li>
-            ))}
-          </ul>
-          
-          <div className="mobilemenu-btn">
-            <motion.button 
-              className="login-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link
-                className="link"
-                to={`/login`}
-                onClick={() => navigateTo(`/login`)}
-              >
-                Login
-              </Link>
-            </motion.button>
-            
-            <motion.button 
-              className="signup-btn"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link
-                className="link"
-                to={`/signup`}
-                onClick={() => navigateTo(`/signup`)}
-              >
-                Sign Up
-              </Link>
-            </motion.button>
-          </div>
-        </motion.nav>
-      )}
-    </>
+                <Link 
+                  to="/signup" 
+                  className="px-6 py-3 rounded-full bg-primary-600 hover:bg-primary-700 text-white text-center transition-colors duration-300"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 };
 

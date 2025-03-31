@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import App from './App';
 import store from './redux/store';
 import { AuthContextProvider } from './components/AuthPage/AuthContext';
-import '/src/css/tailwind.css';
+import './css/tailwind.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
