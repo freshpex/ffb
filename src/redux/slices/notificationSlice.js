@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 // Mock notifications
 const mockNotifications = [
@@ -194,7 +194,11 @@ export const fetchNotifications = () => async (dispatch) => {
 };
 
 // Selectors
-export const selectNotifications = state => state.notifications?.notifications || [];
+export const selectNotifications = createSelector(
+  [(state) => state.notifications.notifications],
+  (notifications) => notifications
+);
+
 export const selectUnreadNotifications = state => 
   state.notifications?.notifications.filter(n => !n.read) || [];
 export const selectUnreadCount = state => 

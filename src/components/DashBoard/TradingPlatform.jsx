@@ -575,12 +575,12 @@ const TradingPlatform = () => {
                   <div className="flex justify-between items-center mb-2">
                     <div className="font-medium text-white">{position.symbol}</div>
                     <div className={`text-sm ${position.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {position.pnl >= 0 ? '+' : ''}{position.pnl.toFixed(2)} ({position.pnlPercentage.toFixed(2)}%)
+                      {position.pnl >= 0 ? '+' : ''}{position.pnl?.toFixed(2)} ({position.pnlPercentage?.toFixed(2)}%)
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
                     <div>Amount: <span className="text-white">{position.amount}</span></div>
-                    <div>Value: <span className="text-white">${position.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                    <div>Value: <span className="text-white">${position.value?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                     <div>Avg Price: <span className="text-white">${formatPrice(position.avgPrice)}</span></div>
                     <div>Current: <span className="text-white">${formatPrice(position.currentPrice)}</span></div>
                   </div>
@@ -716,7 +716,7 @@ const TradingPlatform = () => {
                   {formatPrice(trade.price)}
                 </td>
                 <td className="px-4 py-2 text-sm text-white text-right">
-                  {trade.amount.toFixed(6)}
+                  {trade.amount?.toFixed(6)}
                 </td>
                 <td className="px-4 py-2 text-xs text-gray-400 text-right">
                   {new Date(trade.time).toLocaleTimeString()}

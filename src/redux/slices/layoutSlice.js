@@ -1,18 +1,22 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const initialState = {
+  sidebarOpen: true,
+  theme: 'dark',
+  previousPaths: [],
+  notifications: [],
+  unreadCount: 0,
+  globalError: null,
+  currentTheme: 'dark',
+  isMobile: false
+};
+
 const layoutSlice = createSlice({
   name: 'layout',
-  initialState: {
-    sidebarOpen: true,
-    notifications: [],
-    unreadCount: 0,
-    globalError: null,
-    currentTheme: 'dark',
-    isMobile: false
-  },
+  initialState,
   reducers: {
-    toggleSidebar: (state) => {
-      state.sidebarOpen = !state.sidebarOpen;
+    toggleSidebar: (state, action) => {
+      state.sidebarOpen = action.payload !== undefined ? action.payload : !state.sidebarOpen;
     },
     setSidebarOpen: (state, action) => {
       state.sidebarOpen = action.payload;
@@ -39,6 +43,9 @@ const layoutSlice = createSlice({
       });
       state.unreadCount = 0;
     },
+    toggleTheme: (state) => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    },
     removeNotification: (state, action) => {
       const index = state.notifications.findIndex(n => n.id === action.payload);
       if (index !== -1) {
@@ -64,6 +71,12 @@ const layoutSlice = createSlice({
     },
     setIsMobile: (state, action) => {
       state.isMobile = action.payload;
+    },
+    addPreviousPath: (state, action) => {
+      state.previousPaths.push(action.payload);
+      if (state.previousPaths.length > 5) {
+        state.previousPaths.shift();
+      }
     }
   }
 });
@@ -80,7 +93,9 @@ export const {
   setGlobalError,
   clearGlobalError,
   setTheme,
-  setIsMobile
+  setIsMobile,
+  toggleTheme, 
+  addPreviousPath
 } = layoutSlice.actions;
 
 // Selectors
@@ -90,5 +105,7 @@ export const selectUnreadCount = (state) => state.layout.unreadCount;
 export const selectGlobalError = (state) => state.layout.globalError;
 export const selectCurrentTheme = (state) => state.layout.currentTheme;
 export const selectIsMobile = (state) => state.layout.isMobile;
+export const selectTheme = (state) => state.layout.theme;
+export const selectPreviousPaths = (state) => state.layout.previousPaths;
 
 export default layoutSlice.reducer;

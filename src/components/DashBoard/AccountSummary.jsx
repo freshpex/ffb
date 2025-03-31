@@ -1,99 +1,143 @@
-import { useSelector } from 'react-redux';
-import { 
-  FaMoneyBillWave, 
-  FaArrowUp, 
-  FaArrowDown, 
-  FaChartLine, 
-  FaExchangeAlt 
-} from 'react-icons/fa';
-import { 
-  selectUserBalance,
-  selectUserProfile 
-} from '../../redux/slices/userSlice';
-import { 
-  selectDashboardData, 
-  selectDashboardComponentStatus 
-} from '../../redux/slices/dashboardSlice';
-import CardLoader from '../common/CardLoader';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { motion } from 'framer-motion';
+import { FaEye, FaEyeSlash, FaExchangeAlt, FaWallet, FaChartLine, FaArrowUp, FaArrowDown, FaQuestionCircle } from 'react-icons/fa';
+import { selectUserProfile } from '../../redux/slices/userSlice';
+import { selectAccountBalance, selectAccountActivity, fetchAccountSummary } from '../../redux/slices/dashboardSlice';
+import Loader from '../common/Loader';
 
 const AccountSummary = () => {
-  const balance = useSelector(selectUserBalance);
-  const profile = useSelector(selectUserProfile);
-  const dashboardData = useSelector(selectDashboardData);
-  const componentStatus = useSelector(state => 
-    selectDashboardComponentStatus(state, 'accountSummary')
-  );
-
-  // If the component is loading, show a skeleton loader
-  if (componentStatus === 'loading') {
-    return <CardLoader title="Account Summary" height="h-64" />;
+  const dispatch = useDispatch();
+  const userProfile = useSelector(selectUserProfile);
+  const accountBalance = useSelector(selectAccountBalance);
+  const accountActivity = useSelector(selectAccountActivity);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [showBalance, setShowBalance] = useState(true);
+  
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await dispatch(fetchAccountSummary());
+      } catch (error) {
+        console.error("Failed to fetch account summary", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [dispatch]);
+  
+  if (isLoading) {
+    return (
+      <div className="bg-gray-800 rounded-lg p-6 h-full flex items-center justify-center">
+        <Loader />
+      </div>
+    );
   }
-
+  
+  // Add proper null/undefined checks using optional chaining and default values
+  const accountNumber = userProfile?.accountNumber || 'XXXX-XXXX-XXXX';
+  const userName = userProfile?.fullName || 'User';
+  const currentBalance = accountBalance?.current || 0;
+  const availableBalance = accountBalance?.available || 0;
+  const pendingBalance = accountBalance?.pending || 0;
+  
+  // Get activity stats (with safe defaults)
+  const deposits = accountActivity?.deposits || 0;
+  const withdrawals = accountActivity?.withdrawals || 0;
+  const trades = accountActivity?.trades || 0;
+  
   return (
-    <div className="bg-gray-800 rounded-lg p-4 shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-100">Account Summary</h2>
-        <span className="text-xs text-gray-400">Last updated: {new Date().toLocaleString()}</span>
-      </div>
-      
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Balance Card */}
-        <div className="bg-gray-700/50 p-4 rounded-lg flex-1">
-          <div className="flex items-center">
-            <div className="p-2 bg-primary-900/30 rounded-full mr-3">
-              <FaMoneyBillWave className="text-primary-500" size={16} />
-            </div>
-            <p className="text-sm text-gray-400">Available Balance</p>
-          </div>
-          <p className="text-2xl font-bold text-gray-100 mt-1">${balance.toLocaleString()}</p>
-          
-          <div className="mt-2 text-xs flex justify-between text-gray-400">
-            <span>Account ID: {profile.accountNumber || '********'}</span>
-            <span>{profile.accountType || 'Trading Account'}</span>
-          </div>
+    <div className="bg-gray-800 rounded-lg p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-white">Account Summary</h2>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowBalance(!showBalance)}
+            className="p-2 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white"
+          >
+            {showBalance ? <FaEyeSlash /> : <FaEye />}
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white">
+            <FaQuestionCircle />
+          </button>
         </div>
       </div>
       
-      {/* Financial Activity Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-        <div className="bg-gray-700/50 p-3 rounded-lg">
-          <div className="flex items-center text-sm text-gray-400">
-            <FaArrowUp className="text-green-500 mr-1" />
-            <span>Income</span>
+      {/* Account Info */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between">
+          <div>
+            <p className="text-gray-400 text-sm">Account Number</p>
+            <p className="text-white font-medium">{accountNumber}</p>
           </div>
-          <p className="font-semibold text-gray-100">
-            ${dashboardData?.incomingTotal?.toLocaleString() || '0.00'}
-          </p>
+          <div className="mt-2 md:mt-0">
+            <p className="text-gray-400 text-sm">Account Holder</p>
+            <p className="text-white font-medium">{userName}</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Balance Card */}
+      <div className="bg-gradient-to-r from-primary-700 to-primary-500 rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-white text-lg font-semibold">Current Balance</h3>
+          <FaWallet className="text-white/70" />
         </div>
         
-        <div className="bg-gray-700/50 p-3 rounded-lg">
-          <div className="flex items-center text-sm text-gray-400">
-            <FaArrowDown className="text-red-500 mr-1" />
-            <span>Expenses</span>
+        <p className="text-3xl font-bold text-white mb-4">
+          {showBalance ? `$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$•••••.••'}
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-white/70 text-sm">Available Balance</p>
+            <p className="text-white font-semibold">
+              {showBalance ? `$${availableBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$•••••.••'}
+            </p>
           </div>
-          <p className="font-semibold text-gray-100">
-            ${dashboardData?.outgoingTotal?.toLocaleString() || '0.00'}
-          </p>
+          <div>
+            <p className="text-white/70 text-sm">Pending Balance</p>
+            <p className="text-white font-semibold">
+              {showBalance ? `$${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$•••••.••'}
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Activity Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gray-700 rounded-lg p-4 flex items-center">
+          <div className="bg-green-600/20 p-3 rounded-lg mr-3">
+            <FaArrowDown className="text-green-500" />
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs">Deposits (30d)</p>
+            <p className="text-white font-semibold">{deposits}</p>
+          </div>
         </div>
         
-        <div className="bg-gray-700/50 p-3 rounded-lg">
-          <div className="flex items-center text-sm text-gray-400">
-            <FaChartLine className="text-blue-500 mr-1" />
-            <span>Investments</span>
+        <div className="bg-gray-700 rounded-lg p-4 flex items-center">
+          <div className="bg-red-600/20 p-3 rounded-lg mr-3">
+            <FaArrowUp className="text-red-500" />
           </div>
-          <p className="font-semibold text-gray-100">
-            ${dashboardData?.investmentsTotal?.toLocaleString() || '0.00'}
-          </p>
+          <div>
+            <p className="text-gray-400 text-xs">Withdrawals (30d)</p>
+            <p className="text-white font-semibold">{withdrawals}</p>
+          </div>
         </div>
         
-        <div className="bg-gray-700/50 p-3 rounded-lg">
-          <div className="flex items-center text-sm text-gray-400">
-            <FaExchangeAlt className="text-purple-500 mr-1" />
-            <span>Trades</span>
+        <div className="bg-gray-700 rounded-lg p-4 flex items-center">
+          <div className="bg-blue-600/20 p-3 rounded-lg mr-3">
+            <FaExchangeAlt className="text-blue-500" />
           </div>
-          <p className="font-semibold text-gray-100">
-            {dashboardData?.tradesCount || '0'} <span className="text-xs text-gray-400">this month</span>
-          </p>
+          <div>
+            <p className="text-gray-400 text-xs">Trades (30d)</p>
+            <p className="text-white font-semibold">{trades}</p>
+          </div>
         </div>
       </div>
     </div>

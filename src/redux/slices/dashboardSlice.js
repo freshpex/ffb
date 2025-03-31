@@ -1,5 +1,31 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import mockApiService from '../../services/mockApiService';
+
+// Add the missing fetchAccountSummary thunk
+export const fetchAccountSummary = createAsyncThunk(
+  'dashboard/fetchAccountSummary',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Return mock account summary data
+      return {
+        accountNumber: 'XXXX-XXXX-7890',
+        current: 45870.32,
+        available: 42650.18,
+        pending: 3220.14,
+        activity: {
+          deposits: 12,
+          withdrawals: 5,
+          trades: 38
+        }
+      };
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch account summary');
+    }
+  }
+);
 
 // Initial state for the dashboard
 const initialState = {
@@ -210,7 +236,19 @@ const initialState = {
       read: false,
       date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
     }
-  ]
+  ],
+  
+  // Account balance and activity
+  accountBalance: {
+    current: 0,
+    available: 0,
+    pending: 0
+  },
+  accountActivity: {
+    deposits: 0,
+    withdrawals: 0,
+    trades: 0
+  }
 };
 
 const dashboardSlice = createSlice({
@@ -294,6 +332,25 @@ const dashboardSlice = createSlice({
     
     // Reset dashboard state
     resetDashboardState: () => initialState
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAccountSummary.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAccountSummary.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.accountBalance = {
+          current: action.payload.current,
+          available: action.payload.available,
+          pending: action.payload.pending
+        };
+        state.accountActivity = action.payload.activity;
+      })
+      .addCase(fetchAccountSummary.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
   }
 });
 
@@ -408,5 +465,7 @@ export const selectMarketPulse = (state) => state.dashboard?.marketPulse || null
 export const selectNotifications = (state) => state.dashboard?.notifications || [];
 export const selectUnreadNotificationsCount = (state) => 
   state.dashboard?.notifications?.filter(notif => !notif.read).length || 0;
+export const selectAccountBalance = (state) => state.dashboard.accountBalance;
+export const selectAccountActivity = (state) => state.dashboard.accountActivity;
 
 export default dashboardSlice.reducer;

@@ -1,44 +1,36 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import layoutReducer from './slices/layoutSlice';
-import userReducer from './slices/userSlice';
-import securityReducer from './slices/securitySlice';
-import dashboardReducer from './slices/dashboardSlice';
-import depositReducer from './slices/depositSlice';
-import withdrawalReducer from './slices/withdrawalSlice';
-import tradingReducer from './slices/tradingSlice';
-import notificationReducer from './slices/notificationSlice';
-import referralReducer from './slices/referralSlice';
-import educationReducer from './slices/educationSlice';
-import investmentReducer from './slices/investmentSlice';
-import atmCardsReducer from './slices/atmCardsSlice';
+import { configureStore } from '@reduxjs/toolkit';
+import userSlice from './slices/userSlice';
+import depositSlice from './slices/depositSlice';
+import withdrawalSlice from './slices/withdrawalSlice';
+import tradingSlice from './slices/tradingSlice';
+import investmentSlice from './slices/investmentSlice';
+import notificationSlice from './slices/notificationSlice';
+import layoutSlice from './slices/layoutSlice';
+import dashboardSlice from './slices/dashboardSlice';
+import educationSlice from './slices/educationSlice';
+import securitySlice from './slices/securitySlice';
+import referralSlice from './slices/referralSlice';
+import atmCardsSlice from './slices/atmCardsSlice';
 
-const rootReducer = combineReducers({
-  user: userReducer,
-  security: securityReducer,
-  dashboard: dashboardReducer,
-  deposit: depositReducer,
-  withdrawal: withdrawalReducer,
-  trading: tradingReducer,
-  notifications: notificationReducer,
-  referral: referralReducer,
-  education: educationReducer,
-  investment: investmentReducer,
-  layout: layoutReducer,
-  atmCards: atmCardsReducer
-});
-
-// Configure Redux Store
 const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore non-serializable Redux internal values
-        ignoredActions: ['investment/makeInvestmentSuccess'],
-        ignoredPaths: ['investment.successModal.investmentId'],
-      },
-    }),
-  devTools: process.env.NODE_ENV !== 'production',
+  reducer: {
+    user: userSlice,
+    deposit: depositSlice,
+    withdrawal: withdrawalSlice,
+    trading: tradingSlice,
+    investment: investmentSlice,
+    notifications: notificationSlice,
+    layout: layoutSlice,
+    dashboard: dashboardSlice,
+    education: educationSlice,
+    security: securitySlice,
+    referral: referralSlice,
+    atmCards: atmCardsSlice,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    serializableCheck: false
+  }),
+  devTools: process.env.NODE_ENV !== 'production'
 });
 
 export default store;

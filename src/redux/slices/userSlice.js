@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import mockApiService from '../../services/mockApiService';
 
 const initialState = {
@@ -62,6 +62,14 @@ const userSlice = createSlice({
       state.error = action.payload;
     },
     
+    updateProfile: (state, action) => {
+      state.profile = {
+        ...state.profile,
+        ...action.payload
+      };
+      state.status = 'succeeded';
+    },
+
     updateEmailStart: (state) => {
       state.status = 'loading';
       state.loading = true;
@@ -183,6 +191,7 @@ export const {
   updateProfileStart,
   updateProfileSuccess,
   updateProfileFailure,
+  updateProfile,
   updateEmailStart,
   updateEmailSuccess,
   updateEmailFailure,
@@ -205,7 +214,7 @@ export const {
   resetUser
 } = userSlice.actions;
 
-export const updateProfile = (profileData) => async (dispatch) => {
+export const updateUserProfile = (profileData) => async (dispatch) => {
   try {
     dispatch(updateProfileStart());
     const response = await mockApiService.user.updateProfile(profileData);
