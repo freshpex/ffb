@@ -12,7 +12,7 @@ import { Suspense } from "react";
 import TradingViewChart from "./TradingViewChart";
 
 const Home = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     const darkModeEnabled = window.matchMedia("(prefers-color-scheme: dark)").matches;

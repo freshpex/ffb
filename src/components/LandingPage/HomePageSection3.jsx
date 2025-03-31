@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FaChartLine, FaLightbulb, FaChartBar, FaHandshake, FaShieldAlt, FaUserTie } from "react-icons/fa";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const HomePageSection3 = () => {
+  const { darkMode } = useDarkMode();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.2 });
   
@@ -77,14 +79,14 @@ const HomePageSection3 = () => {
   };
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-gray-900 to-gray-800">
+    <section className={`py-20 px-4 ${darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
           >
             Why Choose Fidelity First Brokers
           </motion.h2>
@@ -92,7 +94,7 @@ const HomePageSection3 = () => {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-gray-400 max-w-2xl mx-auto"
+            className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}
           >
             We combine cutting-edge technology with financial expertise to deliver an exceptional investment experience.
           </motion.p>
@@ -109,13 +111,17 @@ const HomePageSection3 = () => {
             <motion.div
               key={feature.id}
               variants={itemVariants}
-              className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-primary-500 transition-all duration-300"
+              className={`${
+                darkMode 
+                  ? 'bg-gray-800/50 backdrop-blur-sm border border-gray-700 hover:border-primary-500' 
+                  : 'bg-white backdrop-blur-sm border border-gray-200 hover:border-primary-500 shadow-lg'
+              } p-6 rounded-xl transition-all duration-300`}
             >
               <div className={`${feature.color} w-14 h-14 rounded-lg flex items-center justify-center mb-5`}>
                 <span className={`${feature.iconColor} text-2xl`}>{feature.icon}</span>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-              <p className="text-gray-400">
+              <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-3`}>{feature.title}</h3>
+              <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
                 {feature.description}
               </p>
             </motion.div>

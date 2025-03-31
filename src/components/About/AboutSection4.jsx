@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FaUserTie, FaUniversity, FaChartBar, FaGlobe } from "react-icons/fa";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const AboutSection4 = () => {
+  const { darkMode } = useDarkMode();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
   
@@ -41,7 +43,7 @@ const AboutSection4 = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gray-900/80 overflow-hidden">
+    <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900/80' : 'bg-gray-100'} overflow-hidden`}>
       <div className="container mx-auto max-w-6xl">
         {/* Leadership Team */}
         <div className="mb-20">
@@ -50,7 +52,7 @@ const AboutSection4 = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4"
+              className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
             >
               Our Leadership Team
             </motion.h2>
@@ -58,7 +60,7 @@ const AboutSection4 = () => {
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-gray-400 max-w-3xl mx-auto text-lg"
+              className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-3xl mx-auto text-lg`}
             >
               Meet the experienced professionals who guide our company's vision and ensure we deliver exceptional value to our clients.
             </motion.p>
@@ -71,9 +73,13 @@ const AboutSection4 = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700 hover:border-primary-500 transition-all duration-300"
+                className={`${
+                  darkMode
+                    ? 'bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700 hover:border-primary-500'
+                    : 'bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-primary-500 shadow-lg'
+                } transition-all duration-300`}
               >
-                <div className="h-60 bg-gray-700 relative">
+                <div className={`h-60 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} relative`}>
                   {member.image ? (
                     <img
                       src={member.image}
@@ -92,9 +98,9 @@ const AboutSection4 = () => {
                 </div>
                 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
+                  <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-1`}>{member.name}</h3>
                   <p className="text-primary-500 text-sm mb-4">{member.position}</p>
-                  <p className="text-gray-400 text-sm">{member.bio}</p>
+                  <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{member.bio}</p>
                 </div>
               </motion.div>
             ))}
@@ -108,7 +114,7 @@ const AboutSection4 = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4"
+              className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
             >
               Our Partners & Affiliations
             </motion.h2>
@@ -116,7 +122,7 @@ const AboutSection4 = () => {
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-gray-400 max-w-3xl mx-auto text-lg"
+              className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-3xl mx-auto text-lg`}
             >
               We collaborate with leading institutions to provide our clients with the best financial services and opportunities.
             </motion.p>
@@ -129,7 +135,11 @@ const AboutSection4 = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-gray-800/30 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-primary-500 transition-all duration-300 flex flex-col items-center text-center"
+                className={`${
+                  darkMode
+                    ? 'bg-gray-800/30 backdrop-blur-sm border border-gray-700 hover:border-primary-500'
+                    : 'bg-white backdrop-blur-sm border border-gray-200 hover:border-primary-500 shadow-lg'
+                } p-6 rounded-xl transition-all duration-300 flex flex-col items-center text-center`}
               >
                 {partner.logo ? (
                   <img
@@ -144,12 +154,12 @@ const AboutSection4 = () => {
                   />
                 ) : null}
                 
-                <div className={`w-16 h-16 rounded-full bg-primary-900/30 flex items-center justify-center text-primary-500 text-2xl mb-4 ${partner.logo ? 'hidden' : ''}`}>
+                <div className={`w-16 h-16 rounded-full ${darkMode ? 'bg-primary-900/30' : 'bg-primary-100'} flex items-center justify-center text-primary-500 text-2xl mb-4 ${partner.logo ? 'hidden' : ''}`}>
                   {partner.icon}
                 </div>
                 
-                <h3 className="text-lg font-bold text-white mb-2">{partner.name}</h3>
-                <p className="text-gray-400 text-sm">Official Partner</p>
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>{partner.name}</h3>
+                <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Official Partner</p>
               </motion.div>
             ))}
           </div>

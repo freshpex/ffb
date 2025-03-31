@@ -1,134 +1,194 @@
-import { useNavigate } from "react-router";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { FaCheck, FaArrowRight } from "react-icons/fa";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const TradingPlan = () => {
-  const navigate = useNavigate();
-
-  const navigateTo = (url) => {
-    console.log("clicked");
-    navigate(url);
-  };
-
+  const { darkMode } = useDarkMode();
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+  
   const plans = [
     {
-      title: "BITCOIN MINI PLAN 1",
-      weeklyInterest: "10%",
-      investmentSum: "$100",
-      commission: "10%",
-      referralBonus: "7%",
-      price: "$500+",
-      featured: false
+      id: "basic",
+      name: "Basic Plan",
+      description: "Perfect for beginners looking to start their investment journey",
+      price: "$0",
+      period: "Free forever",
+      features: [
+        "Basic market analysis tools",
+        "Standard trading platform",
+        "Email support",
+        "Market news & updates",
+        "Up to 5 simultaneous trades"
+      ],
+      limitations: [
+        "Limited portfolio diversification",
+        "No advanced analytics",
+        "No personal advisor"
+      ],
+      buttonText: "Get Started Free",
+      popular: false
     },
     {
-      title: "BITCOIN MINI PLAN 2",
-      weeklyInterest: "12%",
-      investmentSum: "$10,000",
-      commission: "15%",
-      referralBonus: "8%",
-      price: "$10,000+",
-      featured: false
+      id: "standard",
+      name: "Standard Plan",
+      description: "Ideal for active traders seeking enhanced tools and features",
+      price: "$29",
+      period: "per month",
+      features: [
+        "Advanced trading tools",
+        "Premium market analysis",
+        "Priority email & chat support",
+        "Real-time market alerts",
+        "Up to 20 simultaneous trades",
+        "Portfolio optimization tools",
+        "Trading signals"
+      ],
+      limitations: [],
+      buttonText: "Choose Standard",
+      popular: true
     },
     {
-      title: "BITCOIN FX SILVER PLAN",
-      weeklyInterest: "15%",
-      investmentSum: "$20,000",
-      commission: "15%",
-      referralBonus: "10%",
-      price: "$20,000+",
-      featured: true
-    },
-    {
-      title: "BITCOIN FX GOLD PLAN",
-      weeklyInterest: "18%",
-      investmentSum: "$30,000",
-      commission: "20%",
-      referralBonus: "10%",
-      price: "$30,000+",
-      featured: false
-    },
-    {
-      title: "PLATINUM ELITE PLAN",
-      weeklyInterest: "20%",
-      investmentSum: "$40,000",
-      commission: "20%",
-      referralBonus: "10%",
-      price: "$40,000+",
-      featured: false
-    },
-    {
-      title: "PLATINUM CORPORATE PLAN",
-      weeklyInterest: "25%",
-      investmentSum: "$50,000",
-      commission: "25%",
-      referralBonus: "10%",
-      price: "$50,000+",
-      featured: false
+      id: "premium",
+      name: "Premium Plan",
+      description: "Comprehensive solution for serious investors and professionals",
+      price: "$99",
+      period: "per month",
+      features: [
+        "Full-suite professional tools",
+        "Expert market analysis",
+        "24/7 dedicated support",
+        "Personalized investment advisor",
+        "Unlimited simultaneous trades",
+        "Advanced risk management",
+        "Exclusive investment opportunities",
+        "Priority execution"
+      ],
+      limitations: [],
+      buttonText: "Choose Premium",
+      popular: false
     }
   ];
 
   return (
-    <section className="py-20 px-4 bg-gray-900">
-      <div className="max-w-7xl mx-auto" data-aos="fade-up">
-        <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">SELECT A TRADING PLAN</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`} ref={ref}>
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
+          >
+            Trading Plans & Pricing
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}
+          >
+            Choose the right plan for your investment needs with our transparent pricing and feature-rich offerings.
+          </motion.p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <motion.div 
-              className={`bg-gray-800 rounded-xl overflow-hidden shadow-lg border ${
-                plan.featured ? 'border-primary-500 shadow-primary-500/20' : 'border-gray-700'
-              } relative`}
-              key={index}
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-              whileHover={{ y: -10 }}
-              transition={{ duration: 0.3 }}
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              className={`rounded-xl ${
+                plan.popular
+                  ? `border-2 border-primary-500 shadow-lg ${
+                      darkMode
+                        ? 'shadow-primary-500/10 relative z-10 bg-gray-800'
+                        : 'bg-gray-100 hover:bg-gray-100 text-gray-700'
+                    }`
+                  : `border ${darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white'}`
+              } transition-all duration-300 overflow-hidden`}
             >
-              {plan.featured && (
-                <div className="absolute top-0 right-0 bg-primary-500 text-white text-xs font-bold py-1 px-3 transform translate-x-2 -translate-y-1/3 rotate-45">
-                  Popular
+              {plan.popular && (
+                <div className="absolute top-0 right-0 bg-primary-500 text-white text-xs font-semibold py-1 px-3 uppercase">
+                  Most Popular
                 </div>
               )}
               
               <div className="p-6">
-                <h3 className={`text-xl font-bold ${plan.featured ? 'text-primary-500' : 'text-white'} mb-4 text-center`}>
-                  {plan.title}
+                <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                  {plan.name}
                 </h3>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 h-12`}>
+                  {plan.description}
+                </p>
                 
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                    <span className="text-gray-400">Weekly Interest:</span>
-                    <span className="text-white font-medium">{plan.weeklyInterest}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                    <span className="text-gray-400">Investment Sum:</span>
-                    <span className="text-white font-medium">{plan.investmentSum}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                    <span className="text-gray-400">Trading/Withdrawal Commission:</span>
-                    <span className="text-white font-medium">{plan.commission}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                    <span className="text-gray-400">Referral Bonus:</span>
-                    <span className="text-white font-medium">{plan.referralBonus}</span>
-                  </div>
+                <div className="mb-6">
+                  <span className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {plan.price}
+                  </span>
+                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} ml-1`}>
+                    {plan.period}
+                  </span>
                 </div>
-
-                <h2 className="text-2xl md:text-3xl font-bold text-center text-primary-500 mb-6">{plan.price}</h2>
-
+                
+                <div className="space-y-4 mb-8">
+                  <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Includes:</p>
+                  <ul className="space-y-2">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start">
+                        <FaCheck className="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                        <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {feature}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  {plan.limitations.length > 0 && (
+                    <div className="pt-2">
+                      <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Not included:</p>
+                      <ul className="space-y-2 mt-2">
+                        {plan.limitations.map((limitation, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                              {limitation}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                
                 <Link
                   to="/signup"
-                  onClick={() => navigateTo("/signup")}
-                  className={`block w-full text-center py-3 px-4 rounded-lg font-bold transition-colors duration-300 ${
-                    plan.featured 
-                      ? 'bg-primary-600 hover:bg-primary-700 text-white' 
-                      : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  className={`block w-full py-3 rounded-lg text-center font-semibold transition-colors duration-300 ${
+                    plan.popular
+                      ? darkMode
+                        ? "bg-primary-800 hover:bg-primary-700 text-white"
+                        : "bg-gray-100 hover:bg-gray-100 text-gray-700"
+                      : darkMode 
+                        ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-800"
                   }`}
                 >
-                  APPLY NOW
+                  {plan.buttonText} <FaArrowRight className="ml-1 inline" />
                 </Link>
               </div>
             </motion.div>
           ))}
+        </div>
+        
+        <div className={`mt-12 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p>
+            All plans include our core trading platform and educational resources. 
+            <Link to="/pricing" className="text-primary-500 hover:text-primary-600 ml-1">
+              View full plan comparison
+            </Link>
+          </p>
         </div>
       </div>
     </section>

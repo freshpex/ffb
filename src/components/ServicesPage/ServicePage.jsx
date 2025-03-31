@@ -1,17 +1,28 @@
+import { useEffect } from "react";
 import Header from "../LandingPage/Header";
 import HomeFooter from "../LandingPage/HomeFooter";
 import ServiceSection1 from "./ServiceSection1";
 import ServiceSection2 from "./ServiceSection2";
 import PageTransition from "../common/PageTransition";
+import { useDarkMode } from "../../context/DarkModeContext";
 import "/src/css/services.css";
 
 const ServicePage = () => {
+  const { darkMode } = useDarkMode();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.title = "Our Services | Fidelity First Brokers";
+  }, []);
+
   return (
     <PageTransition>
-      <Header />
-      <ServiceSection1 />
-      <ServiceSection2 />
-      <HomeFooter />
+      <div className={darkMode ? "bg-gray-900" : "bg-white"}>
+        <Header />
+        <ServiceSection1 />
+        <ServiceSection2 />
+        <HomeFooter />
+      </div>
     </PageTransition>
   );
 };

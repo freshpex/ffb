@@ -1,7 +1,9 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const AboutSection3 = () => {
+  const { darkMode } = useDarkMode();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
   
@@ -39,14 +41,14 @@ const AboutSection3 = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-gray-800 to-gray-900">
+    <section className={`py-20 px-4 ${darkMode ? 'bg-gradient-to-b from-gray-800 to-gray-900' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
           >
             Our Journey
           </motion.h2>
@@ -54,7 +56,7 @@ const AboutSection3 = () => {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-gray-400 max-w-3xl mx-auto text-lg"
+            className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-3xl mx-auto text-lg`}
           >
             From our humble beginnings to becoming a global investment leader, our journey has been defined by innovation, resilience, and a relentless commitment to client success.
           </motion.p>
@@ -62,7 +64,7 @@ const AboutSection3 = () => {
         
         <div ref={ref} className="relative">
           {/* Timeline line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-700 hidden md:block"></div>
+          <div className={`absolute left-1/2 transform -translate-x-1/2 h-full w-1 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} hidden md:block`}></div>
           
           {/* Timeline entries */}
           <div className="space-y-12 relative">
@@ -80,13 +82,13 @@ const AboutSection3 = () => {
                   index % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12'
                 } mb-6 md:mb-0`}>
                   <span className="text-primary-500 text-sm font-semibold uppercase tracking-wider">{item.year}</span>
-                  <h3 className="text-xl font-bold text-white mt-1 mb-2">{item.title}</h3>
-                  <p className="text-gray-400">{item.description}</p>
+                  <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mt-1 mb-2`}>{item.title}</h3>
+                  <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{item.description}</p>
                 </div>
                 
-                <div className="md:hidden w-full h-px bg-gray-700 my-4"></div>
+                <div className={`md:hidden w-full h-px ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} my-4`}></div>
                 
-                <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center relative z-10 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
+                <div className={`w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center relative z-10 md:absolute md:left-1/2 md:transform md:-translate-x-1/2`}>
                   <span className="font-bold text-white text-sm">{index + 1}</span>
                 </div>
                 

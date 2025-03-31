@@ -1,0 +1,66 @@
+/* Custom styles for dark mode */
+
+.dark .landing-dark {
+  color-scheme: dark;
+}
+
+.landing-light {
+  color-scheme: light;
+}
+
+/* Chart container dark mode styles */
+.dark .chart-container {
+  background-color: #1a1a1a;
+  border-color: #333;
+}
+
+/* Form controls dark mode */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgba(75, 85, 99, 0.8);
+  color: #fff;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #9155fd;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(145, 85, 253, 0.3);
+}
+
+/* Button hover effects for dark mode */
+.dark .btn-primary:hover {
+  background-color: #6d28d9;
+}
+
+.dark .btn-secondary:hover {
+  background-color: #4b5563;
+}
+
+/* Card styling for dark mode */
+.dark .card {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}

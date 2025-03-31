@@ -1,8 +1,10 @@
 import { useInView } from 'react-intersection-observer';
 import { motion } from 'framer-motion';
 import { FaLightbulb, FaLock, FaUserFriends, FaMoneyBillWave } from 'react-icons/fa';
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const ContactSection3 = () => {
+  const { darkMode } = useDarkMode();
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: true
@@ -36,45 +38,65 @@ const ContactSection3 = () => {
   ];
 
   return (
-    <section className="faq-section" id="faq" ref={ref}>
-      <div className="container">
+    <section 
+      id="faq" 
+      ref={ref}
+      className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
+    >
+      <div className="container mx-auto max-w-6xl">
         <motion.div 
-          className="section-header"
+          className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.5 }}
         >
-          <h2>Frequently Asked Questions</h2>
-          <p>Find quick answers to common questions about our services</p>
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            Frequently Asked Questions
+          </h2>
+          <p className={`text-lg max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            Find quick answers to common questions about our services
+          </p>
         </motion.div>
         
-        <div className="faq-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {faqs.map((faq, index) => (
             <motion.div 
               key={faq.id}
-              className="faq-card"
+              className={`flex p-6 rounded-xl ${
+                darkMode 
+                  ? 'bg-gray-800 border border-gray-700' 
+                  : 'bg-white shadow-lg border border-gray-100'
+              } transition-all duration-300 hover:border-primary-500`}
               initial={{ opacity: 0, y: 30 }}
               animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <div className="faq-icon">
+              <div className={`w-14 h-14 rounded-full ${
+                darkMode ? 'bg-primary-900/30' : 'bg-primary-100'
+              } flex items-center justify-center text-primary-500 text-xl flex-shrink-0 mr-4`}>
                 {faq.icon}
               </div>
-              <div className="faq-content">
-                <h3>{faq.question}</h3>
-                <p>{faq.answer}</p>
+              <div>
+                <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {faq.question}
+                </h3>
+                <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                  {faq.answer}
+                </p>
               </div>
             </motion.div>
           ))}
         </div>
         
         <motion.div 
-          className="more-questions"
+          className="text-center mt-12"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <p>Still have questions? Check our <a href="/help-center">Help Center</a> or contact our support team.</p>
+          <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+            Still have questions? Check our <a href="/help-center" className="text-primary-500 hover:text-primary-600 transition-colors">Help Center</a> or contact our support team.
+          </p>
         </motion.div>
       </div>
     </section>

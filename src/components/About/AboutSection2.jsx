@@ -1,8 +1,10 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FaUsers, FaShieldAlt, FaChartLine, FaGlobeAmericas } from "react-icons/fa";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const AboutSection2 = () => {
+  const { darkMode } = useDarkMode();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
   
@@ -57,14 +59,14 @@ const AboutSection2 = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gray-900/80">
+    <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900/80' : 'bg-gray-100'}`}>
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-bold text-white mb-4"
+            className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
           >
             Our Values & Mission
           </motion.h2>
@@ -74,10 +76,10 @@ const AboutSection2 = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-3xl mx-auto"
           >
-            <p className="text-gray-400 text-lg mb-6">
+            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} text-lg mb-6`}>
               At Fidelity First Brokers, we are guided by our commitment to excellence, integrity, and client success. Our mission is to empower individuals and organizations to achieve their financial aspirations through intelligent investment strategies and personalized guidance.
             </p>
-            <p className="text-gray-400 text-lg">
+            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} text-lg`}>
               We believe in building long-term relationships with our clients based on trust, transparency, and consistent results. Our values shape every aspect of our business and ensure that we always put our clients first.
             </p>
           </motion.div>
@@ -94,13 +96,17 @@ const AboutSection2 = () => {
             <motion.div
               key={value.id}
               variants={itemVariants}
-              className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-primary-500 transition-all duration-300"
+              className={`${
+                darkMode 
+                  ? 'bg-gray-800/50 backdrop-blur-sm border border-gray-700 hover:border-primary-500' 
+                  : 'bg-white backdrop-blur-sm border border-gray-200 hover:border-primary-500 shadow-lg'
+              } p-6 rounded-xl transition-all duration-300`}
             >
               <div className={`w-16 h-16 rounded-full ${value.color} flex items-center justify-center mb-5 text-2xl`}>
                 {value.icon}
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{value.title}</h3>
-              <p className="text-gray-400">
+              <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} mb-3`}>{value.title}</h3>
+              <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
                 {value.description}
               </p>
             </motion.div>
