@@ -5,7 +5,6 @@ import ServiceSection1 from "./ServiceSection1";
 import ServiceSection2 from "./ServiceSection2";
 import PageTransition from "../common/PageTransition";
 import { useDarkMode } from "../../context/DarkModeContext";
-import "/src/css/services.css";
 
 const ServicePage = () => {
   const { darkMode } = useDarkMode();

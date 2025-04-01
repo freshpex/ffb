@@ -1,19 +1,22 @@
 import { memo } from "react";
 import PropTypes from 'prop-types';
 import { motion } from "framer-motion";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const Loader = memo(({ size = "default", color = "primary", className = "" }) => {
+  const { darkMode } = useDarkMode();
+  
   const sizeClasses = {
     small: "w-5 h-5",
     default: "w-8 h-8", 
     large: "w-12 h-12",
-    lg: "w-12 h-12" // Added lg as an alias for large
+    lg: "w-12 h-12"
   };
 
   const colorClasses = {
     primary: "text-primary-500",
     white: "text-white",
-    gray: "text-gray-400"
+    gray: darkMode ? "text-gray-300" : "text-gray-400"
   };
 
   return (

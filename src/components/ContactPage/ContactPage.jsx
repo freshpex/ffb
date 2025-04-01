@@ -7,7 +7,6 @@ import ContactSection2 from './ContactSection2';
 import ContactSection3 from './ContactSection3';
 import ContactSection4 from './ContactSection4';
 import { useDarkMode } from "../../context/DarkModeContext";
-import '/src/css/contact.css';
 
 const ContactPage = () => {
   const { darkMode } = useDarkMode();

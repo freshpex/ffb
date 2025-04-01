@@ -195,7 +195,7 @@ export const fetchNotifications = () => async (dispatch) => {
 
 // Selectors
 export const selectNotifications = createSelector(
-  [(state) => state.notifications.notifications],
+  [(state) => state.notifications?.notifications || []],
   (notifications) => notifications
 );
 
