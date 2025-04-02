@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -104,44 +104,58 @@ export function AuthContextProvider({ children }) {
     try {
       setAuthError(null);
       
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
+      // First authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful:", userCredential.user.email);
+      console.log("Firebase login successful:", userCredential.user.email);
       
-      // Get user data
-      const mockUsers = getMockUsers();
-      const mockUserData = mockUsers[userCredential.user.uid];
+      // Get Firebase user token for backend authentication
+      const firebaseToken = await userCredential.user.getIdToken();
       
-      if (mockUserData) {
-        console.log("User data found in storage");
-        setUserData(mockUserData);
-        saveCurrentUser(mockUserData);
-      } else {
-        console.log("Creating default user data");
-        // Create default user data if none exists
-        const defaultUserData = {
-          id: `user_${Date.now()}`,
+      // Sync with backend
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      
+      // First sync the user
+      const syncResponse = await fetch(`${apiUrl}/auth/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
-          firstName: userCredential.user.displayName ? userCredential.user.displayName.split(' ')[0] : 'User',
-          lastName: userCredential.user.displayName ? userCredential.user.displayName.split(' ').slice(1).join(' ') : '',
-          role: "user",
-          balance: 10000,
-          referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-          createdAt: new Date().toISOString()
-        };
-        
-        mockUsers[userCredential.user.uid] = defaultUserData;
-        saveMockUsers(mockUsers);
-        setUserData(defaultUserData);
-        saveCurrentUser(defaultUserData);
+          displayName: userCredential.user.displayName,
+          firebaseToken
+        }),
+      });
+      
+      if (!syncResponse.ok) {
+        const syncError = await syncResponse.json();
+        throw new Error(syncError.message || 'Failed to synchronize with backend');
       }
       
-      // Generate a mock token and save it
-      const mockToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
-      saveToken(mockToken);
+      // Then login with the backend
+      const loginResponse = await fetch(`${apiUrl}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+        }),
+      });
+      
+      if (!loginResponse.ok) {
+        const loginError = await loginResponse.json();
+        throw new Error(loginError.message || 'Failed to login with backend');
+      }
+      
+      const userData = await loginResponse.json();
+      
+      // Save token and user data
+      saveToken(userData.token);
+      setUserData(userData.user);
+      saveCurrentUser(userData.user);
       
       return userCredential;
     } catch (error) {
@@ -176,7 +190,7 @@ export function AuthContextProvider({ children }) {
     }
   };
 
-  // Function to fetch user data - now using mock data
+  // Function to fetch user data - now using backend API
   const getUserProfile = async () => {
     try {
       if (!user) {
@@ -195,38 +209,34 @@ export function AuthContextProvider({ children }) {
         return null;
       }
       
-      // Get mock user data
-      const mockUsers = getMockUsers();
-      const mockUserData = mockUsers[user.uid];
+      // Get user profile from backend
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
-      if (mockUserData) {
-        setUserData(mockUserData);
-        saveCurrentUser(mockUserData);
-        return mockUserData;
+      const response = await fetch(`${apiUrl}/users/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
       }
       
-      // If no mock data found, create a default user profile
-      const defaultUserData = {
-        id: `user_${Date.now()}`,
-        uid: user.uid,
-        email: user.email,
-        firstName: user.displayName ? user.displayName.split(' ')[0] : 'User',
-        lastName: user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '',
-        role: "user",
-        balance: 10000,
-        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        createdAt: new Date().toISOString()
-      };
+      const userData = await response.json();
+      setUserData(userData);
+      saveCurrentUser(userData);
       
-      // Save to mock storage
-      mockUsers[user.uid] = defaultUserData;
-      saveMockUsers(mockUsers);
-      setUserData(defaultUserData);
-      saveCurrentUser(defaultUserData);
-      
-      return defaultUserData;
+      return userData;
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      
+      // Fallback to cached data if available
+      const cachedUser = getCurrentUser();
+      if (cachedUser) {
+        setUserData(cachedUser);
+        return cachedUser;
+      }
+      
       return null;
     }
   };

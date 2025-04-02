@@ -234,7 +234,7 @@ const AdminHeader = ({ toggleSidebar }) => {
                     Settings
                   </Link>
                   <Link
-                    to="/help"
+                    to="/admin/support"
                     className={`flex items-center px-4 py-2 text-sm ${
                       darkMode 
                         ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 

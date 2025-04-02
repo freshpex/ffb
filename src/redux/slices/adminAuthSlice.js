@@ -1,42 +1,32 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-// Simulating API calls with mock data
+// Update the loginAdmin thunk to use the backend API
 export const loginAdmin = createAsyncThunk(
   'adminAuth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      // In a real app, this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Get the API URL from environment variable
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
-      // Mock validation
-      if (credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
-        const adminUser = {
-          id: 'admin-1',
-          email: 'admin@example.com',
-          name: 'Admin User',
-          role: 'admin',
-          permissions: ['users', 'transactions', 'kyc', 'investments', 'settings']
-        };
-        
-        // Store token in localStorage
-        localStorage.setItem('ffb_admin_token', 'mock-admin-jwt-token');
-        return adminUser;
+      // Make the actual API call
+      const response = await fetch(`${apiUrl}/admin/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return rejectWithValue(data.message || 'Login failed');
       }
       
-      if (credentials.email === 'moderator@example.com' && credentials.password === 'mod123') {
-        const modUser = {
-          id: 'mod-1',
-          email: 'moderator@example.com',
-          name: 'Moderator User',
-          role: 'moderator',
-          permissions: ['users', 'kyc']
-        };
-        
-        localStorage.setItem('ffb_admin_token', 'mock-moderator-jwt-token');
-        return modUser;
-      }
+      // Store token in localStorage
+      localStorage.setItem('ffb_admin_token', data.token);
       
-      return rejectWithValue('Invalid email or password');
+      return data.admin;
     } catch (error) {
       return rejectWithValue(error.message || 'Login failed');
     }
@@ -52,6 +42,7 @@ export const logoutAdmin = createAsyncThunk(
   }
 );
 
+// Update the checkAdminAuth thunk to validate token with backend
 export const checkAdminAuth = createAsyncThunk(
   'adminAuth/check',
   async (_, { rejectWithValue }) => {
@@ -62,31 +53,24 @@ export const checkAdminAuth = createAsyncThunk(
         return rejectWithValue('No token found');
       }
       
-      // In a real app, you'd validate the token with an API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Get the API URL from environment variable
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
-      // Mock admin data based on token
-      if (token === 'mock-admin-jwt-token') {
-        return {
-          id: 'admin-1',
-          email: 'admin@example.com',
-          name: 'Admin User',
-          role: 'admin',
-          permissions: ['users', 'transactions', 'kyc', 'investments', 'settings']
-        };
-      } else if (token === 'mock-moderator-jwt-token') {
-        return {
-          id: 'mod-1',
-          email: 'moderator@example.com',
-          name: 'Moderator User',
-          role: 'moderator',
-          permissions: ['users', 'kyc']
-        };
+      // Verify token with backend
+      const response = await fetch(`${apiUrl}/admin/verify-token`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('ffb_admin_token');
+        return rejectWithValue('Invalid token');
       }
       
-      // If we get here, token wasn't recognized - clear it
-      localStorage.removeItem('ffb_admin_token');
-      return rejectWithValue('Invalid token');
+      const data = await response.json();
+      return data.admin;
     } catch (error) {
       localStorage.removeItem('ffb_admin_token');
       return rejectWithValue(error.message || 'Authentication check failed');

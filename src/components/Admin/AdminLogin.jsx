@@ -1,43 +1,37 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginAdmin, selectAdminError, selectAdminStatus } from '../../redux/slices/adminAuthSlice';
 import { motion } from 'framer-motion';
-import { FaLock, FaEnvelope, FaShieldAlt, FaExclamationCircle } from 'react-icons/fa';
-import { loginAdmin, selectIsAdminAuthenticated, selectAdminStatus, selectAdminError, clearError } from '../../redux/slices/adminAuthSlice';
+import { FaLock, FaEnvelope, FaShieldAlt, FaEyeSlash, FaEye, FaExclamationCircle } from 'react-icons/fa';
 import { useDarkMode } from '../../context/DarkModeContext';
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { darkMode } = useDarkMode();
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  const isAuthenticated = useSelector(selectIsAdminAuthenticated);
-  const status = useSelector(selectAdminStatus);
   const error = useSelector(selectAdminError);
+  const status = useSelector(selectAdminStatus);
+  const isLoading = status === 'loading';
   
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
-  
-  useEffect(() => {
-    // If already authenticated, redirect to admin dashboard
-    if (isAuthenticated) {
-      navigate('/admin/dashboard');
-    }
-    
-    // Clear any previous login errors when component mounts
-    dispatch(clearError());
-  }, [isAuthenticated, navigate, dispatch]);
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginAdmin(credentials));
+    
+    try {
+      console.log('Attempting admin login with:', { email });
+      const resultAction = await dispatch(loginAdmin({ email, password }));
+      
+      if (loginAdmin.fulfilled.match(resultAction)) {
+        console.log('Admin login successful');
+        navigate('/admin/dashboard');
+      }
+    } catch (err) {
+      console.error('Login submission error:', err);
+    }
   };
   
   return (
@@ -104,8 +98,8 @@ const AdminLogin = () => {
                   } rounded-lg border`}
                   placeholder="admin@example.com"
                   required
-                  value={credentials.email}
-                  onChange={handleChange}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -121,7 +115,7 @@ const AdminLogin = () => {
                   <FaLock className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
                   className={`block w-full pl-10 py-3 ${
@@ -131,9 +125,16 @@ const AdminLogin = () => {
                   } rounded-lg border`}
                   placeholder="••••••••"
                   required
-                  value={credentials.password}
-                  onChange={handleChange}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
             </div>
             
@@ -199,13 +200,10 @@ const AdminLogin = () => {
           </div>
         </form>
         
-        <div className="mt-6 text-center">
-          <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-            Return to{' '}
-            <a href="/" className="text-primary-500 hover:text-primary-600">
-              Main Website
-            </a>
-          </span>
+        <div className="text-center mt-4">
+          <p className="text-gray-500 text-sm">
+            This area is restricted to administrators only.
+          </p>
         </div>
       </div>
     </div>

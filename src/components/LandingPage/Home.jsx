@@ -7,7 +7,6 @@ import HomePageSection3 from "./HomePageSection3";
 import HomePageSection4 from "./HomePageSection4";
 import TradingPlan from "./TradingPlan";
 import HomeFooter from "./HomeFooter";
-import FloatingActionButton from "../FloatingActionButton";
 import { Suspense } from "react";
 import TradingViewChart from "./TradingViewChart";
 

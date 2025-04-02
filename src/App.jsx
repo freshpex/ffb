@@ -1,9 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import { AuthContextProvider } from "./components/AuthPage/AuthContext";
 import ProtectedRoute from "./components/AuthPage/ProtectedRoute";
 import Loader from "./components/Loader";
-import FloatingActionButton from "./components/FloatingActionButton";
 
 // Lazy-loaded components
 const HomePage = lazy(() => import("./components/LandingPage/Home"));
@@ -29,35 +28,34 @@ const Tradingplatform = lazy(() => import("./components/DashBoard/TradingPlatfor
 
 // Admin components
 const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
-const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
-const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
-const AdminUsers = lazy(() => import("./components/admin/AdminUsers"));
-const UserDetail = lazy(() => import("./components/admin/UserDetail"));
-const UserEdit = lazy(() => import("./components/admin/UserEdit"));
-const AdminTransactions = lazy(() => import("./components/admin/AdminTransactions"));
-const TransactionDetail = lazy(() => import("./components/admin/TransactionDetail"));
-const AdminKyc = lazy(() => import("./components/admin/AdminKyc"));
-const KycDetail = lazy(() => import("./components/admin/KycDetail"));
-const AdminSupport = lazy(() => import("./components/admin/AdminSupport"));
-const SupportTicketDetail = lazy(() => import("./components/admin/SupportTicketDetail"));
-const AdminSettings = lazy(() => import("./components/admin/AdminSettings"));
-const AdminNotifications = lazy(() => import("./components/admin/AdminNotifications"));
-const AdminProfile = lazy(() => import("./components/admin/AdminProfile"));
-const AnalyticsOverview = lazy(() => import("./components/admin/analytics/AnalyticsOverview"));
-const TransactionAnalytics = lazy(() => import("./components/admin/analytics/TransactionAnalytics"));
-const UserGrowthAnalytics = lazy(() => import("./components/admin/analytics/UserGrowthAnalytics"));
-const PerformanceAnalytics = lazy(() => import("./components/admin/analytics/PerformanceAnalytics"));
-const FinancialAnalytics = lazy(() => import("./components/admin/analytics/FinancialAnalytics"));
+const AdminLayout = lazy(() => import("./components/Admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./components/Admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./components/Admin/AdminUsers"));
+const UserDetail = lazy(() => import("./components/Admin/UserDetail"));
+const UserEdit = lazy(() => import("./components/Admin/UserEdit"));
+const AdminTransactions = lazy(() => import("./components/Admin/AdminTransactions"));
+const TransactionDetail = lazy(() => import("./components/Admin/TransactionDetail"));
+const AdminKyc = lazy(() => import("./components/Admin/AdminKyc"));
+const KycDetail = lazy(() => import("./components/Admin/KycDetail"));
+const AdminSupport = lazy(() => import("./components/Admin/AdminSupport"));
+const SupportTicketDetail = lazy(() => import("./components/Admin/SupportTicketDetail"));
+const AdminSettings = lazy(() => import("./components/Admin/AdminSettings"));
+const AdminNotifications = lazy(() => import("./components/Admin/AdminNotifications"));
+const AdminProfile = lazy(() => import("./components/Admin/AdminProfile"));
+const AnalyticsOverview = lazy(() => import("./components/Admin/analytics/AnalyticsOverview"));
+const TransactionAnalytics = lazy(() => import("./components/Admin/analytics/TransactionAnalytics"));
+const UserGrowthAnalytics = lazy(() => import("./components/Admin/analytics/UserGrowthAnalytics"));
+const PerformanceAnalytics = lazy(() => import("./components/Admin/analytics/PerformanceAnalytics"));
+const FinancialAnalytics = lazy(() => import("./components/Admin/analytics/FinancialAnalytics"));
 
 // Error page
 const ErrorPage = lazy(() => import("./components/ErrorPage"));
 
 // Admin protected route component
-const AdminProtectedRoute = lazy(() => import("./components/admin/AdminProtectedRoute"));
+const AdminProtectedRoute = lazy(() => import("./components/Admin/AdminProtectedRoute"));
 
 function App() {
   return (
-    <>
       <AuthContextProvider>
         <Suspense fallback={<Loader />}>
           <Routes>
@@ -179,8 +177,6 @@ function App() {
           </Routes>
         </Suspense>
       </AuthContextProvider>
-      <FloatingActionButton />
-    </>
   );
 }
 
