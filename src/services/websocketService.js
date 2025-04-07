@@ -13,7 +13,7 @@ class WebSocketService {
     this.reconnectTimeout = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 2000; // Start with 2 seconds delay
+    this.reconnectDelay = 2000;
     
     WebSocketService.instance = this;
   }
@@ -21,7 +21,7 @@ class WebSocketService {
   connect() {
     return new Promise((resolve, reject) => {
       try {
-        const wsUrl = import.meta.env.VITE_WS_URL || 'wss://fbbb-62ixig1q1-enochs-projects-4c194da7.vercel.app';
+        const wsUrl = import.meta.env.VITE_WS_URL || 'wss://ffb.vercel.app';
         
         // Add token for authentication if available
         const token = localStorage.getItem('token');
@@ -55,7 +55,7 @@ class WebSocketService {
           if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectTimeout = setTimeout(() => {
               this.reconnectAttempts++;
-              this.reconnectDelay *= 1.5; // Exponential backoff
+              this.reconnectDelay *= 1.5;
               this.connect();
             }, this.reconnectDelay);
           }

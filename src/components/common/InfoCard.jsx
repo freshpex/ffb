@@ -1,43 +1,45 @@
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 
-const InfoCard = ({ icon, title, message, type, action }) => {
-  const getTypeClasses = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-900/20 border-green-500/30 text-green-400';
-      case 'warning':
-        return 'bg-yellow-900/20 border-yellow-500/30 text-yellow-400';
-      case 'error':
-        return 'bg-red-900/20 border-red-500/30 text-red-400';
-      case 'info':
-      default:
-        return 'bg-blue-900/20 border-blue-500/30 text-blue-400';
+const InfoCard = ({ icon, title, value, subtitle, color = 'blue', delay = 0 }) => {
+  // Map color prop to specific Tailwind classes
+  const getBgColorClass = () => {
+    switch (color) {
+      case 'blue': return 'bg-blue-500/20';
+      case 'green': return 'bg-green-500/20';
+      case 'amber': return 'bg-amber-500/20';
+      case 'purple': return 'bg-purple-500/20';
+      case 'red': return 'bg-red-500/20';
+      default: return 'bg-primary-500/20';
+    }
+  };
+
+  const getTextColorClass = () => {
+    switch (color) {
+      case 'blue': return 'text-blue-400';
+      case 'green': return 'text-green-400';
+      case 'amber': return 'text-amber-400';
+      case 'purple': return 'text-purple-400';
+      case 'red': return 'text-red-400';
+      default: return 'text-primary-400';
     }
   };
 
   return (
-    <motion.div
-      className={`p-6 rounded-lg border ${getTypeClasses()} flex flex-col items-center text-center`}
-      initial={{ opacity: 0, y: 10 }}
+    <motion.div 
+      className="bg-gray-800 rounded-lg p-5 shadow-lg flex items-center"
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ delay }}
     >
-      <div className="mb-4">
+      <div className={`w-12 h-12 rounded-full ${getBgColorClass()} flex items-center justify-center mr-4 ${getTextColorClass()}`}>
         {icon}
       </div>
-      
-      <h3 className="text-lg font-bold mb-2 text-gray-100">{title}</h3>
-      <p className="text-gray-300 mb-4">{message}</p>
-      
-      {action && (
-        <button
-          onClick={action.onClick}
-          className="mt-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          {action.label}
-        </button>
-      )}
+      <div>
+        <h3 className="text-xl font-bold text-white">{value}</h3>
+        <p className="text-gray-400 text-sm">{title}</p>
+        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+      </div>
     </motion.div>
   );
 };
@@ -45,17 +47,10 @@ const InfoCard = ({ icon, title, message, type, action }) => {
 InfoCard.propTypes = {
   icon: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
-  message: PropTypes.string.isRequired,
-  type: PropTypes.oneOf(['success', 'warning', 'error', 'info']),
-  action: PropTypes.shape({
-    label: PropTypes.string.isRequired,
-    onClick: PropTypes.func.isRequired
-  })
-};
-
-InfoCard.defaultProps = {
-  type: 'info',
-  action: null
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  subtitle: PropTypes.string,
+  color: PropTypes.string,
+  delay: PropTypes.number
 };
 
 export default InfoCard;

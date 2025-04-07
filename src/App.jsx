@@ -27,7 +27,7 @@ const CardDetailsPage = lazy(() => import("./components/DashBoard/ATMCards/CardD
 const Tradingplatform = lazy(() => import("./components/DashBoard/TradingPlatform"));
 
 // Admin components
-const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
+const AdminLogin = lazy(() => import("./components/Admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./components/Admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./components/Admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./components/Admin/AdminUsers"));
