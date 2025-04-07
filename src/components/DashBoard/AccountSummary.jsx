@@ -3,7 +3,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash, FaExchangeAlt, FaWallet, FaChartLine, FaArrowUp, FaArrowDown, FaQuestionCircle } from 'react-icons/fa';
 import { selectUserProfile } from '../../redux/slices/userSlice';
-import { selectAccountBalance, selectAccountActivity, fetchAccountSummary } from '../../redux/slices/dashboardSlice';
+import { 
+  fetchAccountSummary, 
+  selectAccountSummary, 
+  selectAccountActivity, 
+  selectAccountBalanceHistory,
+  selectAccountOverview,
+  selectAccountBalance,
+  selectDashboardStatus
+} from '../../redux/slices/dashboardSlice';
 import Loader from '../common/Loader';
 
 const AccountSummary = () => {
@@ -40,8 +48,8 @@ const AccountSummary = () => {
   
   // Add proper null/undefined checks using optional chaining and default values
   const accountNumber = userProfile?.accountNumber || 'XXXX-XXXX-XXXX';
-  const userName = userProfile?.fullName || 'User';
-  const currentBalance = accountBalance?.current || 0;
+  const userName = userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() : 'User';
+  const currentBalance = accountBalance || 0;
   const availableBalance = accountBalance?.available || 0;
   const pendingBalance = accountBalance?.pending || 0;
   

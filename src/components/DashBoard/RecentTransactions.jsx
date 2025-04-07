@@ -1,4 +1,4 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaArrowRight, 
@@ -9,8 +9,12 @@ import {
 } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { 
+  fetchRecentTransactions, 
   selectRecentTransactions,
-  selectDashboardComponentStatus 
+  selectTransactionsLoading,
+  selectTransactionsError,
+  selectTransactionCount,
+  selectDashboardComponentStatus
 } from '../../redux/slices/dashboardSlice';
 import TransactionStatusBadge from '../common/TransactionStatusBadge';
 import CardLoader from '../common/CardLoader';

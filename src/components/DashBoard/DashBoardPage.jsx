@@ -1,34 +1,65 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchDashboardData,
+  fetchFinancialHighlights, 
+  fetchMarketPulse,
+  selectDashboardStatus,
+  selectDashboardError
+} from '../../redux/slices/dashboardSlice';
+
 import DashboardLayout from './DashboardLayout';
 import AccountSummary from './AccountSummary';
 import RecentTransactions from './RecentTransactions';
 import InvestmentSummary from './InvestmentSummary';
 import MarketOverview from './MarketOverview';
-import QuickActions from './QuickActions';
-import PriceAlerts from './PriceAlerts';
 import FinancialHighlights from './FinancialHighlights';
-import MarketNews from './MarketNews';
 import MarketPulse from './MarketPulse';
-import { 
-  fetchDashboardData, 
-  selectDashboardStatus 
-} from '../../redux/slices/dashboardSlice';
+import MarketNews from './MarketNews';
+import PriceAlerts from './PriceAlerts';
+import QuickActions from './QuickActions';
 import NotificationsPanel from './NotificationsPanel';
 
 const DashBoardPage = () => {
   const dispatch = useDispatch();
-  const dashboardStatus = useSelector(selectDashboardStatus);
-
+  
+  const dashboardStatus = useSelector(state => selectDashboardStatus(state, 'dashboard'));
+  const financialHighlightsStatus = useSelector(state => selectDashboardStatus(state, 'financialHighlights'));
+  const marketPulseStatus = useSelector(state => selectDashboardStatus(state, 'marketPulse'));
+  
+  const dashboardError = useSelector(state => selectDashboardError(state, 'dashboard'));
+  
   useEffect(() => {
-    // Load dashboard data when component mounts
+    // Fetch initial dashboard data (includes accountSummary, recentTransactions, priceAlerts, and latestNews)
     dispatch(fetchDashboardData());
+    
+    // Fetch additional data that isn't part of the main dashboard endpoint
+    dispatch(fetchFinancialHighlights());
+    dispatch(fetchMarketPulse());
+    
+    // Set up periodic refresh (every 60 seconds)
+    const refreshInterval = setInterval(() => {
+      dispatch(fetchDashboardData());
+      dispatch(fetchMarketPulse());
+    }, 60000);
+    
+    return () => clearInterval(refreshInterval);
   }, [dispatch]);
-
+  
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6">
-        <h1 className="text-2xl font-bold mb-6 text-gray-100">Dashboard</h1>
+        {dashboardError && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6">
+            <p>Error loading dashboard data: {dashboardError}</p>
+            <button 
+              onClick={() => dispatch(fetchDashboardData())}
+              className="mt-2 bg-red-500 text-white px-4 py-1 rounded text-sm hover:bg-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        )}
         
         {/* Dashboard Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">

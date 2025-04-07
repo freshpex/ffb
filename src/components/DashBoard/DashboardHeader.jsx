@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -10,18 +10,24 @@ import {
   FaSun 
 } from 'react-icons/fa';
 import { toggleSidebar, toggleTheme, selectTheme } from '../../redux/slices/layoutSlice';
-import { selectUserProfile } from '../../redux/slices/userSlice';
-import { selectNotifications } from '../../redux/slices/notificationSlice';
+import { selectUserProfile } from '../../redux/selectors/selectors';
+import { 
+  fetchNotifications,
+  selectNotifications, 
+  selectUnreadCount 
+} from '../../redux/slices/notificationSlice';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import NotificationsPanel from './NotificationsPanel';
 
 const DashboardHeader = ({ isMobile, isSidebarOpen, toggleSidebar }) => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
-  const notifications = useSelector(selectNotifications);
+  const notifications = useSelector(selectNotifications) || [];
   const theme = useSelector(selectTheme);
+  const unreadNotificationsCount = useSelector(selectUnreadCount) || 0;
   
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   
   const handleToggleSidebar = () => {
     dispatch(toggleSidebar());
@@ -30,6 +36,26 @@ const DashboardHeader = ({ isMobile, isSidebarOpen, toggleSidebar }) => {
   // Toggle dark mode
   const handleToggleTheme = () => {
     dispatch(toggleTheme());
+  };
+
+  useEffect(() => {
+    // Fetch notifications count on component mount
+    dispatch(fetchNotifications({ limit: 1 }));
+    
+    // Set up polling every 2 minutes
+    const intervalId = setInterval(() => {
+      dispatch(fetchNotifications({ limit: 1 }));
+    }, 120000);
+    
+    return () => clearInterval(intervalId);
+  }, [dispatch]);
+  
+  const toggleNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+    if (!isNotificationsOpen) {
+      // Fetch latest notifications when opening panel
+      dispatch(fetchNotifications());
+    }
   };
   
   return (
@@ -77,33 +103,28 @@ const DashboardHeader = ({ isMobile, isSidebarOpen, toggleSidebar }) => {
           </button>
           
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative ml-3">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/50 relative"
-              aria-label="Notifications"
+              onClick={toggleNotifications}
+              className={`p-2 rounded-md ${
+                theme === 'dark'
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              } focus:outline-none focus:ring-2 focus:ring-blue-500 relative`}
             >
-              <FaBell />
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {notifications.filter(n => !n.read).length}
+              <FaBell className="h-5 w-5" />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute top-0 right-0 transform translate-x-1/3 -translate-y-1/3 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                 </span>
               )}
             </button>
             
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-10"
-                >
-                  <NotificationsPanel onClose={() => setShowNotifications(false)} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Notifications Panel */}
+            <NotificationsPanel 
+              isOpen={isNotificationsOpen} 
+              onClose={() => setIsNotificationsOpen(false)} 
+            />
           </div>
           
           {/* User menu */}

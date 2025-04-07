@@ -4,12 +4,8 @@ import {
   fetchInvestmentPlans,
   fetchUserInvestments,
   setSelectedPlan,
-  selectInvestmentPlans,
-  selectActiveInvestments,
-  selectHistoryInvestments,
   selectInvestmentStatus,
   selectInvestmentError,
-  selectInvestmentStatistics,
   cancelInvestment,
   withdrawInvestment
 } from '../../redux/slices/investmentSlice';
@@ -34,6 +30,12 @@ import {
   FaClock
 } from 'react-icons/fa';
 import Tabs from '../common/Tabs';
+import { 
+  selectInvestmentPlans, 
+  selectActiveInvestments, 
+  selectHistoryInvestments,
+  selectInvestmentStatistics 
+} from '../../redux/selectors/selectors';
 
 const InvestmentPlans = () => {
   const dispatch = useDispatch();
@@ -149,7 +151,7 @@ const InvestmentPlans = () => {
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Total Invested</p>
-                <p className="text-xl font-bold text-gray-100">${stats.totalInvested.toLocaleString()}</p>
+                <p className="text-xl font-bold text-gray-100">${stats.totalInvested?.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -161,7 +163,7 @@ const InvestmentPlans = () => {
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Total Returns</p>
-                <p className="text-xl font-bold text-green-500">+${stats.totalReturns.toLocaleString()}</p>
+                <p className="text-xl font-bold text-green-500">+${stats.totalReturns?.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -173,7 +175,7 @@ const InvestmentPlans = () => {
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Average ROI</p>
-                <p className="text-xl font-bold text-blue-500">{stats.averageROI.toFixed(1)}%</p>
+                <p className="text-xl font-bold text-blue-500">{stats.averageROI?.toFixed(1)}%</p>
               </div>
             </div>
           </div>
@@ -185,7 +187,7 @@ const InvestmentPlans = () => {
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Active Investments</p>
-                <p className="text-xl font-bold text-purple-500">{stats.activeInvestments}</p>
+                <p className="text-xl font-bold text-purple-500">{stats?.activeInvestments}</p>
               </div>
             </div>
           </div>
@@ -195,8 +197,8 @@ const InvestmentPlans = () => {
         <Tabs
           tabs={[
             { id: 'plans', label: 'Investment Plans', icon: <FaChartLine className="mr-2" /> },
-            { id: 'active', label: 'Active Investments', icon: <FaMoneyBillWave className="mr-2" />, count: activeInvestments.length },
-            { id: 'history', label: 'Investment History', icon: <FaCalendarAlt className="mr-2" />, count: historyInvestments.length }
+            { id: 'active', label: 'Active Investments', icon: <FaMoneyBillWave className="mr-2" />, count: activeInvestments?.length },
+            { id: 'history', label: 'Investment History', icon: <FaCalendarAlt className="mr-2" />, count: historyInvestments?.length }
           ]}
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -244,7 +246,7 @@ const InvestmentPlans = () => {
                         <option value="all">All Durations</option>
                         <option value="short">Short Term (≤ 30 days)</option>
                         <option value="medium">Medium Term (31-90 days)</option>
-                        <option value="long">Long Term (> 90 days)</option>
+                        <option value="long">Long Term (&gt; 90 days)</option>
                       </select>
                     </div>
                   </div>

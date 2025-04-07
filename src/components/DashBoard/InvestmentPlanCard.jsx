@@ -6,14 +6,14 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
   const canInvest = userBalance >= plan.minAmount;
   
   // Determine risk color - Added null check for riskLevel
-  const getRiskColor = (riskLevel) => {
-    if (!riskLevel) return 'text-gray-400'; // Default color if riskLevel is undefined
+  const getRiskColor = (planId) => {
+    if (!planId) return 'text-gray-400';
     
-    switch (riskLevel.toLowerCase()) {
-      case 'low': return 'text-green-500';
-      case 'medium': return 'text-yellow-500';
-      case 'high': return 'text-orange-500';
-      case 'very high': return 'text-red-500';
+    switch (planId.toLowerCase()) {
+      case 'basic': return 'text-green-500';
+      case 'standard': return 'text-yellow-500';
+      case 'premium': return 'text-orange-500';
+      case 'platinum': return 'text-red-500';
       default: return 'text-gray-400';
     }
   };

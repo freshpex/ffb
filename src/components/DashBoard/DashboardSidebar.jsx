@@ -21,7 +21,7 @@ import {
   FaTachometerAlt
 } from 'react-icons/fa';
 import { toggleSidebar } from '../../redux/slices/layoutSlice';
-import { selectUserProfile, selectUserName, selectUserBalance } from '../../redux/slices/userSlice';
+import { selectUserProfile, selectUserName, selectUserBalance, fetchUserProfile, selectUserLoading, selectUserEmail } from '../../redux/slices/userSlice';
 import { useAuth } from '../AuthPage/AuthContext';
 
 // Navigation item groups with nested routes
@@ -122,6 +122,9 @@ const DashboardSidebar = ({ isMobile }) => {
   const userProfile = useSelector(selectUserProfile);
   const userName = useSelector(selectUserName);
   const userBalance = useSelector(selectUserBalance);
+  const user = useSelector(state => state.user.profile);
+  const userEmail = useSelector(selectUserEmail);
+  const isLoading = useSelector(selectUserLoading);
   
   const [expandedGroups, setExpandedGroups] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -221,6 +224,12 @@ const DashboardSidebar = ({ isMobile }) => {
     }
   };
   
+  useEffect(() => {
+    if (!user) {
+      dispatch(fetchUserProfile());
+    }
+  }, [dispatch, user]);
+  
   return (
     <motion.aside
       initial={{ x: -280 }}
@@ -264,7 +273,7 @@ const DashboardSidebar = ({ isMobile }) => {
               {userName || 'User Name'}
             </h3>
             <p className="text-xs text-gray-400 truncate">
-               {userProfile.email}
+              {user && user.email}
             </p>
           </div>
         </div>

@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectUserProfile,
   selectUserLoading,
   selectUserError,
   updateProfile,
-  uploadProfileImage
+  uploadProfileImage,
+  fetchUserProfile
 } from '../../redux/slices/userSlice';
 import { FaUser, FaCamera, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
 import FormInput from '../common/FormInput';
@@ -19,16 +20,22 @@ const ProfileTab = () => {
   const error = useSelector(selectUserError);
   
   const [formData, setFormData] = useState({
-    firstName: userProfile.firstName || '',
-    lastName: userProfile.lastName || '',
-    phoneNumber: userProfile.phoneNumber || '',
-    address: userProfile.address || '',
-    country: userProfile.country || ''
+    firstName: userProfile?.firstName || '',
+    lastName: userProfile?.lastName || '',
+    phoneNumber: userProfile?.phoneNumber || '',
+    address: userProfile?.address || '',
+    country: userProfile?.country || ''
   });
   
   const [success, setSuccess] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
+  
+  useEffect(() => {
+    if (!userProfile) {
+      dispatch(fetchUserProfile());
+    }
+  }, [dispatch, userProfile]);
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,6 +87,14 @@ const ProfileTab = () => {
     }
   };
   
+  if (isLoading) {
+    return <div className="loading-indicator">Loading profile data...</div>;
+  }
+
+  if (!userProfile) {
+    return <div className="error-message">Unable to load profile data. Please refresh.</div>;
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <h2 className="text-xl font-semibold text-gray-100 mb-6">Personal Information</h2>
@@ -92,7 +107,7 @@ const ProfileTab = () => {
           className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center relative cursor-pointer"
           onClick={handleImageClick}
         >
-          {userProfile.profileImage ? (
+          {userProfile?.profileImage ? (
             <img 
               src={userProfile.profileImage} 
               alt="Profile" 
@@ -121,9 +136,9 @@ const ProfileTab = () => {
         
         <div>
           <h3 className="text-lg font-medium text-gray-100">
-            {userProfile.firstName} {userProfile.lastName}
+            {userProfile ? `${userProfile.firstName || ''} ${userProfile.lastName || ''}` : 'Loading...'}
           </h3>
-          <p className="text-gray-400">{userProfile.email}</p>
+          <p className="text-gray-400">{userProfile?.email}</p>
           <p className="text-xs text-gray-500 mt-1">Click on the avatar to upload a new photo</p>
         </div>
       </div>
@@ -182,11 +197,11 @@ const ProfileTab = () => {
             type="button"
             variant="secondary"
             onClick={() => setFormData({
-              firstName: userProfile.firstName || '',
-              lastName: userProfile.lastName || '',
-              phoneNumber: userProfile.phoneNumber || '',
-              address: userProfile.address || '',
-              country: userProfile.country || ''
+              firstName: userProfile?.firstName || '',
+              lastName: userProfile?.lastName || '',
+              phoneNumber: userProfile?.phoneNumber || '',
+              address: userProfile?.address || '',
+              country: userProfile?.country || ''
             })}
             disabled={isLoading}
           >
