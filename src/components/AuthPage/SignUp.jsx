@@ -122,6 +122,17 @@ const SignUp = () => {
     setLoading(true);
 
     try {
+      const additionalInfo = {
+        dateOfBirth: formData.dateOfBirth,
+        occupation: formData.occupation,
+        address: formData.address,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        taxId: formData.taxId,
+        howDidYouHearAboutUs: formData.howDidYouHearAboutUs,
+        experienceLevel: formData.experienceLevel
+      };
+
       await createUser(
         formData.email,
         formData.password,
@@ -131,24 +142,30 @@ const SignUp = () => {
         formData.accountType,
         formData.country,
         formData.referralCode,
-        {
-          dateOfBirth: formData.dateOfBirth,
-          occupation: formData.occupation,
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          taxId: formData.taxId,
-          howDidYouHearAboutUs: formData.howDidYouHearAboutUs,
-          experienceLevel: formData.experienceLevel
-        }
+        additionalInfo
       );
 
-      setSuccessMessage("Account created successfully! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000);
+      setSuccessMessage("Account created successfully! Redirecting to dashboard...");
+      
+      // Wait for token and user data to be set
+      setTimeout(() => {
+        const token = localStorage.getItem('ffb_auth_token');
+        if (token) {
+          navigate("/login/dashboardpage");
+        } else {
+          setError("Registration successful but token could not be created. Please try logging in.");
+          setTimeout(() => navigate("/login"), 2000);
+        }
+      }, 1000);
     } catch (err) {
+      console.error("Registration error:", err);
       setError(
         err.message.includes("auth/email-already-in-use")
           ? "This email is already registered. Please use a different email or try logging in."
+          : err.message.includes("Failed to register with backend") || err.message.includes("synchronize")
+          ? "Backend registration failed. Please try again later or contact support."
+          : err.message.includes("network-request-failed") || err.code === "ERR_NETWORK"
+          ? "Network connection error. Please check your internet connection."
           : "Failed to create account. Please try again later."
       );
     } finally {

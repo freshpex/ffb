@@ -6,14 +6,14 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../../firebase";
 
-const MOCK_USERS_KEY = 'ffb_mock_users';
+const AuthContext = createContext();
 const CURRENT_USER_KEY = 'ffb_current_user';
 const AUTH_TOKEN_KEY = 'ffb_auth_token';
-
-const AuthContext = createContext();
 
 export function AuthContextProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -23,17 +23,6 @@ export function AuthContextProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
 
   console.log("AuthContext - Initial State:", { token, userData: !!userData, user: !!user, loading });
-
-  // Helper function to get mock users from localStorage
-  const getMockUsers = () => {
-    const usersJson = localStorage.getItem(MOCK_USERS_KEY);
-    return usersJson ? JSON.parse(usersJson) : {};
-  };
-
-  // Helper function to save mock users to localStorage
-  const saveMockUsers = (users) => {
-    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
-  };
 
   // Helper function to save current user data to localStorage
   const saveCurrentUser = (userData) => {
@@ -53,7 +42,7 @@ export function AuthContextProvider({ children }) {
   };
 
   // Register user
-  const createUser = async (email, password, firstName, lastName) => {
+  const createUser = async (email, password, firstName, lastName, phoneNumber, accountType, country, referralCode, additionalInfo = {}) => {
     try {
       setAuthError(null);
       // Create user in Firebase
@@ -64,32 +53,41 @@ export function AuthContextProvider({ children }) {
         displayName: `${firstName} ${lastName}`
       });
       
-      // Create mock user data (no backend call)
-      const mockUserId = `user_${Date.now()}`;
-      const mockUserData = {
-        id: mockUserId,
-        uid: userCredential.user.uid,
-        email,
-        firstName,
-        lastName,
-        role: "user",
-        balance: 5000, // Default starting balance
-        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        createdAt: new Date().toISOString()
-      };
+      // Get Firebase user token for backend authentication
+      const firebaseToken = await userCredential.user.getIdToken();
       
-      // Save to mock storage
-      const mockUsers = getMockUsers();
-      mockUsers[userCredential.user.uid] = mockUserData;
-      saveMockUsers(mockUsers);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
-      // Set user data in state and storage
-      setUserData(mockUserData);
-      saveCurrentUser(mockUserData);
+      const registerResponse = await fetch(`${apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: userCredential.user.uid,
+          email,
+          firstName,
+          lastName,
+          phoneNumber,
+          accountType,
+          country,
+          referralCode,
+          ...additionalInfo
+        }),
+      });
       
-      // Generate a mock token and save it
-      const mockToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
-      saveToken(mockToken);
+      if (!registerResponse.ok) {
+        const registerError = await registerResponse.json();
+        throw new Error(registerError.message || 'Failed to register with backend');
+      }
+      
+      // Get user data and token from the registration response
+      const userData = await registerResponse.json();
+      
+      // Save token and user data
+      saveToken(userData.token);
+      setUserData(userData.user);
+      saveCurrentUser(userData.user);
       
       return userCredential;
     } catch (error) {
@@ -160,6 +158,74 @@ export function AuthContextProvider({ children }) {
       return userCredential;
     } catch (error) {
       console.error("Login error:", error);
+      throw error;
+    }
+  };
+
+  // Sign in with Google
+  const signInWithGoogle = async () => {
+    try {
+      setAuthError(null);
+      
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      console.log("Google login successful:", userCredential.user.email);
+
+      const { user } = userCredential;
+      const { displayName, email, uid, photoURL, phoneNumber } = user;
+      
+      let firstName = '', lastName = '';
+      if (displayName) {
+        const nameParts = displayName.split(' ');
+        if (nameParts.length > 0) {
+          firstName = nameParts[0];
+          lastName = nameParts.slice(1).join(' ');
+        }
+      }
+      
+      const firebaseToken = await user.getIdToken();
+      
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      
+      const registerResponse = await fetch(`${apiUrl}/auth/google-auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid,
+          email,
+          firstName,
+          lastName,
+          displayName,
+          phoneNumber,
+          photoURL,
+          firebaseToken,
+          loginType: 'google'
+        }),
+      });
+      
+      if (!registerResponse.ok) {
+        const registerError = await registerResponse.json();
+        throw new Error(registerError.message || 'Failed to authenticate with backend');
+      }
+      
+      // Get user data and token from the response
+      const userData = await registerResponse.json();
+      
+      // Save token and user data
+      saveToken(userData.token);
+      setUserData(userData.user);
+      saveCurrentUser(userData.user);
+      
+      return userCredential;
+    } catch (error) {
+      console.error("Google Sign-In error:", error);
+      setAuthError(error.message);
       throw error;
     }
   };
@@ -357,6 +423,7 @@ export function AuthContextProvider({ children }) {
     createUser,
     signIn,
     logIn,
+    signInWithGoogle,
     logout,
     resetPassword,
     refreshUserData,

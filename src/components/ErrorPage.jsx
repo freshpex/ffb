@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { FaExclamationTriangle, FaHome, FaArrowLeft } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import HomeFooter from "./LandingPage/HomeFooter";
-import Header from "./LandingPage/Header";
+import HomeFooter from "../pages/LandingPage/HomeFooter";
+import Header from "../pages/LandingPage/Header";
 
 const ErrorPage = ({ code = 404, message = "Page not found" }) => {
   return (

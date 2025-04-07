@@ -5,13 +5,13 @@ import ProtectedRoute from "./components/AuthPage/ProtectedRoute";
 import Loader from "./components/Loader";
 
 // Lazy-loaded components
-const HomePage = lazy(() => import("./components/LandingPage/Home"));
-const AboutPage = lazy(() => import("./components/About/AboutPage"));
-const ContactPage = lazy(() => import("./components/ContactPage/ContactPage"));
+const HomePage = lazy(() => import("./pages/LandingPage/Home"));
+const AboutPage = lazy(() => import("./pages/About/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage/ContactPage"));
 const Login = lazy(() => import("./components/AuthPage/Login"));
 const SignUp = lazy(() => import("./components/AuthPage/SignUp"));
-const ServicePage = lazy(() => import("./components/ServicesPage/ServicePage"));
-const PricingPage = lazy(() => import("./components/PricingPage/PricingPage"));
+const ServicePage = lazy(() => import("./pages/ServicesPage/ServicePage"));
+const PricingPage = lazy(() => import("./pages/PricingPage/PricingPage"));
 const DashBoardPage = lazy(() => import("./components/DashBoard/DashBoardPage"));
 const Deposit = lazy(() => import("./components/DashBoard/Deposit"));
 const Withdraw = lazy(() => import("./components/DashBoard/Withdraw"));
@@ -25,6 +25,10 @@ const EducationCenter = lazy(() => import("./components/DashBoard/EducationCente
 const ATMCardsPage = lazy(() => import("./components/DashBoard/ATMCards/ATMCardsPage"));
 const CardDetailsPage = lazy(() => import("./components/DashBoard/ATMCards/CardDetailsPage"));
 const Tradingplatform = lazy(() => import("./components/DashBoard/TradingPlatform"));
+
+// Legal pages
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 // Admin components
 const AdminLogin = lazy(() => import("./components/Admin/AdminLogin"));
@@ -59,6 +63,7 @@ function App() {
       <AuthContextProvider>
         <Suspense fallback={<Loader />}>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
@@ -66,6 +71,8 @@ function App() {
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
 
             {/* Protected Dashboard routes*/}
             <Route path="/login/dashboardpage" element={

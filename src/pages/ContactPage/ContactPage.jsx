@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import Header from "../LandingPage/Header";
 import HomeFooter from "../LandingPage/HomeFooter";
-import PageTransition from '../common/PageTransition';
+import PageTransition from '../../components/common/PageTransition';
 import ContactSection1 from './ContactSection1';
 import ContactSection2 from './ContactSection2';
 import ContactSection3 from './ContactSection3';
