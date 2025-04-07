@@ -19,6 +19,10 @@ import adminUsersSlice from './slices/adminUsersSlice';
 import adminTransactionsSlice from './slices/adminTransactionsSlice';
 import adminKycSlice from './slices/adminKycSlice';
 import adminSupportSlice from './slices/adminSupportSlice';
+import adminNotificationSlice from './slices/adminNotificationSlice';
+import adminAnalyticsReducer from './slices/adminAnalyticsSlice';
+import adminSettingsSlice from './slices/adminSettingsSlice';
+import adminProfileSlice from './slices/adminProfileSlice';
 
 const store = configureStore({
   reducer: {
@@ -41,7 +45,11 @@ const store = configureStore({
     adminUsers: adminUsersSlice,
     adminTransactions: adminTransactionsSlice,
     adminKyc: adminKycSlice,
-    adminSupport: adminSupportSlice
+    adminSupport: adminSupportSlice,
+    adminNotifications: adminNotificationSlice,
+    adminAnalytics: adminAnalyticsReducer,
+    adminSettings: adminSettingsSlice,
+    adminProfile: adminProfileSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

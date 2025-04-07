@@ -1,56 +1,52 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { generateMockTransactions } from '../../utils/mockDataGenerator';
+import apiService from '../../services/apiService';
 
-// Generate 100 mock transactions
-const mockTransactions = generateMockTransactions(100);
+// API base URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Helper function to handle API errors
+const handleApiError = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'An error occurred');
+  }
+  return response.json();
+};
 
 // Fetch transactions
 export const fetchTransactions = createAsyncThunk(
   'adminTransactions/fetchTransactions',
-  async ({ page = 1, limit = 10, type = '', status = '', dateRange = null }, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const { page = 1, limit = 10, type, status, userId, startDate, endDate } = params;
       
-      // Filter transactions
-      let filteredTransactions = [...mockTransactions];
+      // Build query parameters
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(type && { type }),
+        ...(status && { status }),
+        ...(userId && { userId }),
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate })
+      });
       
-      if (type) {
-        filteredTransactions = filteredTransactions.filter(tx => tx.type === type);
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
+      
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      if (status) {
-        filteredTransactions = filteredTransactions.filter(tx => tx.status === status);
-      }
-      
-      if (dateRange && dateRange.start && dateRange.end) {
-        const startDate = new Date(dateRange.start).getTime();
-        const endDate = new Date(dateRange.end).getTime();
-        
-        filteredTransactions = filteredTransactions.filter(tx => {
-          const txDate = new Date(tx.date).getTime();
-          return txDate >= startDate && txDate <= endDate;
-        });
-      }
-      
-      // Sort by date (newest first)
-      filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      // Calculate pagination
-      const totalTransactions = filteredTransactions.length;
-      const totalPages = Math.ceil(totalTransactions / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + limit);
-      
-      return {
-        transactions: paginatedTransactions,
-        pagination: {
-          page,
-          limit,
-          totalTransactions,
-          totalPages
+      const response = await fetch(`${API_URL}/admin/transactions?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      };
+      });
+      
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch transactions');
     }
@@ -60,95 +56,82 @@ export const fetchTransactions = createAsyncThunk(
 // Fetch transaction by ID
 export const fetchTransactionById = createAsyncThunk(
   'adminTransactions/fetchTransactionById',
-  async (transactionId, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 600));
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
       
-      const transaction = mockTransactions.find(tx => tx.id === transactionId);
-      
-      if (!transaction) {
-        return rejectWithValue('Transaction not found');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      return transaction;
+      const response = await fetch(`${API_URL}/admin/transactions/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch transaction');
     }
   }
 );
 
-// Approve transaction
-export const approveTransaction = createAsyncThunk(
-  'adminTransactions/approveTransaction',
-  async (transactionId, { rejectWithValue }) => {
+// Process transaction (approve or reject)
+export const processTransaction = createAsyncThunk(
+  'adminTransactions/processTransaction',
+  async ({ id, action, notes }, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
       
-      const transactionIndex = mockTransactions.findIndex(tx => tx.id === transactionId);
-      
-      if (transactionIndex === -1) {
-        return rejectWithValue('Transaction not found');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      if (mockTransactions[transactionIndex].status !== 'pending') {
-        return rejectWithValue('Only pending transactions can be approved');
-      }
+      const response = await fetch(`${API_URL}/admin/transactions/${id}/process`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action, notes })
+      });
       
-      // Update transaction status
-      const updatedTransaction = {
-        ...mockTransactions[transactionIndex],
-        status: 'completed',
-        updatedAt: new Date().toISOString(),
-        approvedBy: 'admin-1',
-        approvedAt: new Date().toISOString()
-      };
-      
-      // Update mock data (in a real app, this would be done by the API)
-      mockTransactions[transactionIndex] = updatedTransaction;
-      
-      return updatedTransaction;
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to approve transaction');
+      return rejectWithValue(error.message || 'Failed to process transaction');
     }
   }
 );
 
-// Reject transaction
-export const rejectTransaction = createAsyncThunk(
-  'adminTransactions/rejectTransaction',
-  async ({ transactionId, reason }, { rejectWithValue }) => {
+// Fetch transaction statistics
+export const fetchTransactionStats = createAsyncThunk(
+  'adminTransactions/fetchTransactionStats',
+  async (_, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
       
-      const transactionIndex = mockTransactions.findIndex(tx => tx.id === transactionId);
-      
-      if (transactionIndex === -1) {
-        return rejectWithValue('Transaction not found');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      if (mockTransactions[transactionIndex].status !== 'pending') {
-        return rejectWithValue('Only pending transactions can be rejected');
-      }
+      const response = await fetch(`${API_URL}/admin/transactions/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
-      // Update transaction status
-      const updatedTransaction = {
-        ...mockTransactions[transactionIndex],
-        status: 'rejected',
-        updatedAt: new Date().toISOString(),
-        rejectedBy: 'admin-1',
-        rejectedAt: new Date().toISOString(),
-        rejectionReason: reason || 'Rejected by administrator'
-      };
-      
-      // Update mock data
-      mockTransactions[transactionIndex] = updatedTransaction;
-      
-      return updatedTransaction;
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to reject transaction');
+      return rejectWithValue(error.message || 'Failed to fetch transaction statistics');
     }
   }
 );
@@ -156,14 +139,14 @@ export const rejectTransaction = createAsyncThunk(
 // Create initial state
 const initialState = {
   transactions: [],
-  selectedTransaction: null,
   pagination: {
     page: 1,
     limit: 10,
-    totalTransactions: 0,
-    totalPages: 0
+    totalPages: 0,
+    totalTransactions: 0
   },
-  status: 'idle',
+  selectedTransaction: null,
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
   actionStatus: 'idle'
 };
@@ -175,11 +158,12 @@ const adminTransactionsSlice = createSlice({
     clearSelectedTransaction: (state) => {
       state.selectedTransaction = null;
     },
-    clearTransactionsError: (state) => {
+    clearTransactionError: (state) => {
       state.error = null;
-    },
-    resetActionStatus: (state) => {
       state.actionStatus = 'idle';
+    },
+    setTransactionFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
     }
   },
   extraReducers: (builder) => {
@@ -191,7 +175,13 @@ const adminTransactionsSlice = createSlice({
       .addCase(fetchTransactions.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.transactions = action.payload.transactions;
-        state.pagination = action.payload.pagination;
+        state.pagination = {
+          page: action.payload.pagination.currentPage || 1,
+          limit: action.payload.pagination.limit || 10,
+          totalPages: action.payload.pagination.totalPages || 0,
+          totalTransactions: action.payload.pagination.total || 0 // Make sure this property is correctly mapped
+        };
+        state.error = null;
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
         state.status = 'failed';
@@ -205,47 +195,45 @@ const adminTransactionsSlice = createSlice({
       .addCase(fetchTransactionById.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.selectedTransaction = action.payload;
+        state.error = null;
       })
       .addCase(fetchTransactionById.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       })
       
-      // Approve transaction
-      .addCase(approveTransaction.pending, (state) => {
+      // Process transaction
+      .addCase(processTransaction.pending, (state) => {
         state.actionStatus = 'loading';
       })
-      .addCase(approveTransaction.fulfilled, (state, action) => {
+      .addCase(processTransaction.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
         state.selectedTransaction = action.payload;
         
         // Update transaction in the list if it exists
-        const index = state.transactions.findIndex(tx => tx.id === action.payload.id);
+        const index = state.transactions.findIndex(t => t._id === action.payload._id);
         if (index !== -1) {
           state.transactions[index] = action.payload;
         }
+        
+        state.error = null;
       })
-      .addCase(approveTransaction.rejected, (state, action) => {
+      .addCase(processTransaction.rejected, (state, action) => {
         state.actionStatus = 'failed';
         state.error = action.payload;
       })
       
-      // Reject transaction
-      .addCase(rejectTransaction.pending, (state) => {
-        state.actionStatus = 'loading';
+      // Fetch transaction stats
+      .addCase(fetchTransactionStats.pending, (state) => {
+        state.status = 'loading';
       })
-      .addCase(rejectTransaction.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
-        state.selectedTransaction = action.payload;
-        
-        // Update transaction in the list if it exists
-        const index = state.transactions.findIndex(tx => tx.id === action.payload.id);
-        if (index !== -1) {
-          state.transactions[index] = action.payload;
-        }
+      .addCase(fetchTransactionStats.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.stats = action.payload;
+        state.error = null;
       })
-      .addCase(rejectTransaction.rejected, (state, action) => {
-        state.actionStatus = 'failed';
+      .addCase(fetchTransactionStats.rejected, (state, action) => {
+        state.status = 'failed';
         state.error = action.payload;
       });
   }
@@ -254,8 +242,8 @@ const adminTransactionsSlice = createSlice({
 // Export actions
 export const { 
   clearSelectedTransaction, 
-  clearTransactionsError, 
-  resetActionStatus 
+  clearTransactionError,
+  setTransactionFilters
 } = adminTransactionsSlice.actions;
 
 // Export selectors
@@ -265,5 +253,6 @@ export const selectTransactionsPagination = state => state.adminTransactions.pag
 export const selectTransactionsStatus = state => state.adminTransactions.status;
 export const selectTransactionsError = state => state.adminTransactions.error;
 export const selectTransactionActionStatus = state => state.adminTransactions.actionStatus;
+export const selectTransactionStats = state => state.adminTransactions.stats;
 
 export default adminTransactionsSlice.reducer;

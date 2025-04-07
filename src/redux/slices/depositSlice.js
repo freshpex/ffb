@@ -1,297 +1,133 @@
-import { createSlice } from '@reduxjs/toolkit';
-import mockApiService from '../../services/mockApiService';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
+import apiClient from '../../services/apiService';
 
-// Initial state for deposit functionality
+// Initial state structure
 const initialState = {
-  depositMethods: [
-    {
-      id: 'bank',
-      name: 'Bank Transfer',
-      description: 'Transfer funds directly from your bank account',
-      logo: '/images/bank-transfer.svg',
-      processingTime: '1-3 business days',
-      minDeposit: 100,
-      maxDeposit: 100000,
-      fees: '0%',
-      bankDetails: {
-        accountName: 'Fidelity First Brokers Ltd',
-        accountNumber: '1234567890',
-        routingNumber: '021000021',
-        bankName: 'Chase Bank',
-        swiftCode: 'CHASUS33'
-      }
-    },
-    {
-      id: 'bitcoin',
-      name: 'Bitcoin',
-      description: 'Deposit using Bitcoin cryptocurrency',
-      logo: '/images/bitcoin.svg',
-      processingTime: '1-2 hours after 3 confirmations',
-      minDeposit: 50,
-      maxDeposit: null,
-      fees: '0%',
-      address: '3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5',
-      qrCode: true
-    },
-    {
-      id: 'ethereum',
-      name: 'Ethereum',
-      description: 'Deposit using Ethereum cryptocurrency',
-      logo: '/images/ethereum.svg',
-      processingTime: '30-60 minutes after 12 confirmations',
-      minDeposit: 50,
-      maxDeposit: null,
-      fees: '0%',
-      address: '0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7',
-      qrCode: true
-    },
-    {
-      id: 'credit_card',
-      name: 'Credit/Debit Card',
-      description: 'Instant deposit using your credit or debit card',
-      logo: '/images/credit-card.svg',
-      processingTime: 'Instant',
-      minDeposit: 20,
-      maxDeposit: 5000,
-      fees: '3.5%'
-    }
+  methods: [
+    { id: 'bank_transfer', name: 'Bank Transfer', icon: 'bank', minAmount: 100, maxAmount: 50000 },
+    { id: 'card', name: 'Credit/Debit Card', icon: 'credit-card', minAmount: 50, maxAmount: 10000 },
+    { id: 'crypto', name: 'Cryptocurrency', icon: 'bitcoin', minAmount: 20, maxAmount: 100000 },
   ],
   activeMethod: null,
-  form: {
+  depositForm: {
     amount: '',
-    transactionId: '',
-    reference: ''
+    currency: 'USD',
+    note: '',
   },
-  status: 'idle',
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
-  pendingDeposit: null,
-  history: [
-    {
-      id: 'dep_123456',
-      type: 'deposit',
-      amount: 1000.00,
-      currency: 'USD',
-      method: 'bank',
-      methodName: 'Bank Transfer',
-      reference: 'REF123456',
-      status: 'completed',
-      fees: 0.00,
-      netAmount: 1000.00,
-      createdAt: '2023-11-20T14:30:00Z',
-      updatedAt: '2023-11-21T10:15:00Z',
-      confirmations: 1
-    },
-    {
-      id: 'dep_123457',
-      type: 'deposit',
-      amount: 500.00,
-      currency: 'USD',
-      method: 'bitcoin',
-      methodName: 'Bitcoin',
-      transactionId: 'btc_tx_a1b2c3d4',
-      status: 'completed',
-      fees: 0.00,
-      netAmount: 500.00,
-      createdAt: '2023-11-22T09:45:00Z',
-      updatedAt: '2023-11-22T11:30:00Z',
-      confirmations: 6
-    },
-    {
-      id: 'dep_123458',
-      type: 'deposit',
-      amount: 2500.00,
-      currency: 'USD',
-      method: 'credit_card',
-      methodName: 'Credit/Debit Card',
-      status: 'completed',
-      fees: 87.50,
-      netAmount: 2412.50,
-      createdAt: '2023-11-24T16:30:00Z',
-      updatedAt: '2023-11-24T16:32:00Z',
-      confirmations: 1
-    },
-    {
-      id: 'dep_123459',
-      type: 'deposit',
-      amount: 750.00,
-      currency: 'USD',
-      method: 'ethereum',
-      methodName: 'Ethereum',
-      transactionId: 'eth_tx_e5f6g7h8',
-      status: 'pending',
-      fees: 0.00,
-      netAmount: 750.00,
-      createdAt: '2023-11-27T11:20:00Z',
-      updatedAt: '2023-11-27T11:20:00Z',
-      confirmations: 5
-    },
-    {
-      id: 'dep_123460',
-      type: 'deposit',
-      amount: 3000.00,
-      currency: 'USD',
-      method: 'bank',
-      methodName: 'Bank Transfer',
-      reference: 'REF789012',
-      status: 'pending',
-      fees: 0.00,
-      netAmount: 3000.00,
-      createdAt: '2023-11-28T14:30:00Z',
-      updatedAt: '2023-11-28T14:30:00Z',
-      confirmations: 0
-    }
-  ],
+  pendingDeposits: [],
+  depositHistory: [],
   pagination: {
-    totalItems: 15,
-    totalPages: 3,
     currentPage: 1,
-    itemsPerPage: 5
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10
   }
 };
 
+// Async thunks
+export const submitDeposit = createAsyncThunk(
+  'deposit/submitDeposit',
+  async (depositData, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post('/api/deposits', depositData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to process deposit');
+    }
+  }
+);
+
+export const fetchDepositHistory = createAsyncThunk(
+  'deposit/fetchHistory',
+  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get(`/api/deposits/history?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch deposit history');
+    }
+  }
+);
+
+// Create the slice
 const depositSlice = createSlice({
   name: 'deposit',
   initialState,
   reducers: {
     setActiveMethod: (state, action) => {
-      state.activeMethod = state.depositMethods.find(method => method.id === action.payload) || null;
+      state.activeMethod = action.payload;
     },
     updateDepositForm: (state, action) => {
-      state.form = { ...state.form, ...action.payload };
-    },
-    submitDepositStart: (state) => {
-      state.status = 'loading';
-      state.error = null;
-    },
-    submitDepositSuccess: (state, action) => {
-      state.status = 'succeeded';
-      state.pendingDeposit = action.payload;
-      // Add to history
-      state.history.unshift({
-        id: action.payload.id,
-        type: 'deposit',
-        amount: action.payload.amount,
-        currency: 'USD',
-        method: state.activeMethod?.id || 'unknown',
-        methodName: state.activeMethod?.name || 'Unknown Method',
-        transactionId: state.form.transactionId || null,
-        reference: state.form.reference || null,
-        status: 'pending',
-        fees: state.activeMethod ? (action.payload.amount * (parseFloat(state.activeMethod.fees || '0') / 100)) : 0,
-        netAmount: action.payload.amount - (state.activeMethod ? (action.payload.amount * (parseFloat(state.activeMethod.fees || '0') / 100)) : 0),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        confirmations: 0
-      });
-      // Clear form after successful submission
-      state.form = initialState.form;
-    },
-    submitDepositFailure: (state, action) => {
-      state.status = 'failed';
-      state.error = action.payload;
-    },
-    clearPendingDeposit: (state) => {
-      state.pendingDeposit = null;
-    },
-    fetchDepositHistoryStart: (state) => {
-      state.status = 'loading';
-    },
-    fetchDepositHistorySuccess: (state, action) => {
-      state.status = 'succeeded';
-      state.history = action.payload.transactions;
-      state.pagination = {
-        totalItems: action.payload.totalCount,
-        totalPages: Math.ceil(action.payload.totalCount / action.payload.limit),
-        currentPage: action.payload.page,
-        itemsPerPage: action.payload.limit
+      state.depositForm = {
+        ...state.depositForm,
+        ...action.payload
       };
     },
-    fetchDepositHistoryFailure: (state, action) => {
-      state.status = 'failed';
-      state.error = action.payload;
+    resetDepositForm: (state) => {
+      state.depositForm = initialState.depositForm;
+      state.activeMethod = null;
     },
     setCurrentPage: (state, action) => {
       state.pagination.currentPage = action.payload;
-    },
-    resetDepositState: () => initialState
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Handle submitDeposit
+      .addCase(submitDeposit.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(submitDeposit.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.pendingDeposits = [...state.pendingDeposits, action.payload.data];
+        state.depositForm = initialState.depositForm;
+      })
+      .addCase(submitDeposit.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Handle fetchDepositHistory
+      .addCase(fetchDepositHistory.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchDepositHistory.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.depositHistory = action.payload.data;
+        state.pagination = {
+          currentPage: action.payload.currentPage || 1,
+          totalPages: action.payload.totalPages || 1,
+          totalItems: action.payload.totalItems || 0,
+          itemsPerPage: action.payload.itemsPerPage || 10
+        };
+      })
+      .addCase(fetchDepositHistory.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
   }
 });
 
-export const {
-  setActiveMethod,
-  updateDepositForm,
-  submitDepositStart,
-  submitDepositSuccess,
-  submitDepositFailure,
-  clearPendingDeposit,
-  fetchDepositHistoryStart,
-  fetchDepositHistorySuccess,
-  fetchDepositHistoryFailure,
-  setCurrentPage,
-  resetDepositState
+// Export actions
+export const { 
+  setActiveMethod, 
+  updateDepositForm, 
+  resetDepositForm,
+  setCurrentPage
 } = depositSlice.actions;
 
-// Thunk for submitting deposit
-export const submitDeposit = (depositData) => async (dispatch) => {
-  try {
-    dispatch(submitDepositStart());
-    
-    // Call the mock API service
-    const response = await mockApiService.transactions.createDeposit({
-      amount: parseFloat(depositData.amount),
-      method: depositData.method.id,
-      transactionId: depositData.transactionId,
-      reference: depositData.reference
-    });
-    
-    dispatch(submitDepositSuccess({
-      id: response.transaction.id,
-      amount: parseFloat(depositData.amount),
-      method: depositData.method.name,
-      status: 'pending',
-      date: new Date().toISOString()
-    }));
-    
-    return { success: true };
-  } catch (error) {
-    dispatch(submitDepositFailure(error.message || 'Failed to process deposit'));
-    throw error;
-  }
-};
-
-// Thunk for fetching deposit history
-export const fetchDepositHistory = (page = 1, limit = 5) => async (dispatch) => {
-  try {
-    dispatch(fetchDepositHistoryStart());
-    
-    // Call the mock API service
-    const response = await mockApiService.transactions.getDeposits({ page, limit });
-    
-    dispatch(fetchDepositHistorySuccess(response));
-    return response;
-  } catch (error) {
-    dispatch(fetchDepositHistoryFailure(error.message || 'Failed to fetch deposit history'));
-    throw error;
-  }
-};
-
 // Selectors
-export const selectDepositMethods = (state) => state.deposit?.depositMethods || [];
-export const selectActiveMethod = (state) => state.deposit?.activeMethod || null;
-export const selectDepositForm = (state) => state.deposit?.form || {};
-export const selectDepositStatus = (state) => state.deposit?.status || 'idle';
-export const selectDepositError = (state) => state.deposit?.error || null;
-export const selectPendingDeposit = (state) => state.deposit?.pendingDeposit || null;
-export const selectDepositHistory = (state) => state.deposit?.history || [];
-export const selectDepositPagination = (state) => state.deposit?.pagination || {
-  totalItems: 0,
-  totalPages: 0,
-  currentPage: 1,
-  itemsPerPage: 5
-};
-export const selectDepositLimits = (state) => {
-  const activeMethod = state.deposit?.activeMethod;
-  return activeMethod ? { min: activeMethod.minDeposit, max: activeMethod.maxDeposit } : { min: 0, max: Infinity };
-};
+export const selectDepositMethods = state => state.deposit.methods;
+export const selectActiveMethod = state => state.deposit.activeMethod;
+export const selectDepositForm = state => state.deposit.depositForm;
+export const selectDepositStatus = state => state.deposit.status;
+export const selectDepositError = state => state.deposit.error;
+export const selectPendingDeposit = state => state.deposit.pendingDeposits[0] || null;
+export const selectDepositHistory = state => state.deposit.depositHistory;
+export const selectDepositPagination = state => state.deposit.pagination;
 
 export default depositSlice.reducer;

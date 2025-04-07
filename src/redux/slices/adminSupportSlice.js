@@ -1,56 +1,46 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { generateMockSupportTickets } from '../../utils/mockDataGenerator';
 
-// Generate 80 mock support tickets
-const mockSupportTickets = generateMockSupportTickets(80);
+// API base URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Fetch support tickets
+// Helper function to handle API errors
+const handleApiError = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'An error occurred');
+  }
+  return response.json();
+};
+
+// Fetch all support tickets
 export const fetchSupportTickets = createAsyncThunk(
   'adminSupport/fetchSupportTickets',
-  async ({ page = 1, limit = 10, status = '', priority = '', search = '' }, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Filter support tickets
-      let filteredTickets = [...mockSupportTickets];
-      
-      if (status) {
-        filteredTickets = filteredTickets.filter(ticket => ticket.status === status);
+      const { page = 1, limit = 10, status, priority, search } = params;
+
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(status && { status }),
+        ...(priority && { priority }),
+        ...(search && { search })
+      });
+
+      const token = localStorage.getItem('ffb_admin_token');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
-      
-      if (priority) {
-        filteredTickets = filteredTickets.filter(ticket => ticket.priority === priority);
-      }
-      
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredTickets = filteredTickets.filter(ticket => 
-          ticket.subject.toLowerCase().includes(searchLower) ||
-          ticket.user.email.toLowerCase().includes(searchLower) ||
-          ticket.user.fullName.toLowerCase().includes(searchLower) ||
-          ticket.id.includes(search)
-        );
-      }
-      
-      // Sort by date (newest first)
-      filteredTickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
-      // Calculate pagination
-      const totalTickets = filteredTickets.length;
-      const totalPages = Math.ceil(totalTickets / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedTickets = filteredTickets.slice(startIndex, startIndex + limit);
-      
-      return {
-        supportTickets: paginatedTickets,
-        pagination: {
-          page,
-          limit,
-          totalTickets,
-          totalPages
+
+      const response = await fetch(`${API_URL}/support?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      };
+      });
+
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch support tickets');
     }
@@ -58,170 +48,128 @@ export const fetchSupportTickets = createAsyncThunk(
 );
 
 // Fetch support ticket by ID
-export const fetchTicketById = createAsyncThunk(
-  'adminSupport/fetchTicketById',
-  async (ticketId, { rejectWithValue }) => {
+export const fetchSupportTicketById = createAsyncThunk(
+  'adminSupport/fetchSupportTicketById',
+  async (id, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 600));
-      
-      const ticket = mockSupportTickets.find(t => t.id === ticketId);
-      
-      if (!ticket) {
-        return rejectWithValue('Support ticket not found');
+      const token = localStorage.getItem('ffb_admin_token');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
-      
-      return ticket;
+
+      const response = await fetch(`${API_URL}/support/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch support ticket');
     }
   }
 );
 
-// Reply to support ticket
-export const addTicketReply = createAsyncThunk(
-  'adminSupport/addTicketReply',
-  async ({ ticketId, content, attachments }, { rejectWithValue }) => {
+// Update support ticket
+export const updateSupportTicket = createAsyncThunk(
+  'adminSupport/updateSupportTicket',
+  async ({ id, updates }, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const ticketIndex = mockSupportTickets.findIndex(t => t.id === ticketId);
-      
-      if (ticketIndex === -1) {
-        return rejectWithValue('Support ticket not found');
+      const token = localStorage.getItem('ffb_admin_token');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
-      
-      // Create new reply
-      const newReply = {
-        id: `reply-${Date.now()}`,
-        content,
-        createdAt: new Date().toISOString(),
-        sender: {
-          id: 'admin-1',
-          name: 'Admin User',
-          role: 'admin'
+
+      const response = await fetch(`${API_URL}/support/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        attachments: attachments || []
-      };
-      
-      // Update ticket with the new reply
-      const updatedTicket = {
-        ...mockSupportTickets[ticketIndex],
-        updatedAt: new Date().toISOString(),
-        status: 'responded',
-        replies: [...(mockSupportTickets[ticketIndex].replies || []), newReply],
-        lastActivity: new Date().toISOString()
-      };
-      
-      // Update mock data
-      mockSupportTickets[ticketIndex] = updatedTicket;
-      
-      return updatedTicket;
+        body: JSON.stringify(updates)
+      });
+
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to reply to support ticket');
+      return rejectWithValue(error.message || 'Failed to update support ticket');
     }
   }
 );
 
-// Change support ticket status
-export const updateTicketStatus = createAsyncThunk(
-  'adminSupport/updateTicketStatus',
-  async ({ ticketId, status, note }, { rejectWithValue }) => {
+// Add a reply to a support ticket
+export const addSupportTicketReply = createAsyncThunk(
+  'adminSupport/addSupportTicketReply',
+  async ({ id, message }, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const ticketIndex = mockSupportTickets.findIndex(t => t.id === ticketId);
-      
-      if (ticketIndex === -1) {
-        return rejectWithValue('Support ticket not found');
+      const token = localStorage.getItem('ffb_admin_token');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
-      
-      if (!['open', 'in_progress', 'responded', 'resolved', 'closed'].includes(status)) {
-        return rejectWithValue('Invalid status');
-      }
-      
-      // Create status update history entry
-      const statusUpdate = {
-        from: mockSupportTickets[ticketIndex].status,
-        to: status,
-        updatedAt: new Date().toISOString(),
-        updatedBy: {
-          id: 'admin-1',
-          name: 'Admin User',
-          role: 'admin'
+
+      const response = await fetch(`${API_URL}/support/${id}/reply`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        note: note || ''
-      };
-      
-      // Update ticket status
-      const updatedTicket = {
-        ...mockSupportTickets[ticketIndex],
-        status,
-        updatedAt: new Date().toISOString(),
-        statusHistory: [...(mockSupportTickets[ticketIndex].statusHistory || []), statusUpdate],
-        lastActivity: new Date().toISOString()
-      };
-      
-      // Update mock data
-      mockSupportTickets[ticketIndex] = updatedTicket;
-      
-      return updatedTicket;
+        body: JSON.stringify({ message })
+      });
+
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to change support ticket status');
+      return rejectWithValue(error.message || 'Failed to add reply to support ticket');
     }
   }
 );
 
-// Change support ticket priority
-export const changeSupportTicketPriority = createAsyncThunk(
-  'adminSupport/changeSupportTicketPriority',
-  async ({ ticketId, priority }, { rejectWithValue }) => {
+// Fetch support ticket statistics
+export const fetchSupportTicketStats = createAsyncThunk(
+  'adminSupport/fetchSupportTicketStats',
+  async (_, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const ticketIndex = mockSupportTickets.findIndex(t => t.id === ticketId);
-      
-      if (ticketIndex === -1) {
-        return rejectWithValue('Support ticket not found');
+      const token = localStorage.getItem('ffb_admin_token');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
-      
-      if (!['low', 'medium', 'high', 'urgent'].includes(priority)) {
-        return rejectWithValue('Invalid priority');
-      }
-      
-      // Update ticket priority
-      const updatedTicket = {
-        ...mockSupportTickets[ticketIndex],
-        priority,
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Update mock data
-      mockSupportTickets[ticketIndex] = updatedTicket;
-      
-      return updatedTicket;
+
+      const response = await fetch(`${API_URL}/support/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to change support ticket priority');
+      return rejectWithValue(error.message || 'Failed to fetch support ticket statistics');
     }
   }
 );
 
-// Create initial state
+// Initial state
 const initialState = {
-  supportTickets: [],
+  tickets: [],
   selectedTicket: null,
   pagination: {
     page: 1,
     limit: 10,
-    totalTickets: 0,
-    totalPages: 0
+    total: 0,
+    pages: 0
   },
-  status: 'idle',
+  stats: {
+    totalTickets: 0,
+    openTickets: 0,
+    closedTickets: 0,
+    highPriorityTickets: 0
+  },
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
-  actionStatus: 'idle'
+  actionStatus: 'idle' // Status for CRUD operations
 };
 
 const adminSupportSlice = createSlice({
@@ -233,8 +181,6 @@ const adminSupportSlice = createSlice({
     },
     clearSupportError: (state) => {
       state.error = null;
-    },
-    resetSupportActionStatus: (state) => {
       state.actionStatus = 'idle';
     }
   },
@@ -246,99 +192,96 @@ const adminSupportSlice = createSlice({
       })
       .addCase(fetchSupportTickets.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.supportTickets = action.payload.supportTickets;
+        state.tickets = action.payload.tickets;
         state.pagination = action.payload.pagination;
+        state.error = null;
       })
       .addCase(fetchSupportTickets.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       })
-      
+
       // Fetch support ticket by ID
-      .addCase(fetchTicketById.pending, (state) => {
+      .addCase(fetchSupportTicketById.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(fetchTicketById.fulfilled, (state, action) => {
+      .addCase(fetchSupportTicketById.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.selectedTicket = action.payload;
+        state.error = null;
       })
-      .addCase(fetchTicketById.rejected, (state, action) => {
+      .addCase(fetchSupportTicketById.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       })
-      
-      // Reply to support ticket
-      .addCase(addTicketReply.pending, (state) => {
+
+      // Update support ticket
+      .addCase(updateSupportTicket.pending, (state) => {
         state.actionStatus = 'loading';
       })
-      .addCase(addTicketReply.fulfilled, (state, action) => {
+      .addCase(updateSupportTicket.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
         state.selectedTicket = action.payload;
-        
+
         // Update ticket in the list if it exists
-        const index = state.supportTickets.findIndex(t => t.id === action.payload.id);
+        const index = state.tickets.findIndex((t) => t._id === action.payload._id);
         if (index !== -1) {
-          state.supportTickets[index] = action.payload;
+          state.tickets[index] = action.payload;
         }
+
+        state.error = null;
       })
-      .addCase(addTicketReply.rejected, (state, action) => {
+      .addCase(updateSupportTicket.rejected, (state, action) => {
         state.actionStatus = 'failed';
         state.error = action.payload;
       })
-      
-      // Change support ticket status
-      .addCase(updateTicketStatus.pending, (state) => {
+
+      // Add reply to support ticket
+      .addCase(addSupportTicketReply.pending, (state) => {
         state.actionStatus = 'loading';
       })
-      .addCase(updateTicketStatus.fulfilled, (state, action) => {
+      .addCase(addSupportTicketReply.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
         state.selectedTicket = action.payload;
-        
+
         // Update ticket in the list if it exists
-        const index = state.supportTickets.findIndex(t => t.id === action.payload.id);
+        const index = state.tickets.findIndex((t) => t._id === action.payload._id);
         if (index !== -1) {
-          state.supportTickets[index] = action.payload;
+          state.tickets[index] = action.payload;
         }
+
+        state.error = null;
       })
-      .addCase(updateTicketStatus.rejected, (state, action) => {
+      .addCase(addSupportTicketReply.rejected, (state, action) => {
         state.actionStatus = 'failed';
         state.error = action.payload;
       })
-      
-      // Change support ticket priority
-      .addCase(changeSupportTicketPriority.pending, (state) => {
-        state.actionStatus = 'loading';
+
+      // Fetch support ticket stats
+      .addCase(fetchSupportTicketStats.pending, (state) => {
+        state.status = 'loading';
       })
-      .addCase(changeSupportTicketPriority.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
-        state.selectedTicket = action.payload;
-        
-        // Update ticket in the list if it exists
-        const index = state.supportTickets.findIndex(t => t.id === action.payload.id);
-        if (index !== -1) {
-          state.supportTickets[index] = action.payload;
-        }
+      .addCase(fetchSupportTicketStats.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.stats = action.payload;
+        state.error = null;
       })
-      .addCase(changeSupportTicketPriority.rejected, (state, action) => {
-        state.actionStatus = 'failed';
+      .addCase(fetchSupportTicketStats.rejected, (state, action) => {
+        state.status = 'failed';
         state.error = action.payload;
       });
   }
 });
 
 // Export actions
-export const { 
-  clearSelectedTicket, 
-  clearSupportError, 
-  resetSupportActionStatus 
-} = adminSupportSlice.actions;
+export const { clearSelectedTicket, clearSupportError } = adminSupportSlice.actions;
 
 // Export selectors
-export const selectSupportTickets = state => state.adminSupport.supportTickets;
-export const selectSelectedTicket = state => state.adminSupport.selectedTicket;
-export const selectSupportPagination = state => state.adminSupport.pagination;
-export const selectSupportStatus = state => state.adminSupport.status;
-export const selectSupportError = state => state.adminSupport.error;
-export const selectSupportActionStatus = state => state.adminSupport.actionStatus;
+export const selectSupportTickets = (state) => state.adminSupport.tickets;
+export const selectSelectedTicket = (state) => state.adminSupport.selectedTicket;
+export const selectSupportPagination = (state) => state.adminSupport.pagination;
+export const selectSupportStatus = (state) => state.adminSupport.stats;
+export const selectSupportActionStatus = (state) => state.adminSupport.status;
+export const selectSupportError = (state) => state.adminSupport.error;
 
 export default adminSupportSlice.reducer;

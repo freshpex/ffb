@@ -1,281 +1,154 @@
-import { createSlice } from '@reduxjs/toolkit';
-import mockApiService from '../../services/mockApiService';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import apiClient from '../../services/apiService';
 
-// Mock referral data
-const mockReferrals = [
-  {
-    id: 'ref-1001',
-    email: 'john.doe@example.com',
-    name: 'John Doe',
-    status: 'registered',
-    date: '2023-10-15',
-    commission: 0
-  },
-  {
-    id: 'ref-1002',
-    email: 'jane.smith@example.com',
-    name: 'Jane Smith',
-    status: 'active',
-    date: '2023-10-20',
-    commission: 25.50
-  },
-  {
-    id: 'ref-1003',
-    email: 'mike.johnson@example.com',
-    name: 'Mike Johnson',
-    status: 'active',
-    date: '2023-11-05',
-    commission: 42.75
-  },
-  {
-    id: 'ref-1004',
-    email: 'sarah.williams@example.com',
-    name: 'Sarah Williams',
-    status: 'pending',
-    date: '2023-11-25',
-    commission: 0
-  }
-];
-
-// Mock commission history
-const mockCommissionHistory = [
-  {
-    id: 'comm-1001',
-    referralId: 'ref-1002',
-    referralName: 'Jane Smith',
-    amount: 10.25,
-    type: 'deposit',
-    status: 'paid',
-    date: '2023-11-01'
-  },
-  {
-    id: 'comm-1002',
-    referralId: 'ref-1002',
-    referralName: 'Jane Smith',
-    amount: 15.25,
-    type: 'trading',
-    status: 'paid',
-    date: '2023-11-15'
-  },
-  {
-    id: 'comm-1003',
-    referralId: 'ref-1003',
-    referralName: 'Mike Johnson',
-    amount: 42.75,
-    type: 'deposit',
-    status: 'paid',
-    date: '2023-11-10'
-  },
-];
-
-const initialState = {
-  referrals: mockReferrals,
-  commissionHistory: mockCommissionHistory,
-  referralLink: 'https://fidelityfirstbrokers.com/ref/user123',
-  referralCode: 'USER123',
-  statistics: {
-    totalReferrals: mockReferrals.length,
-    activeReferrals: mockReferrals.filter(r => r.status === 'active').length,
-    totalCommission: mockReferrals.reduce((sum, r) => sum + r.commission, 0),
-    pendingCommission: 0,
-    conversionRate: 75 // percentage
-  },
-  status: 'idle',
-  error: null,
-
-  // Add commission data to the state
-  commissions: [
-    {
-      id: 'comm_1',
-      referralId: 'ref_1',
-      referralName: 'John Smith',
-      type: 'deposit',
-      amount: 1000.00,
-      commission: 50.00,
-      status: 'paid',
-      date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'comm_2',
-      referralId: 'ref_2',
-      referralName: 'Jane Doe',
-      type: 'trade',
-      amount: 5000.00,
-      commission: 25.00,
-      status: 'paid',
-      date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'comm_3',
-      referralId: 'ref_1',
-      referralName: 'John Smith',
-      type: 'deposit',
-      amount: 2000.00,
-      commission: 100.00,
-      status: 'pending',
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'comm_4',
-      referralId: 'ref_3',
-      referralName: 'Michael Brown',
-      type: 'trade',
-      amount: 10000.00,
-      commission: 50.00,
-      status: 'processing',
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'comm_5',
-      referralId: 'ref_4',
-      referralName: 'Emily Wilson',
-      type: 'deposit',
-      amount: 3000.00,
-      commission: 150.00,
-      status: 'pending',
-      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+// Async thunk to fetch user referrals
+export const fetchReferrals = createAsyncThunk(
+  'referral/fetchReferrals',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get('/api/referrals');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch referrals');
     }
-  ],
+  }
+);
 
-  // Update the stats to include commission information
-  stats: {
-    totalEarnings: 375.00,
-    paidCommissions: 75.00,
-    pendingCommissions: 250.00,
-    processingCommissions: 50.00,
-    commissionRate: 5,
+// Async thunk to fetch commission history
+export const fetchCommissionHistory = createAsyncThunk(
+  'referral/fetchCommissionHistory',
+  async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get(`/api/referrals/commissions?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch commission history');
+    }
+  }
+);
+
+// Async thunk to generate a new referral link
+export const generateNewReferralLink = createAsyncThunk(
+  'referral/generateNewReferralLink',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post('/api/referrals/generate-link');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to generate new referral link');
+    }
+  }
+);
+
+// Initial state
+const initialState = {
+  referrals: [],
+  commissionHistory: [],
+  referralLink: '',
+  referralCode: '',
+  statistics: {
+    totalReferrals: 0,
+    totalEarnings: 0,
+    pendingCommissions: 0,
+    activeReferrals: 0
+  },
+  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+  error: null,
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10
   }
 };
 
+// Create the referral slice
 const referralSlice = createSlice({
   name: 'referral',
   initialState,
   reducers: {
-    fetchReferralsStart(state) {
-      state.status = 'loading';
-    },
-    fetchReferralsSuccess(state, action) {
-      state.status = 'succeeded';
-      state.referrals = action.payload;
-      // Update statistics
-      state.statistics = {
-        totalReferrals: action.payload.length,
-        activeReferrals: action.payload.filter(r => r.status === 'active').length,
-        totalCommission: action.payload.reduce((sum, r) => sum + r.commission, 0),
-        pendingCommission: 0,
-        conversionRate: 75 // This would be calculated from real data
-      };
-    },
-    fetchReferralsFailure(state, action) {
-      state.status = 'failed';
-      state.error = action.payload;
+    // Reset referral state
+    resetReferralState: (state) => {
+      state = initialState;
     },
     
-    fetchCommissionHistoryStart(state) {
-      state.status = 'loading';
-    },
-    fetchCommissionHistorySuccess(state, action) {
-      state.status = 'succeeded';
-      state.commissionHistory = action.payload;
-    },
-    fetchCommissionHistoryFailure(state, action) {
-      state.status = 'failed';
-      state.error = action.payload;
-    },
-    
-    addReferral(state, action) {
-      state.referrals.unshift(action.payload);
-      state.statistics.totalReferrals++;
-      if (action.payload.status === 'active') {
-        state.statistics.activeReferrals++;
-      }
-    },
-    
-    updateReferralStatus(state, action) {
-      const { id, status } = action.payload;
-      const referral = state.referrals.find(r => r.id === id);
-      if (referral) {
-        // If changing to active from another status
-        if (status === 'active' && referral.status !== 'active') {
-          state.statistics.activeReferrals++;
-        }
-        // If changing from active to another status
-        else if (referral.status === 'active' && status !== 'active') {
-          state.statistics.activeReferrals--;
-        }
-        referral.status = status;
-      }
-    },
-    
-    addCommission(state, action) {
-      state.commissionHistory.unshift(action.payload);
-      const referral = state.referrals.find(r => r.id === action.payload.referralId);
-      if (referral) {
-        referral.commission += action.payload.amount;
-      }
-      state.statistics.totalCommission += action.payload.amount;
-    },
-    
-    generateNewReferralLink(state) {
-      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      state.referralCode = randomCode;
-      state.referralLink = `https://fidelityfirstbrokers.com/ref/${randomCode.toLowerCase()}`;
-    },
-    
-    resetReferralState: () => initialState
+    // Update pagination
+    setCurrentPage: (state, action) => {
+      state.pagination.currentPage = action.payload;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Handle fetchReferrals
+      .addCase(fetchReferrals.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchReferrals.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.referrals = action.payload.data.referrals || [];
+        state.referralLink = action.payload.data.referralLink || '';
+        state.referralCode = action.payload.data.referralCode || '';
+        state.statistics = {
+          totalReferrals: action.payload.data.totalReferrals || 0,
+          totalEarnings: action.payload.data.totalEarnings || 0,
+          pendingCommissions: action.payload.data.pendingCommissions || 0,
+          activeReferrals: action.payload.data.activeReferrals || 0
+        };
+      })
+      .addCase(fetchReferrals.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Handle fetchCommissionHistory
+      .addCase(fetchCommissionHistory.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchCommissionHistory.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.commissionHistory = action.payload.data;
+        state.pagination = {
+          currentPage: action.payload.currentPage || 1,
+          totalPages: action.payload.totalPages || 1,
+          totalItems: action.payload.totalItems || 0,
+          itemsPerPage: action.payload.itemsPerPage || 10
+        };
+      })
+      .addCase(fetchCommissionHistory.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Handle generateNewReferralLink
+      .addCase(generateNewReferralLink.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(generateNewReferralLink.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.referralLink = action.payload.data.referralLink || '';
+        state.referralCode = action.payload.data.referralCode || '';
+      })
+      .addCase(generateNewReferralLink.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
   }
 });
 
-export const {
-  fetchReferralsStart,
-  fetchReferralsSuccess,
-  fetchReferralsFailure,
-  fetchCommissionHistoryStart,
-  fetchCommissionHistorySuccess,
-  fetchCommissionHistoryFailure,
-  addReferral,
-  updateReferralStatus,
-  addCommission,
-  generateNewReferralLink,
-  resetReferralState
-} = referralSlice.actions;
-
-// Thunk for fetching referrals
-export const fetchReferrals = () => async (dispatch) => {
-  try {
-    dispatch(fetchReferralsStart());
-    
-    // In a real app, this would be an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    dispatch(fetchReferralsSuccess(mockReferrals));
-  } catch (error) {
-    dispatch(fetchReferralsFailure(error.message || 'Failed to fetch referrals'));
-  }
-};
-
-// Thunk for fetching commission history
-export const fetchCommissionHistory = () => async (dispatch) => {
-  try {
-    dispatch(fetchCommissionHistoryStart());
-    
-    // In a real app, this would be an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    dispatch(fetchCommissionHistorySuccess(mockCommissionHistory));
-  } catch (error) {
-    dispatch(fetchCommissionHistoryFailure(error.message || 'Failed to fetch commission history'));
-  }
-};
+// Export actions from the slice
+export const { resetReferralState, setCurrentPage } = referralSlice.actions;
 
 // Selectors
-export const selectReferrals = state => state.referral?.referrals || [];
-export const selectCommissionHistory = state => state.referral?.commissionHistory || [];
-export const selectReferralLink = state => state.referral?.referralLink || '';
-export const selectReferralCode = state => state.referral?.referralCode || '';
-export const selectReferralStatistics = state => state.referral?.statistics || initialState.statistics;
-export const selectReferralStatus = state => state.referral?.status || 'idle';
-export const selectReferralError = state => state.referral?.error;
-export const selectReferralCommissions = (state) => state.referral?.commissions || [];
+export const selectReferrals = state => state.referral.referrals;
+export const selectCommissionHistory = state => state.referral.commissionHistory;
+export const selectReferralLink = state => state.referral.referralLink;
+export const selectReferralCode = state => state.referral.referralCode;
+export const selectReferralStatistics = state => state.referral.statistics;
+export const selectReferralStatus = state => state.referral.status;
+export const selectReferralError = state => state.referral.error;
+export const selectReferralPagination = state => state.referral.pagination;
 
 export default referralSlice.reducer;

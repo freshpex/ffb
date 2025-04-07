@@ -1,209 +1,182 @@
-import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import apiClient from '../../services/apiService';
 
-// Mock notifications
-const mockNotifications = [
-  {
-    id: 'notif-1001',
-    title: 'Deposit Successful',
-    message: 'Your deposit of $1,000 has been credited to your account.',
-    type: 'success',
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutes ago
-  },
-  {
-    id: 'notif-1002',
-    title: 'Price Alert',
-    message: 'Bitcoin has increased by 5% in the last hour.',
-    type: 'info',
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() // 2 hours ago
-  },
-  {
-    id: 'notif-1003',
-    title: 'Security Alert',
-    message: 'New login detected from Chrome on Windows.',
-    type: 'warning',
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() // 5 hours ago
-  },
-  {
-    id: 'notif-1004',
-    title: 'Withdrawal Completed',
-    message: 'Your withdrawal of $500 to your Bitcoin wallet has been processed.',
-    type: 'success',
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString() // 12 hours ago
-  },
-  {
-    id: 'notif-1005',
-    title: 'Investment Matured',
-    message: 'Your Starter Plan investment has matured with a profit of $50.',
-    type: 'success',
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() // 1 day ago
+// Async thunks
+export const fetchNotifications = createAsyncThunk(
+  'notifications/fetchNotifications',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.get('/api/notifications');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications');
+    }
   }
-];
+);
 
-// Mock price alerts
-const mockPriceAlerts = [
-  {
-    id: 'alert-1001',
-    symbol: 'BTC/USDT',
-    condition: 'above',
-    price: 65000,
-    active: true,
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString() // 2 days ago
-  },
-  {
-    id: 'alert-1002',
-    symbol: 'ETH/USDT',
-    condition: 'below',
-    price: 3000,
-    active: true,
-    created: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString() // 3 days ago
+export const markAsRead = createAsyncThunk(
+  'notifications/markAsRead',
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.put(`/api/notifications/${notificationId}/read`);
+      return { ...response.data, notificationId };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to mark notification as read');
+    }
   }
-];
+);
 
+export const markAllAsRead = createAsyncThunk(
+  'notifications/markAllAsRead',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.put('/api/notifications/read-all');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to mark all notifications as read');
+    }
+  }
+);
+
+export const deleteNotification = createAsyncThunk(
+  'notifications/deleteNotification',
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      await apiClient.delete(`/api/notifications/${notificationId}`);
+      return { notificationId };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete notification');
+    }
+  }
+);
+
+// Initial state
 const initialState = {
-  notifications: mockNotifications,
-  priceAlerts: mockPriceAlerts,
-  status: 'idle',
+  notifications: [],
+  unreadCount: 0,
+  loading: false,
   error: null,
-  settings: {
-    emailNotifications: true,
-    pushNotifications: true,
-    marketUpdates: true,
-    accountActivity: true,
-    promotions: false
-  }
+  success: false
 };
 
 const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
   reducers: {
-    fetchNotificationsStart(state) {
-      state.status = 'loading';
+    clearNotificationError: (state) => {
+      state.error = null;
     },
-    fetchNotificationsSuccess(state, action) {
-      state.status = 'succeeded';
-      state.notifications = action.payload;
-    },
-    fetchNotificationsFailure(state, action) {
-      state.status = 'failed';
-      state.error = action.payload;
-    },
-    
-    addNotification(state, action) {
-      state.notifications.unshift({
-        id: `notif-${Date.now()}`,
-        read: false,
-        timestamp: new Date().toISOString(),
-        ...action.payload
-      });
-    },
-    
-    markNotificationAsRead(state, action) {
-      const notification = state.notifications.find(n => n.id === action.payload);
-      if (notification) {
-        notification.read = true;
-      }
-    },
-    
-    markAllNotificationsAsRead(state) {
-      state.notifications.forEach(notification => {
-        notification.read = true;
-      });
-    },
-    
-    deleteNotification(state, action) {
-      state.notifications = state.notifications.filter(n => n.id !== action.payload);
-    },
-    
-    clearAllNotifications(state) {
+    resetNotificationState: (state) => {
       state.notifications = [];
+      state.unreadCount = 0;
+      state.loading = false;
+      state.error = null;
+      state.success = false;
     },
-    
-    // Price alerts
-    addPriceAlert(state, action) {
-      state.priceAlerts.push({
-        id: `alert-${Date.now()}`,
-        active: true,
-        created: new Date().toISOString(),
-        ...action.payload
+    addNotification: (state, action) => {
+      // For real-time notifications
+      if (action.payload && action.payload.notification) {
+        state.notifications.unshift(action.payload.notification);
+        if (!action.payload.notification.read) {
+          state.unreadCount += 1;
+        }
+      }
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      // fetchNotifications
+      .addCase(fetchNotifications.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchNotifications.fulfilled, (state, action) => {
+        state.loading = false;
+        state.notifications = action.payload.data || [];
+        // Calculate unreadCount from the notifications array
+        state.unreadCount = state.notifications.filter(n => !n.read).length;
+      })
+      .addCase(fetchNotifications.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch notifications';
+      })
+
+      // markAsRead
+      .addCase(markAsRead.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(markAsRead.fulfilled, (state, action) => {
+        state.loading = false;
+        // Find the notification and update its read status safely
+        const notification = state.notifications.find(n => n.id === action.payload.notificationId || n._id === action.payload.notificationId);
+        if (notification && !notification.read) {
+          notification.read = true;
+          state.unreadCount = Math.max(0, state.unreadCount - 1);
+        }
+      })
+      .addCase(markAsRead.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to mark notification as read';
+      })
+
+      // markAllAsRead
+      .addCase(markAllAsRead.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(markAllAsRead.fulfilled, (state) => {
+        state.loading = false;
+        // Update all notifications to read
+        state.notifications.forEach(notification => {
+          notification.read = true;
+        });
+        state.unreadCount = 0;
+      })
+      .addCase(markAllAsRead.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to mark all notifications as read';
+      })
+
+      // deleteNotification
+      .addCase(deleteNotification.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteNotification.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the notification and update unread count if needed
+        const index = state.notifications.findIndex(n => 
+          n.id === action.payload.notificationId || 
+          n._id === action.payload.notificationId
+        );
+        
+        if (index !== -1) {
+          const wasPreviouslyUnread = !state.notifications[index].read;
+          state.notifications.splice(index, 1);
+          if (wasPreviouslyUnread) {
+            state.unreadCount = Math.max(0, state.unreadCount - 1);
+          }
+        }
+      })
+      .addCase(deleteNotification.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to delete notification';
       });
-    },
-    
-    updatePriceAlert(state, action) {
-      const { id, ...updates } = action.payload;
-      const alert = state.priceAlerts.find(a => a.id === id);
-      if (alert) {
-        Object.assign(alert, updates);
-      }
-    },
-    
-    deletePriceAlert(state, action) {
-      state.priceAlerts = state.priceAlerts.filter(a => a.id !== action.payload);
-    },
-    
-    togglePriceAlert(state, action) {
-      const alert = state.priceAlerts.find(a => a.id === action.payload);
-      if (alert) {
-        alert.active = !alert.active;
-      }
-    },
-    
-    // Notification settings
-    updateNotificationSettings(state, action) {
-      state.settings = { ...state.settings, ...action.payload };
-    },
-    
-    resetNotificationState: () => initialState
   }
 });
 
-export const {
-  fetchNotificationsStart,
-  fetchNotificationsSuccess,
-  fetchNotificationsFailure,
-  addNotification,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  deleteNotification,
-  clearAllNotifications,
-  addPriceAlert,
-  updatePriceAlert,
-  deletePriceAlert,
-  togglePriceAlert,
-  updateNotificationSettings,
-  resetNotificationState
+// Export actions
+export const { 
+  clearNotificationError, 
+  resetNotificationState,
+  addNotification 
 } = notificationSlice.actions;
 
-// Thunk for fetching notifications
-export const fetchNotifications = () => async (dispatch) => {
-  try {
-    dispatch(fetchNotificationsStart());
-    
-    // In a real app, this would be an API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    dispatch(fetchNotificationsSuccess(mockNotifications));
-  } catch (error) {
-    dispatch(fetchNotificationsFailure(error.message || 'Failed to fetch notifications'));
-  }
-};
-
-// Selectors
-export const selectNotifications = createSelector(
-  [(state) => state.notifications?.notifications || []],
-  (notifications) => notifications
-);
-
-export const selectUnreadNotifications = state => 
-  state.notifications?.notifications.filter(n => !n.read) || [];
-export const selectUnreadCount = state => 
-  state.notifications?.notifications.filter(n => !n.read).length || 0;
-export const selectPriceAlerts = state => state.notifications?.priceAlerts || [];
-export const selectNotificationSettings = state => state.notifications?.settings || initialState.settings;
+// Export selectors
+export const selectNotifications = state => state.notification.notifications || [];
+export const selectUnreadCount = state => state.notification.unreadCount || 0;
+export const selectNotificationLoading = state => state.notification.loading;
+export const selectNotificationError = state => state.notification.error;
 
 export default notificationSlice.reducer;

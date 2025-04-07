@@ -1,51 +1,64 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { generateMockKycRequests } from '../../utils/mockDataGenerator';
+import apiService from '../../services/apiService';
 
-// Generate 75 mock KYC requests
-const mockKycRequests = generateMockKycRequests(75);
+// API base URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Fetch KYC requests
+// Helper function to handle API errors
+const handleApiError = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'An error occurred');
+  }
+  return response.json();
+};
+
+// Initial state with proper pagination structure
+const initialState = {
+  kycRequests: [],
+  pagination: {
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+    totalRequests: 0 // Make sure this property exists in the initial state
+  },
+  selectedKycRequest: null,
+  status: 'idle',
+  actionStatus: 'idle',
+  error: null
+};
+
+// Fetch all KYC requests
 export const fetchKycRequests = createAsyncThunk(
   'adminKyc/fetchKycRequests',
-  async ({ page = 1, limit = 10, status = '', search = '' }, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const { page = 1, limit = 10, status, search } = params;
       
-      // Filter KYC requests
-      let filteredRequests = [...mockKycRequests];
+      // Build query parameters
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(status && { status }),
+        ...(search && { search })
+      });
       
-      if (status) {
-        filteredRequests = filteredRequests.filter(req => req.status === status);
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
+      
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filteredRequests = filteredRequests.filter(req => 
-          req.user.email.toLowerCase().includes(searchLower) ||
-          req.user.fullName.toLowerCase().includes(searchLower) ||
-          req.id.includes(search)
-        );
-      }
-      
-      // Sort by date (newest first)
-      filteredRequests.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-      
-      // Calculate pagination
-      const totalRequests = filteredRequests.length;
-      const totalPages = Math.ceil(totalRequests / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedRequests = filteredRequests.slice(startIndex, startIndex + limit);
-      
-      return {
-        kycRequests: paginatedRequests,
-        pagination: {
-          page,
-          limit,
-          totalRequests,
-          totalPages
+      const response = await fetch(`${API_URL}/admin/kyc?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      };
+      });
+      
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch KYC requests');
     }
@@ -55,18 +68,24 @@ export const fetchKycRequests = createAsyncThunk(
 // Fetch KYC request by ID
 export const fetchKycRequestById = createAsyncThunk(
   'adminKyc/fetchKycRequestById',
-  async (requestId, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 600));
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
       
-      const kycRequest = mockKycRequests.find(req => req.id === requestId);
-      
-      if (!kycRequest) {
-        return rejectWithValue('KYC request not found');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      return kycRequest;
+      const response = await fetch(`${API_URL}/admin/kyc/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch KYC request');
     }
@@ -76,34 +95,26 @@ export const fetchKycRequestById = createAsyncThunk(
 // Approve KYC request
 export const approveKycRequest = createAsyncThunk(
   'adminKyc/approveKycRequest',
-  async (requestId, { rejectWithValue }) => {
+  async ({ id, notes }, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
       
-      const requestIndex = mockKycRequests.findIndex(req => req.id === requestId);
-      
-      if (requestIndex === -1) {
-        return rejectWithValue('KYC request not found');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      if (mockKycRequests[requestIndex].status !== 'pending') {
-        return rejectWithValue('Only pending KYC requests can be approved');
-      }
+      const response = await fetch(`${API_URL}/admin/kyc/${id}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notes })
+      });
       
-      // Update KYC request status
-      const updatedRequest = {
-        ...mockKycRequests[requestIndex],
-        status: 'approved',
-        updatedAt: new Date().toISOString(),
-        approvedBy: 'admin-1',
-        approvedAt: new Date().toISOString()
-      };
-      
-      // Update mock data
-      mockKycRequests[requestIndex] = updatedRequest;
-      
-      return updatedRequest;
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to approve KYC request');
     }
@@ -113,55 +124,58 @@ export const approveKycRequest = createAsyncThunk(
 // Reject KYC request
 export const rejectKycRequest = createAsyncThunk(
   'adminKyc/rejectKycRequest',
-  async ({ requestId, reason }, { rejectWithValue }) => {
+  async ({ id, reason, notes }, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
       
-      const requestIndex = mockKycRequests.findIndex(req => req.id === requestId);
-      
-      if (requestIndex === -1) {
-        return rejectWithValue('KYC request not found');
+      if (!token) {
+        return rejectWithValue('Authentication required');
       }
       
-      if (mockKycRequests[requestIndex].status !== 'pending') {
-        return rejectWithValue('Only pending KYC requests can be rejected');
-      }
+      const response = await fetch(`${API_URL}/admin/kyc/${id}/reject`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason, notes })
+      });
       
-      // Update KYC request status
-      const updatedRequest = {
-        ...mockKycRequests[requestIndex],
-        status: 'rejected',
-        updatedAt: new Date().toISOString(),
-        rejectedBy: 'admin-1',
-        rejectedAt: new Date().toISOString(),
-        rejectionReason: reason || 'Rejected by administrator'
-      };
-      
-      // Update mock data
-      mockKycRequests[requestIndex] = updatedRequest;
-      
-      return updatedRequest;
+      const data = await handleApiError(response);
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to reject KYC request');
     }
   }
 );
 
-// Create initial state
-const initialState = {
-  kycRequests: [],
-  selectedKycRequest: null,
-  pagination: {
-    page: 1,
-    limit: 10,
-    totalRequests: 0,
-    totalPages: 0
-  },
-  status: 'idle',
-  error: null,
-  actionStatus: 'idle'
-};
+// Fetch KYC statistics
+export const fetchKycStats = createAsyncThunk(
+  'adminKyc/fetchKycStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem('ffb_admin_token');
+      
+      if (!token) {
+        return rejectWithValue('Authentication required');
+      }
+      
+      const response = await fetch(`${API_URL}/admin/kyc/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await handleApiError(response);
+      return data.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch KYC statistics');
+    }
+  }
+);
 
 const adminKycSlice = createSlice({
   name: 'adminKyc',
@@ -172,8 +186,6 @@ const adminKycSlice = createSlice({
     },
     clearKycError: (state) => {
       state.error = null;
-    },
-    resetKycActionStatus: (state) => {
       state.actionStatus = 'idle';
     }
   },
@@ -186,7 +198,13 @@ const adminKycSlice = createSlice({
       .addCase(fetchKycRequests.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.kycRequests = action.payload.kycRequests;
-        state.pagination = action.payload.pagination;
+        state.pagination = {
+          page: action.payload.pagination.currentPage || 1,
+          limit: action.payload.pagination.limit || 10,
+          totalPages: action.payload.pagination.totalPages || 0,
+          totalRequests: action.payload.pagination.total || 0
+        };
+        state.error = null;
       })
       .addCase(fetchKycRequests.rejected, (state, action) => {
         state.status = 'failed';
@@ -200,6 +218,7 @@ const adminKycSlice = createSlice({
       .addCase(fetchKycRequestById.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.selectedKycRequest = action.payload;
+        state.error = null;
       })
       .addCase(fetchKycRequestById.rejected, (state, action) => {
         state.status = 'failed';
@@ -215,10 +234,12 @@ const adminKycSlice = createSlice({
         state.selectedKycRequest = action.payload;
         
         // Update KYC request in the list if it exists
-        const index = state.kycRequests.findIndex(req => req.id === action.payload.id);
+        const index = state.kycRequests.findIndex(req => req._id === action.payload._id);
         if (index !== -1) {
           state.kycRequests[index] = action.payload;
         }
+        
+        state.error = null;
       })
       .addCase(approveKycRequest.rejected, (state, action) => {
         state.actionStatus = 'failed';
@@ -234,29 +255,42 @@ const adminKycSlice = createSlice({
         state.selectedKycRequest = action.payload;
         
         // Update KYC request in the list if it exists
-        const index = state.kycRequests.findIndex(req => req.id === action.payload.id);
+        const index = state.kycRequests.findIndex(req => req._id === action.payload._id);
         if (index !== -1) {
           state.kycRequests[index] = action.payload;
         }
+        
+        state.error = null;
       })
       .addCase(rejectKycRequest.rejected, (state, action) => {
         state.actionStatus = 'failed';
+        state.error = action.payload;
+      })
+      
+      // Fetch KYC stats
+      .addCase(fetchKycStats.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchKycStats.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.stats = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchKycStats.rejected, (state, action) => {
+        state.status = 'failed';
         state.error = action.payload;
       });
   }
 });
 
 // Export actions
-export const { 
-  clearSelectedKycRequest, 
-  clearKycError, 
-  resetKycActionStatus 
-} = adminKycSlice.actions;
+export const { clearSelectedKycRequest, clearKycError } = adminKycSlice.actions;
 
 // Export selectors
 export const selectKycRequests = state => state.adminKyc.kycRequests;
 export const selectSelectedKycRequest = state => state.adminKyc.selectedKycRequest;
 export const selectKycPagination = state => state.adminKyc.pagination;
+export const selectKycStats = state => state.adminKyc.stats;
 export const selectKycStatus = state => state.adminKyc.status;
 export const selectKycError = state => state.adminKyc.error;
 export const selectKycActionStatus = state => state.adminKyc.actionStatus;
