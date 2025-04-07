@@ -64,7 +64,10 @@ const KycDetail = () => {
   
   const handleApproveKyc = async () => {
     try {
-      await dispatch(approveKycRequest(requestId)).unwrap();
+      await dispatch(approveKycRequest({ 
+        id: requestId,
+        notes: ''
+      })).unwrap();
       setShowApproveModal(false);
     } catch (error) {
       console.error("Failed to approve KYC request:", error);
@@ -79,8 +82,9 @@ const KycDetail = () => {
       }
       
       await dispatch(rejectKycRequest({ 
-        requestId, 
-        reason: rejectionReason 
+        id: requestId, 
+        reason: rejectionReason,
+        notes: rejectionReason 
       })).unwrap();
       
       setShowRejectModal(false);

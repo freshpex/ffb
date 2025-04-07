@@ -16,9 +16,9 @@ import {
   FaLock
 } from 'react-icons/fa';
 import { 
-  fetchTicketById, 
-  addTicketReply, 
-  updateTicketStatus,
+  fetchSupportTicketById, 
+  addSupportTicketReply, 
+  updateSupportTicket,
   selectSelectedTicket, 
   selectSupportStatus, 
   selectSupportActionStatus 
@@ -50,7 +50,7 @@ const SupportTicketDetail = () => {
   
   useEffect(() => {
     document.title = "Support Ticket | Admin Dashboard";
-    dispatch(fetchTicketById(ticketId));
+    dispatch(fetchSupportTicketById(ticketId));
     
     if (actionParam === 'respond' && replyInputRef.current) {
       replyInputRef.current.focus();
@@ -66,10 +66,9 @@ const SupportTicketDetail = () => {
     }
     
     try {
-      await dispatch(addTicketReply({ 
-        ticketId, 
-        content: replyContent,
-        attachments
+      await dispatch(addSupportTicketReply({ 
+        id: ticketId, 
+        message: replyContent
       })).unwrap();
       
       setReplyContent('');
@@ -81,10 +80,12 @@ const SupportTicketDetail = () => {
   
   const handleResolveTicket = async () => {
     try {
-      await dispatch(updateTicketStatus({ 
-        ticketId, 
-        status: 'resolved',
-        note: resolutionNote
+      await dispatch(updateSupportTicket({ 
+        id: ticketId, 
+        updates: {
+          status: 'resolved',
+          notes: resolutionNote
+        }
       })).unwrap();
       
       setShowResolveModal(false);
@@ -95,9 +96,11 @@ const SupportTicketDetail = () => {
   
   const handleCloseTicket = async () => {
     try {
-      await dispatch(updateTicketStatus({ 
-        ticketId, 
-        status: 'closed'
+      await dispatch(updateSupportTicket({ 
+        id: ticketId, 
+        updates: {
+          status: 'closed'
+        }
       })).unwrap();
     } catch (error) {
       console.error("Failed to close ticket:", error);
@@ -106,9 +109,11 @@ const SupportTicketDetail = () => {
   
   const handleReopenTicket = async () => {
     try {
-      await dispatch(updateTicketStatus({ 
-        ticketId, 
-        status: 'open'
+      await dispatch(updateSupportTicket({ 
+        id: ticketId, 
+        updates: {
+          status: 'open'
+        }
       })).unwrap();
     } catch (error) {
       console.error("Failed to reopen ticket:", error);
@@ -245,7 +250,7 @@ const SupportTicketDetail = () => {
                   <button
                     onClick={async () => {
                       try {
-                        await dispatch(updateTicketStatus({ 
+                        await dispatch(updateSupportTicket({ 
                           ticketId, 
                           status: 'in_progress'
                         })).unwrap();

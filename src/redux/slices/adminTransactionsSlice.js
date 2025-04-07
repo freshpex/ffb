@@ -109,6 +109,38 @@ export const processTransaction = createAsyncThunk(
   }
 );
 
+// Approve transaction (wrapper for processTransaction)
+export const approveTransaction = createAsyncThunk(
+  'adminTransactions/approveTransaction',
+  async (id, { dispatch, rejectWithValue }) => {
+    try {
+      return await dispatch(processTransaction({ 
+        id, 
+        action: 'approve', 
+        notes: 'Transaction approved by admin' 
+      })).unwrap();
+    } catch (error) {
+      return rejectWithValue(error || 'Failed to approve transaction');
+    }
+  }
+);
+
+// Reject transaction (wrapper for processTransaction)
+export const rejectTransaction = createAsyncThunk(
+  'adminTransactions/rejectTransaction',
+  async ({ transactionId, reason }, { dispatch, rejectWithValue }) => {
+    try {
+      return await dispatch(processTransaction({ 
+        id: transactionId, 
+        action: 'reject', 
+        notes: reason 
+      })).unwrap();
+    } catch (error) {
+      return rejectWithValue(error || 'Failed to reject transaction');
+    }
+  }
+);
+
 // Fetch transaction statistics
 export const fetchTransactionStats = createAsyncThunk(
   'adminTransactions/fetchTransactionStats',
@@ -179,7 +211,7 @@ const adminTransactionsSlice = createSlice({
           page: action.payload.pagination.currentPage || 1,
           limit: action.payload.pagination.limit || 10,
           totalPages: action.payload.pagination.totalPages || 0,
-          totalTransactions: action.payload.pagination.total || 0 // Make sure this property is correctly mapped
+          totalTransactions: action.payload.pagination.total || 0 
         };
         state.error = null;
       })
