@@ -34,8 +34,11 @@ const AdminUsers = () => {
   
   useEffect(() => {
     document.title = "User Management | Admin Dashboard";
+    if (users.length > 0) {
+      console.log("User object structure:", users[0]);
+    }
     loadUsers();
-  }, [page, limit]); // Note: searchTerm and statusFilter are applied on form submit
+  }, [page, limit]);
   
   const loadUsers = () => {
     dispatch(fetchUsers({ 
@@ -194,7 +197,7 @@ const AdminUsers = () => {
                     ) : (
                       users.map((user) => (
                         <tr 
-                          key={user.id} 
+                          key={user._id || user.id || `user-${Math.random()}`} 
                           className={darkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -213,7 +216,7 @@ const AdminUsers = () => {
                                 ) : (
                                   <div className={`h-full w-full flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                                     <span className="text-primary-500 font-semibold">
-                                      {user.fullName.charAt(0)}
+                                      {user.fullName && user.fullName.charAt(0)}
                                     </span>
                                   </div>
                                 )}
@@ -265,7 +268,7 @@ const AdminUsers = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                             <div className="flex items-center justify-end space-x-2">
                               <Link
-                                to={`/admin/users/${user.id}`}
+                                to={`/admin/users/${user._id || user.id}`}
                                 className={`p-1.5 rounded-full ${
                                   darkMode 
                                     ? 'bg-gray-700 text-blue-400 hover:bg-gray-600' 
@@ -276,7 +279,7 @@ const AdminUsers = () => {
                                 <FaEye size={14} />
                               </Link>
                               <Link
-                                to={`/admin/users/${user.id}/edit`}
+                                to={`/admin/users/${user._id || user.id}/edit`}
                                 className={`p-1.5 rounded-full ${
                                   darkMode 
                                     ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' 
@@ -287,7 +290,7 @@ const AdminUsers = () => {
                                 <FaEdit size={14} />
                               </Link>
                               <Link
-                                to={`/admin/users/${user.id}/security`}
+                                to={`/admin/users/${user._id || user.id}/security`}
                                 className={`p-1.5 rounded-full ${
                                   darkMode 
                                     ? 'bg-gray-700 text-gray-400 hover:bg-gray-600' 
@@ -310,7 +313,9 @@ const AdminUsers = () => {
               <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
                 <Pagination
                   currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
+                  totalPages={pagination.totalPages || 0}
+                  totalItems={pagination.totalUsers || 0}
+                  itemsPerPage={limit}
                   onPageChange={handlePageChange}
                 />
               </div>

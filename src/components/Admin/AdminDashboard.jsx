@@ -58,29 +58,29 @@ const AdminDashboard = () => {
         
         // Calculate statistics
         const userStats = {
-          total: usersResponse.pagination.totalUsers,
-          active: usersResponse.users.filter(u => u.status === 'active').length,
-          pending: usersResponse.users.filter(u => u.status === 'pending_verification').length
+          total: usersResponse?.pagination?.totalUsers || 0,
+          active: (usersResponse?.users || []).filter(u => u?.status === 'active').length,
+          pending: (usersResponse?.users || []).filter(u => u?.status === 'pending_verification').length
         };
         
         const transactionStats = {
-          total: transactionsResponse.pagination.totalTransactions,
-          pending: transactionsResponse.transactions.filter(t => t.status === 'pending').length,
-          completed: transactionsResponse.transactions.filter(t => t.status === 'completed').length,
-          failed: transactionsResponse.transactions.filter(t => t.status === 'failed' || t.status === 'rejected').length
+          total: transactionsResponse?.pagination?.totalTransactions || 0,
+          pending: (transactionsResponse?.transactions || []).filter(t => t?.status === 'pending').length,
+          completed: (transactionsResponse?.transactions || []).filter(t => t?.status === 'completed').length,
+          failed: (transactionsResponse?.transactions || []).filter(t => (t?.status === 'failed' || t?.status === 'rejected')).length
         };
         
         const kycStats = {
-          total: kycResponse.pagination.totalRequests,
-          pending: kycResponse.kycRequests.filter(k => k.status === 'pending').length,
-          approved: kycResponse.kycRequests.filter(k => k.status === 'approved').length,
-          rejected: kycResponse.kycRequests.filter(k => k.status === 'rejected').length
+          total: kycResponse?.pagination?.totalRequests || 0,
+          pending: (kycResponse?.kycRequests || []).filter(k => k?.status === 'pending').length,
+          approved: (kycResponse?.kycRequests || []).filter(k => k?.status === 'approved').length,
+          rejected: (kycResponse?.kycRequests || []).filter(k => k?.status === 'rejected').length
         };
         
         const ticketStats = {
-          total: supportResponse.pagination.totalTickets,
-          open: supportResponse.supportTickets.filter(t => t.status === 'open' || t.status === 'in_progress').length,
-          resolved: supportResponse.supportTickets.filter(t => t.status === 'resolved' || t.status === 'closed').length
+          total: supportResponse?.pagination?.totalTickets || 0,
+          open: (supportResponse?.supportTickets || []).filter(t => (t?.status === 'open' || t?.status === 'in_progress')).length,
+          resolved: (supportResponse?.supportTickets || []).filter(t => (t?.status === 'resolved' || t?.status === 'closed')).length
         };
         
         setStats({
@@ -90,10 +90,9 @@ const AdminDashboard = () => {
           tickets: ticketStats
         });
         
-        // Set recent items
-        setRecentTransactions(transactionsResponse.transactions.slice(0, 5));
-        setRecentKycRequests(kycResponse.kycRequests.slice(0, 5));
-        setRecentTickets(supportResponse.supportTickets.slice(0, 5));
+        setRecentTransactions((transactionsResponse?.transactions || []).slice(0, 5));
+        setRecentKycRequests((kycResponse?.kycRequests || []).slice(0, 5));
+        setRecentTickets((supportResponse?.supportTickets || []).slice(0, 5));
         
         setLoading(false);
       } catch (error) {

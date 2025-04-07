@@ -1,636 +1,448 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { 
+  FaChevronDown, 
   FaUsers, 
-  FaUserPlus, 
-  FaUserMinus, 
-  FaUserClock, 
-  FaGlobe, 
-  FaDownload,
-  FaArrowUp,
-  FaArrowDown
+  FaSyncAlt, 
+  FaGlobe,
+  FaCheckCircle,
+  FaIdCard,
+  FaCreditCard
 } from 'react-icons/fa';
-import { useDarkMode } from '../../../context/DarkModeContext';
-import PageTransition from '../../common/PageTransition';
-import ComponentLoader from '../../common/ComponentLoader';
-
-// Chart components
+import { 
+  fetchUserGrowthAnalytics,
+  selectUserGrowthAnalytics,
+  selectAnalyticsStatus,
+  selectAnalyticsError
+} from '../../../redux/slices/adminAnalyticsSlice';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend
-);
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 const UserGrowthAnalytics = () => {
-  const { darkMode } = useDarkMode();
-  const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('30d');
-  const [chartData, setChartData] = useState(null);
+  const dispatch = useDispatch();
+  const userGrowthData = useSelector(selectUserGrowthAnalytics);
+  const status = useSelector(state => selectAnalyticsStatus(state, 'userGrowth'));
+  const error = useSelector(state => selectAnalyticsError(state, 'userGrowth'));
+  
+  const [period, setPeriod] = useState('month');
+  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
   
   useEffect(() => {
-    document.title = "User Growth Analytics | Admin Dashboard";
-    fetchUserData();
-  }, [timeRange]);
+    dispatch(fetchUserGrowthAnalytics({ period }));
+  }, [dispatch, period]);
   
-  const fetchUserData = async () => {
-    setLoading(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
-    // Generate mock data
-    generateMockData();
-    
-    setLoading(false);
+  const handleRefresh = () => {
+    dispatch(fetchUserGrowthAnalytics({ period }));
   };
   
-  const generateMockData = () => {
-    // Generate date labels based on selected time range
-    let labels = [];
-    let newUsersData = [];
-    let totalUsersData = [];
-    let retentionRateData = [];
-    
-    switch (timeRange) {
-      case '7d':
-        labels = [...Array(7)].map((_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (6 - i));
-          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
-        newUsersData = [45, 39, 53, 47, 65, 38, 41];
-        totalUsersData = [4500, 4539, 4592, 4639, 4704, 4742, 4783];
-        retentionRateData = [96.2, 96.4, 96.3, 96.5, 96.7, 96.8, 96.9];
-        break;
-      case '30d':
-        labels = [...Array(30)].map((_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (29 - i));
-          return i % 5 === 0 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-        });
-        newUsersData = labels.map(() => Math.floor(Math.random() * 40) + 25);
-        
-        // Calculate total users with accumulation
-        totalUsersData = [];
-        let runningTotal = 4300;
-        newUsersData.forEach((newUsers) => {
-          runningTotal += newUsers;
-          totalUsersData.push(runningTotal);
-        });
-        
-        retentionRateData = labels.map(() => (Math.random() * 1) + 95.5);
-        break;
-      case '90d':
-        labels = [...Array(12)].map((_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - 90 + (i * 7.5));
-          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
-        newUsersData = labels.map(() => Math.floor(Math.random() * 250) + 150);
-        
-        // Calculate total users with accumulation
-        totalUsersData = [];
-        let total90d = 3800;
-        newUsersData.forEach((newUsers) => {
-          total90d += newUsers;
-          totalUsersData.push(total90d);
-        });
-        
-        retentionRateData = labels.map(() => (Math.random() * 1.5) + 94.5);
-        break;
-      case '1y':
-        labels = [...Array(12)].map((_, i) => {
-          const d = new Date();
-          d.setMonth(d.getMonth() - 12 + i);
-          return d.toLocaleDateString('en-US', { month: 'short' });
-        });
-        newUsersData = labels.map(() => Math.floor(Math.random() * 1000) + 500);
-        
-        // Calculate total users with accumulation
-        totalUsersData = [];
-        let totalYear = 1500;
-        newUsersData.forEach((newUsers) => {
-          totalYear += newUsers;
-          totalUsersData.push(totalYear);
-        });
-        
-        retentionRateData = labels.map(() => (Math.random() * 2) + 93);
-        break;
+  // Format date labels based on period type
+  const formatPeriodLabel = (period) => {
+    switch (period) {
+      case 'day':
+        return 'Daily';
+      case 'week':
+        return 'Weekly';
+      case 'month':
+        return 'Monthly';
       default:
-        labels = [...Array(30)].map((_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (29 - i));
-          return i % 5 === 0 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-        });
-        newUsersData = labels.map(() => Math.floor(Math.random() * 40) + 25);
-        
-        // Calculate total users with accumulation
-        totalUsersData = [];
-        let defaultTotal = 4300;
-        newUsersData.forEach((newUsers) => {
-          defaultTotal += newUsers;
-          totalUsersData.push(defaultTotal);
-        });
-        
-        retentionRateData = labels.map(() => (Math.random() * 1) + 95.5);
+        return 'Monthly';
     }
-    
-    // Common chart options
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            color: darkMode ? '#e5e7eb' : '#4b5563',
-            font: {
-              family: "'Inter', sans-serif",
-              size: 12
-            }
-          }
-        },
-        tooltip: {
-          backgroundColor: darkMode ? '#1f2937' : 'white',
-          titleColor: darkMode ? '#e5e7eb' : '#111827',
-          bodyColor: darkMode ? '#d1d5db' : '#4b5563',
-          borderColor: darkMode ? '#374151' : '#e5e7eb',
-          borderWidth: 1,
-          padding: 10,
-          boxPadding: 3,
-          usePointStyle: true,
-          font: {
-            family: "'Inter', sans-serif"
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: {
-            color: darkMode ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.8)'
-          },
-          ticks: {
-            color: darkMode ? '#9ca3af' : '#6b7280'
-          }
-        },
-        y: {
-          grid: {
-            color: darkMode ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.8)'
-          },
-          ticks: {
-            color: darkMode ? '#9ca3af' : '#6b7280'
-          }
-        }
-      }
-    };
-    
-    // Create chart data objects
-    setChartData({
-      userGrowthChart: {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Total Users',
-              data: totalUsersData,
-              borderColor: '#3b82f6',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: true,
-              yAxisID: 'y'
-            },
-            {
-              label: 'New Users',
-              data: newUsersData,
-              borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.7)',
-              borderWidth: 2,
-              borderDash: [],
-              type: 'bar',
-              yAxisID: 'y1'
-            }
-          ]
-        },
-        options: {
-          ...chartOptions,
-          scales: {
-            ...chartOptions.scales,
-            y: {
-              ...chartOptions.scales.y,
-              type: 'linear',
-              display: true,
-              position: 'left',
-              title: {
-                display: true,
-                text: 'Total Users',
-                color: darkMode ? '#9ca3af' : '#6b7280'
-              }
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              grid: {
-                drawOnChartArea: false
-              },
-              title: {
-                display: true,
-                text: 'New Users',
-                color: darkMode ? '#9ca3af' : '#6b7280'
-              },
-              ticks: {
-                color: darkMode ? '#9ca3af' : '#6b7280'
-              }
-            }
-          }
-        }
-      },
-      retentionChart: {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Retention Rate (%)',
-              data: retentionRateData,
-              borderColor: '#8b5cf6',
-              backgroundColor: 'rgba(139, 92, 246, 0.2)',
-              borderWidth: 2,
-              tension: 0.4,
-              fill: true
-            }
-          ]
-        },
-        options: {
-          ...chartOptions,
-          scales: {
-            ...chartOptions.scales,
-            y: {
-              ...chartOptions.scales.y,
-              min: 90,
-              max: 100,
-              ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
-              }
-            }
-          }
-        }
-      },
-      userTypeChart: {
-        type: 'doughnut',
-        data: {
-          labels: ['Basic', 'Premium', 'Pro', 'Enterprise'],
-          datasets: [
-            {
-              data: [65, 20, 10, 5],
-              backgroundColor: [
-                'rgba(59, 130, 246, 0.7)',  // blue
-                'rgba(16, 185, 129, 0.7)',  // green
-                'rgba(245, 158, 11, 0.7)',  // yellow
-                'rgba(139, 92, 246, 0.7)'   // purple
-              ],
-              borderColor: [
-                '#3b82f6',
-                '#10b981',
-                '#f59e0b',
-                '#8b5cf6'
-              ],
-              borderWidth: 1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                color: darkMode ? '#e5e7eb' : '#4b5563',
-                font: {
-                  family: "'Inter', sans-serif",
-                  size: 12
-                }
-              }
-            }
-          }
-        }
-      }
-    });
   };
   
-  // Mock user data
-  const userData = {
-    totalUsers: 4783,
-    newUsers: {
-      daily: 41,
-      weekly: 328,
-      monthly: 1245
-    },
-    activeUsers: {
-      daily: 3215,
-      weekly: 3879,
-      monthly: 4502
-    },
-    retention: "96.9%",
-    conversionRate: "8.3%"
+  // Custom tooltip for charts
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-gray-900 p-3 border border-gray-700 rounded shadow-lg">
+          <p className="text-gray-300 font-medium mb-1">{label}</p>
+          {payload.map((entry, index) => (
+            <div key={index} className="flex items-center text-sm">
+              <div 
+                className="w-3 h-3 rounded-full mr-2" 
+                style={{ backgroundColor: entry.color }}
+              ></div>
+              <span className="text-gray-400">{entry.name}: </span>
+              <span className="text-white font-medium ml-1">
+                {entry.value.toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
   };
   
-  // Geographic data for the map
-  const geographicData = [
-    { country: 'United States', users: 1650, percentage: '34.5%' },
-    { country: 'United Kingdom', users: 740, percentage: '15.5%' },
-    { country: 'Germany', users: 485, percentage: '10.1%' },
-    { country: 'France', users: 375, percentage: '7.8%' },
-    { country: 'Canada', users: 320, percentage: '6.7%' },
-    { country: 'Australia', users: 290, percentage: '6.1%' },
-    { country: 'Japan', users: 215, percentage: '4.5%' },
-    { country: 'Other Countries', users: 708, percentage: '14.8%' }
+  // Colors for charts
+  const colors = {
+    cumulative: '#60A5FA', // blue-400
+    new: '#34D399', // emerald-400
+    verified: '#A78BFA', // violet-400
+    unverified: '#F87171' // red-400
+  };
+  
+  // COUNTRIES PIE CHART COLORS
+  const COUNTRY_COLORS = [
+    '#3B82F6', // blue-500
+    '#10B981', // emerald-500
+    '#8B5CF6', // violet-500
+    '#EC4899', // pink-500
+    '#F59E0B', // amber-500
+    '#EF4444', // red-500
+    '#6366F1', // indigo-500
+    '#14B8A6', // teal-500
+    '#F97316', // orange-500
+    '#8B5CF6', // violet-500
   ];
   
-  return (
-    <PageTransition>
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div>
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              User Growth Analytics
-            </h1>
-            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-              Track user acquisition, retention, and demographics
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 flex gap-3 items-center">
-            <div className="flex items-center">
-              <label htmlFor="timeRange" className={`mr-2 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Time Range:
-              </label>
-              <select
-                id="timeRange"
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className={`text-sm rounded-md border ${
-                  darkMode
-                    ? 'bg-gray-700 border-gray-600 text-gray-200'
-                    : 'bg-white border-gray-300 text-gray-700'
-                }`}
-              >
-                <option value="7d">Last 7 Days</option>
-                <option value="30d">Last 30 Days</option>
-                <option value="90d">Last 90 Days</option>
-                <option value="1y">Last Year</option>
-              </select>
-            </div>
-            <button
-              onClick={() => {}}
-              className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                darkMode 
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              <FaDownload className="mr-2" />
-              Export
-            </button>
-          </div>
-        </div>
-        
-        {/* User Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className={`rounded-lg p-4 ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="flex items-center mb-2">
-              <FaUsers className={`text-lg mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
-              <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Total Users
-              </p>
-            </div>
-            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {userData.totalUsers.toLocaleString()}
-            </h3>
-            <p className="flex items-center text-sm text-green-500 mt-1">
-              <FaArrowUp className="mr-1 h-3 w-3" /> +7.2% from last month
-            </p>
-          </div>
-          
-          <div className={`rounded-lg p-4 ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="flex items-center mb-2">
-              <FaUserPlus className={`text-lg mr-2 ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
-              <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                New Users (Today)
-              </p>
-            </div>
-            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {userData.newUsers.daily}
-            </h3>
-            <p className="flex items-center text-sm text-green-500 mt-1">
-              <FaArrowUp className="mr-1 h-3 w-3" /> +5.1% from yesterday
-            </p>
-          </div>
-          
-          <div className={`rounded-lg p-4 ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="flex items-center mb-2">
-              <FaUserClock className={`text-lg mr-2 ${darkMode ? 'text-purple-400' : 'text-purple-500'}`} />
-              <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Active Users (Today)
-              </p>
-            </div>
-            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {userData.activeUsers.daily.toLocaleString()}
-            </h3>
-            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-              {Math.round((userData.activeUsers.daily / userData.totalUsers) * 100)}% of total users
-            </p>
-          </div>
-          
-          <div className={`rounded-lg p-4 ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="flex items-center mb-2">
-              <FaUsers className={`text-lg mr-2 ${darkMode ? 'text-yellow-400' : 'text-yellow-500'}`} />
-              <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Retention Rate
-              </p>
-            </div>
-            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {userData.retention}
-            </h3>
-            <p className="flex items-center text-sm text-green-500 mt-1">
-              <FaArrowUp className="mr-1 h-3 w-3" /> +0.3% from last month
-            </p>
-          </div>
-          
-          <div className={`rounded-lg p-4 ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="flex items-center mb-2">
-              <FaUserPlus className={`text-lg mr-2 ${darkMode ? 'text-orange-400' : 'text-orange-500'}`} />
-              <p className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Conversion Rate
-              </p>
-            </div>
-            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {userData.conversionRate}
-            </h3>
-            <p className="flex items-center text-sm text-green-500 mt-1">
-              <FaArrowUp className="mr-1 h-3 w-3" /> +1.2% from last month
-            </p>
-          </div>
-        </div>
-        
-        {/* User Growth Chart */}
-        <div className={`rounded-lg ${
-          darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-        } mb-6`}>
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              User Growth & Acquisition
-            </h3>
-          </div>
-          <div className="p-4 h-96">
-            {loading ? (
-              <ComponentLoader height="100%" message="Loading user data..." />
-            ) : (
-              chartData && <Bar data={chartData.userGrowthChart.data} options={chartData.userGrowthChart.options} />
-            )}
-          </div>
-        </div>
-        
-        {/* Retention & User Type */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className={`rounded-lg ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                User Retention Rate
-              </h3>
-            </div>
-            <div className="p-4 h-80">
-              {loading ? (
-                <ComponentLoader height="100%" message="Loading retention data..." />
-              ) : (
-                chartData && <Line data={chartData.retentionChart.data} options={chartData.retentionChart.options} />
-              )}
-            </div>
-          </div>
-          
-          <div className={`rounded-lg ${
-            darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-          }`}>
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                User Account Types
-              </h3>
-            </div>
-            <div className="p-4 h-80">
-              {loading ? (
-                <ComponentLoader height="100%" message="Loading user types data..." />
-              ) : (
-                chartData && <Doughnut data={chartData.userTypeChart.data} options={chartData.userTypeChart.options} />
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Geographic Distribution */}
-        <div className={`rounded-lg ${
-          darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white shadow-md'
-        } mb-6`}>
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'} flex items-center`}>
-              <FaGlobe className="mr-2" /> Geographic Distribution
-            </h3>
-          </div>
-          <div className="p-4">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className={darkMode ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
-                    <th className={`px-6 py-3 text-left text-xs font-medium ${
-                      darkMode ? 'text-gray-400' : 'text-gray-500'
-                    } uppercase tracking-wider`}>
-                      Country
-                    </th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium ${
-                      darkMode ? 'text-gray-400' : 'text-gray-500'
-                    } uppercase tracking-wider`}>
-                      Users
-                    </th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium ${
-                      darkMode ? 'text-gray-400' : 'text-gray-500'
-                    } uppercase tracking-wider`}>
-                      Percentage
-                    </th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium ${
-                      darkMode ? 'text-gray-400' : 'text-gray-500'
-                    } uppercase tracking-wider`}>
-                      Distribution
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {geographicData.map((item, index) => (
-                    <tr key={index}>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                        darkMode ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        {item.country}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                        darkMode ? 'text-gray-300' : 'text-gray-500'
-                      }`}>
-                        {item.users.toLocaleString()}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                        darkMode ? 'text-gray-300' : 'text-gray-500'
-                      }`}>
-                        {item.percentage}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                          <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
-                            style={{ width: item.percentage }}
-                          ></div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+  if (status === 'loading' && !userGrowthData) {
+    return (
+      <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6 animate-pulse">
+        <div className="h-8 bg-gray-700 rounded w-48 mb-6"></div>
+        <div className="h-64 bg-gray-700 rounded mb-6"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-40 bg-gray-700 rounded"></div>
+          <div className="h-40 bg-gray-700 rounded"></div>
         </div>
       </div>
-    </PageTransition>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+        <div className="bg-red-900/30 border-l-4 border-red-500 p-4">
+          <p className="text-red-400">Error loading user analytics: {error}</p>
+          <button 
+            onClick={handleRefresh}
+            className="mt-2 px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center"
+          >
+            <FaSyncAlt className="mr-1" /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!userGrowthData) return null;
+  
+  return (
+    <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+      {/* Header with controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+        <h2 className="text-xl font-semibold text-white flex items-center">
+          <FaUsers className="mr-2 text-blue-400" />
+          User Growth Analytics
+        </h2>
+        
+        <div className="flex items-center gap-3">
+          {/* Period selector */}
+          <div className="relative">
+            <button
+              onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
+              className="px-3 py-1.5 bg-gray-700 text-gray-300 rounded flex items-center text-sm"
+            >
+              {formatPeriodLabel(period)}
+              <FaChevronDown className="ml-2 text-gray-400" size={12} />
+            </button>
+            
+            {showPeriodDropdown && (
+              <div className="absolute right-0 mt-1 bg-gray-700 rounded shadow-xl border border-gray-600 z-10">
+                <ul className="py-1">
+                  <li>
+                    <button
+                      onClick={() => {
+                        setPeriod('day');
+                        setShowPeriodDropdown(false);
+                      }}
+                      className="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 w-full text-left"
+                    >
+                      Daily
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        setPeriod('week');
+                        setShowPeriodDropdown(false);
+                      }}
+                      className="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 w-full text-left"
+                    >
+                      Weekly
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        setPeriod('month');
+                        setShowPeriodDropdown(false);
+                      }}
+                      className="px-4 py-2 text-sm text-gray-300 hover:bg-gray-600 w-full text-left"
+                    >
+                      Monthly
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+          
+          {/* Refresh button */}
+          <button
+            onClick={handleRefresh}
+            className="p-1.5 bg-gray-700 text-blue-400 rounded hover:bg-gray-600"
+            disabled={status === 'loading'}
+            title="Refresh data"
+          >
+            <FaSyncAlt className={status === 'loading' ? 'animate-spin' : ''} />
+          </button>
+        </div>
+      </div>
+      
+      {/* User Growth Chart */}
+      <div className="mb-8">
+        <h3 className="text-lg font-medium text-gray-200 mb-4">User Growth Trend</h3>
+        <div className="h-72 bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={userGrowthData.growthData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis 
+                dataKey="period" 
+                tick={{ fill: '#9CA3AF' }} 
+                axisLine={{ stroke: '#4B5563' }}
+              />
+              <YAxis 
+                tick={{ fill: '#9CA3AF' }} 
+                axisLine={{ stroke: '#4B5563' }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                wrapperStyle={{ 
+                  paddingTop: 10, 
+                  color: '#ffffff'
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="cumulative" 
+                stroke={colors.cumulative} 
+                activeDot={{ r: 8 }} 
+                name="Total Users"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="new" 
+                stroke={colors.new} 
+                name="New Users"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="verified" 
+                stroke={colors.verified} 
+                name="Verified Users"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="unverified" 
+                stroke={colors.unverified} 
+                name="Unverified Users"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      
+      {/* User Metrics and Demographics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* User Conversion Metrics */}
+        <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
+          <h3 className="text-lg font-medium text-gray-200 mb-4">User Conversion</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Email Verification */}
+            <div className="bg-gray-800/80 rounded-lg p-3 border border-gray-700/50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-sm">Email Verification Rate</p>
+                  <p className="text-xl font-semibold text-white mt-1">
+                    {userGrowthData.conversion.verificationRate.toFixed(1)}%
+                  </p>
+                </div>
+                <div className="p-2 rounded-full bg-green-900/30">
+                  <FaCheckCircle className="text-green-400" />
+                </div>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-green-500 h-2 rounded-full" 
+                  style={{ width: `${userGrowthData.conversion.verificationRate}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* KYC Submission */}
+            <div className="bg-gray-800/80 rounded-lg p-3 border border-gray-700/50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-sm">KYC Submission Rate</p>
+                  <p className="text-xl font-semibold text-white mt-1">
+                    {userGrowthData.conversion.kycSubmissionRate.toFixed(1)}%
+                  </p>
+                </div>
+                <div className="p-2 rounded-full bg-indigo-900/30">
+                  <FaIdCard className="text-indigo-400" />
+                </div>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-indigo-500 h-2 rounded-full" 
+                  style={{ width: `${userGrowthData.conversion.kycSubmissionRate}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* KYC Approval */}
+            <div className="bg-gray-800/80 rounded-lg p-3 border border-gray-700/50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-sm">KYC Approval Rate</p>
+                  <p className="text-xl font-semibold text-white mt-1">
+                    {userGrowthData.conversion.kycApprovalRate.toFixed(1)}%
+                  </p>
+                </div>
+                <div className="p-2 rounded-full bg-blue-900/30">
+                  <FaCheckCircle className="text-blue-400" />
+                </div>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full" 
+                  style={{ width: `${userGrowthData.conversion.kycApprovalRate}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* Deposit Conversion */}
+            <div className="bg-gray-800/80 rounded-lg p-3 border border-gray-700/50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-400 text-sm">Deposit Conversion</p>
+                  <p className="text-xl font-semibold text-white mt-1">
+                    {userGrowthData.conversion.depositConversionRate.toFixed(1)}%
+                  </p>
+                </div>
+                <div className="p-2 rounded-full bg-amber-900/30">
+                  <FaCreditCard className="text-amber-400" />
+                </div>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-amber-500 h-2 rounded-full" 
+                  style={{ width: `${userGrowthData.conversion.depositConversionRate}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* User Demographics */}
+        <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/50">
+          <h3 className="text-lg font-medium text-gray-200 mb-4 flex items-center">
+            <FaGlobe className="mr-2 text-blue-400" />
+            Users by Country
+          </h3>
+          
+          {userGrowthData.demographics.byCountry.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              {/* Country Pie Chart */}
+              <div className="h-56 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={userGrowthData.demographics.byCountry}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="count"
+                      nameKey="country"
+                      label={({ country, percent }) => `${country} (${(percent * 100).toFixed(0)}%)`}
+                      labelLine={false}
+                    >
+                      {userGrowthData.demographics.byCountry.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={COUNTRY_COLORS[index % COUNTRY_COLORS.length]} 
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [`${value} users`, 'Count']}
+                      labelFormatter={(country) => `${country}`}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* Country List */}
+              <div className="flex flex-col justify-center">
+                <div className="overflow-y-auto max-h-56">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr>
+                        <th className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider py-2">
+                          Country
+                        </th>
+                        <th className="text-right text-xs font-medium text-gray-400 uppercase tracking-wider py-2">
+                          Users
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700">
+                      {userGrowthData.demographics.byCountry.slice(0, 8).map((country, index) => (
+                        <tr key={country.country}>
+                          <td className="py-2 text-sm whitespace-nowrap text-gray-300 flex items-center">
+                            <div 
+                              className="w-3 h-3 rounded-full mr-2" 
+                              style={{ backgroundColor: COUNTRY_COLORS[index % COUNTRY_COLORS.length] }}
+                            ></div>
+                            {country.country}
+                          </td>
+                          <td className="py-2 text-sm text-right whitespace-nowrap text-gray-300 font-medium">
+                            {country.count.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-56 flex items-center justify-center">
+              <p className="text-gray-400">No country data available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

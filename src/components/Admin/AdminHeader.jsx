@@ -1,258 +1,121 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { 
   FaBars, 
   FaBell, 
-  FaSearch, 
-  FaUserCircle, 
-  FaCog, 
+  FaUser, 
   FaSignOutAlt, 
-  FaQuestionCircle,
-  FaMoon,
-  FaSun
+  FaSearch,
+  FaCog
 } from 'react-icons/fa';
-import { useDarkMode } from '../../context/DarkModeContext';
+import { logoutAdmin } from '../../redux/slices/adminAuthSlice';
+import { 
+  fetchAdminNotifications,
+  selectUnreadCount 
+} from '../../redux/slices/adminNotificationSlice';
+import NotificationsPanel from './NotificationsPanel';
 
 const AdminHeader = ({ toggleSidebar }) => {
-  const { darkMode, toggleDarkMode } = useDarkMode();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(3);
-  
-  const userMenuRef = useRef(null);
-  const notificationsRef = useRef(null);
+  const dispatch = useDispatch();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const unreadNotificationsCount = useSelector(selectUnreadCount);
+  const { admin } = useSelector(state => state.adminAuth);
   
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setShowNotifications(false);
-      }
-    };
+    dispatch(fetchAdminNotifications({ limit: 1 }));
     
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    // Set up polling every 2 minutes
+    const intervalId = setInterval(() => {
+      dispatch(fetchAdminNotifications({ limit: 1 }));
+    }, 120000);
+    
+    return () => clearInterval(intervalId);
+  }, [dispatch]);
   
-  const notifications = [
-    {
-      id: 'notif-1',
-      title: 'New User Registration',
-      message: 'John Doe has registered a new account',
-      time: '5 minutes ago',
-      read: false
-    },
-    {
-      id: 'notif-2',
-      title: 'Transaction Alert',
-      message: 'Large withdrawal detected: $25,000',
-      time: '1 hour ago',
-      read: false
-    },
-    {
-      id: 'notif-3',
-      title: 'KYC Document Submitted',
-      message: 'Emma Wilson has submitted verification documents',
-      time: '3 hours ago',
-      read: false
-    },
-    {
-      id: 'notif-4',
-      title: 'Support Ticket Updated',
-      message: 'Ticket #125 has been resolved',
-      time: '1 day ago',
-      read: true
+  const handleLogout = () => {
+    dispatch(logoutAdmin());
+    window.location.href = '/admin/login';
+  };
+  
+  const toggleNotifications = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+    if (!isNotificationsOpen) {
+      // Fetch latest notifications when opening panel
+      dispatch(fetchAdminNotifications());
     }
-  ];
-  
-  const markAllAsRead = () => {
-    setUnreadNotifications(0);
   };
   
   return (
-    <header className={`sticky top-0 z-30 h-16 flex items-center px-4 ${
-      darkMode ? 'bg-gray-900 border-b border-gray-800' : 'bg-white border-b border-gray-200'
-    } shadow-sm`}>
-      <div className="flex-1 flex items-center justify-between">
+    <header className="bg-gray-900 shadow-md py-3 px-4 fixed w-full z-20">
+      <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <button
+          <button 
             onClick={toggleSidebar}
-            className={`p-2 rounded-md text-gray-500 hover:text-gray-800 focus:outline-none ${
-              darkMode ? 'hover:bg-gray-700 hover:text-white' : 'hover:bg-gray-100'
-            }`}
+            className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <FaBars className="h-5 w-5" />
           </button>
-          
-          <div className="ml-4 md:ml-6 relative">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className={`w-64 pl-10 pr-4 py-2 rounded-md text-sm focus:outline-none ${
-                  darkMode 
-                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:ring-primary-500 focus:border-primary-500' 
-                    : 'bg-gray-100 border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-primary-500 focus:border-primary-500'
-                } border`}
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaSearch className={darkMode ? 'text-gray-500' : 'text-gray-400'} />
-              </div>
-            </div>
-          </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          {/* Dark mode toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className={`p-2 rounded-md focus:outline-none ${
-              darkMode 
-                ? 'bg-gray-800 text-yellow-300 hover:bg-gray-700' 
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {darkMode ? <FaSun className="h-5 w-5" /> : <FaMoon className="h-5 w-5" />}
-          </button>
-          
-          {/* Notifications */}
-          <div className="relative" ref={notificationsRef}>
+        <div className="flex items-center">
+          <div className="relative ml-3">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className={`p-2 rounded-md text-gray-500 focus:outline-none ${
-                darkMode 
-                  ? 'hover:bg-gray-700 hover:text-white' 
-                  : 'hover:bg-gray-100 hover:text-gray-800'
-              }`}
+              onClick={toggleNotifications}
+              className="p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 relative"
             >
-              <span className="sr-only">View notifications</span>
               <FaBell className="h-5 w-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                  {unreadNotifications}
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute top-0 right-0 transform translate-x-1/3 -translate-y-1/3 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                 </span>
               )}
             </button>
             
-            {showNotifications && (
-              <div className={`origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg overflow-hidden ${
-                darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
-              }`}>
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                  <h3 className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Notifications
-                  </h3>
-                  <button
-                    onClick={markAllAsRead}
-                    className={`text-xs underline ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`}
-                  >
-                    Mark all as read
-                  </button>
-                </div>
-                <div className="divide-y divide-gray-200 dark:divide-gray-700 max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div 
-                      key={notification.id} 
-                      className={`p-4 ${notification.read ? '' : darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}
-                    >
-                      <p className={`text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {notification.title}
-                      </p>
-                      <p className={`text-xs mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {notification.message}
-                      </p>
-                      <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {notification.time}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-2 border-t border-gray-200 dark:border-gray-700">
-                  <Link
-                    to="/admin/notifications"
-                    className={`block text-center text-sm py-1 rounded-md ${
-                      darkMode 
-                        ? 'text-primary-500 hover:bg-gray-700' 
-                        : 'text-primary-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    View all notifications
-                  </Link>
-                </div>
-              </div>
-            )}
+            {/* Notifications Panel */}
+            <NotificationsPanel 
+              isOpen={isNotificationsOpen} 
+              onClose={() => setIsNotificationsOpen(false)} 
+            />
           </div>
           
-          {/* User menu */}
-          <div className="relative" ref={userMenuRef}>
+          {/* Profile dropdown */}
+          <div className="relative ml-3">
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 p-1.5 rounded-full focus:outline-none"
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="flex items-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <span className="sr-only">Open user menu</span>
-              <FaUserCircle className={`h-6 w-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
+              <FaUser className="h-5 w-5 mr-2" />
+              <span className="hidden md:block">{admin?.name || 'Admin'}</span>
             </button>
             
-            {showUserMenu && (
-              <div className={`origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg overflow-hidden ${
-                darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
-              }`}>
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                  <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Admin User
-                  </p>
-                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    admin@fidelityfirst.com
-                  </p>
-                </div>
-                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} py-1`}>
+            {isProfileOpen && (
+              <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
+                <div className="py-1">
                   <Link
                     to="/admin/profile"
-                    className={`flex items-center px-4 py-2 text-sm ${
-                      darkMode 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                    onClick={() => setIsProfileOpen(false)}
                   >
-                    <FaUserCircle className="mr-3 h-4 w-4" />
-                    Your Profile
+                    <FaUser className="mr-2 text-gray-500" />
+                    Profile
                   </Link>
                   <Link
                     to="/admin/settings"
-                    className={`flex items-center px-4 py-2 text-sm ${
-                      darkMode 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                    onClick={() => setIsProfileOpen(false)}
                   >
-                    <FaCog className="mr-3 h-4 w-4" />
+                    <FaCog className="mr-2 text-gray-500" />
                     Settings
                   </Link>
-                  <Link
-                    to="/admin/support"
-                    className={`flex items-center px-4 py-2 text-sm ${
-                      darkMode 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    <FaQuestionCircle className="mr-3 h-4 w-4" />
-                    Help Center
-                  </Link>
                   <button
-                    className={`flex w-full items-center px-4 py-2 text-sm ${
-                      darkMode 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+                    onClick={handleLogout}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
                   >
-                    <FaSignOutAlt className="mr-3 h-4 w-4" />
-                    Sign out
+                    <FaSignOutAlt className="mr-2 text-gray-500" />
+                    Logout
                   </button>
                 </div>
               </div>

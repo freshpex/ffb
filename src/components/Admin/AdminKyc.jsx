@@ -266,8 +266,10 @@ const AdminKyc = () => {
               {/* Pagination */}
               <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
                 <Pagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
+                  currentPage={pagination.page || 1}
+                  totalPages={pagination.totalPages || 0}
+                  totalItems={pagination.totalRequests || 10}
+                  itemsPerPage={limit}
                   onPageChange={handlePageChange}
                 />
               </div>

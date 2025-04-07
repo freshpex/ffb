@@ -14,7 +14,8 @@ import {
   FaAngleUp,
   FaChartPie,
   FaChartBar,
-  FaDollarSign
+  FaDollarSign,
+  FaHome
 } from 'react-icons/fa';
 import { useDarkMode } from '../../context/DarkModeContext';
 

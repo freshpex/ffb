@@ -17,10 +17,13 @@ import {
   FaBan,
   FaExclamationTriangle,
   FaCheck,
-  FaTimes
+  FaTimes,
+  FaInfoCircle
 } from 'react-icons/fa';
-import { fetchUserById, updateUser, selectSelectedUser, selectUsersStatus, selectUserActionStatus } from '../../redux/slices/adminUsersSlice';
+import { fetchUserById, updateUser, selectSelectedUser, selectUsersStatus, selectUserActionStatus, selectUsersError } from '../../redux/slices/adminUsersSlice';
+import { selectAdmin } from '../../redux/slices/adminAuthSlice';
 import { useDarkMode } from '../../context/DarkModeContext';
+import { hasAdminPermission, canModifyUser as checkCanModifyUser } from '../../utils/adminAuthUtils';
 import PageTransition from '../common/PageTransition';
 import ComponentLoader from '../common/ComponentLoader';
 import StatusBadge from './common/StatusBadge';
@@ -34,18 +37,56 @@ const UserDetail = () => {
   const user = useSelector(selectSelectedUser);
   const status = useSelector(selectUsersStatus);
   const actionStatus = useSelector(selectUserActionStatus);
+  const error = useSelector(selectUsersError);
+  const adminUser = useSelector(selectAdmin);
   
   const [activeTab, setActiveTab] = useState('profile');
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [statusNote, setStatusNote] = useState('');
+  const [permissionError, setPermissionError] = useState(null);
+  
+  // Check if current admin has permission to modify this user
+  const canModifyUser = () => {
+    if (!user || !adminUser) return false;
+    
+    return checkCanModifyUser(user, adminUser);
+  };
   
   useEffect(() => {
     document.title = "User Details | Admin Dashboard";
-    dispatch(fetchUserById(userId));
+    if (userId) {
+      dispatch(fetchUserById(userId));
+    }
+    
+    // Reset error message when component unmounts
+    return () => {
+      setPermissionError(null);
+    };
   }, [dispatch, userId]);
+
+  useEffect(() => {
+    if (error) {
+      // Extract the error message appropriately
+      const errorMsg = typeof error === 'string' 
+        ? error 
+        : error.message || 'An error occurred';
+      
+      // Check if it's a permission error
+      if (errorMsg.includes('forbidden') || errorMsg.includes('superadmin') || errorMsg.includes('permission')) {
+        setPermissionError(`Permission denied: ${errorMsg}`);
+      }
+    }
+  }, [error]);
   
   const handleStatusChange = async () => {
+    // Validate permissions first to avoid a 403 error
+    if (!canModifyUser()) {
+      setPermissionError('You do not have permission to modify this user.');
+      setShowStatusModal(false);
+      return;
+    }
+    
     try {
       await dispatch(updateUser({
         userId,
@@ -55,8 +96,14 @@ const UserDetail = () => {
         }
       })).unwrap();
       setShowStatusModal(false);
+      setPermissionError(null);
     } catch (error) {
       console.error("Failed to update status:", error);
+      setPermissionError(
+        error.toString().includes('superadmin') 
+          ? 'Permission denied: Only superadmins can modify admin users' 
+          : `Failed to update status: ${error}`
+      );
     }
   };
   
@@ -96,6 +143,9 @@ const UserDetail = () => {
       </div>
     );
   }
+
+  // Show a prominent permission warning if this user is an admin/superadmin and the current user can't modify them
+  const showPermissionWarning = (user.role === 'admin' || user.role === 'superadmin') && !canModifyUser();
   
   return (
     <PageTransition>
@@ -121,13 +171,61 @@ const UserDetail = () => {
               <FaArrowLeft className="mr-2" /> Back
             </button>
             <Link
-              to={`/admin/users/${user.id}/edit`}
-              className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700"
+              to={`/admin/users/${user._id || user.id}/edit`}
+              className={`inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium ${
+                !canModifyUser()
+                ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                : 'bg-primary-600 text-white hover:bg-primary-700'
+              }`}
+              onClick={(e) => {
+                if (!canModifyUser()) {
+                  e.preventDefault();
+                  setPermissionError('You do not have permission to edit this user.');
+                }
+              }}
             >
               <FaEdit className="mr-2" /> Edit User
             </Link>
           </div>
         </div>
+        
+        {/* Permission Error Alert */}
+        {permissionError && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            darkMode ? 'bg-red-900/20 text-red-400 border border-red-900/50' : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            <div className="flex items-start">
+              <FaExclamationTriangle className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-medium">Permission Error</h3>
+                <p className="mt-1 text-sm">{permissionError}</p>
+                <button 
+                  className="mt-2 text-sm underline"
+                  onClick={() => setPermissionError(null)}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Permission Warning for Admin Users */}
+        {showPermissionWarning && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            darkMode ? 'bg-yellow-900/20 text-yellow-400 border border-yellow-900/50' : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+          }`}>
+            <div className="flex items-start">
+              <FaInfoCircle className="mt-0.5 mr-3 h-5 w-5 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-medium">Limited Access</h3>
+                <p className="mt-1 text-sm">
+                  This is an {user.role} user. You do not have sufficient permissions to modify this user. Only superadmins can modify admin accounts.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* User Header Card */}
         <div className={`mb-6 rounded-lg overflow-hidden ${
@@ -140,18 +238,18 @@ const UserDetail = () => {
                   {user.profileImage ? (
                     <img 
                       src={user.profileImage} 
-                      alt={user.fullName} 
+                      alt={user.fullName || ''} 
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = `https://ui-avatars.com/api/?name=${user.fullName.replace(' ', '+')}&size=80&background=0D8ABC&color=fff`;
+                        e.target.src = `https://ui-avatars.com/api/?name=${(user.fullName || '').replace(' ', '+')}&size=80&background=0D8ABC&color=fff`;
                       }}
                     />
                   ) : (
                     <div className={`h-full w-full flex items-center justify-center text-2xl font-semibold ${
                       darkMode ? 'bg-gray-700 text-primary-400' : 'bg-gray-200 text-primary-600'
                     }`}>
-                      {user.fullName.charAt(0)}
+                      {user.fullName && user.fullName.charAt(0)}
                     </div>
                   )}
                 </div>
@@ -162,6 +260,16 @@ const UserDetail = () => {
                   <div>
                     <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {user.fullName}
+                      {user.role === 'admin' && (
+                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                          Admin
+                        </span>
+                      )}
+                      {user.role === 'superadmin' && (
+                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+                          Superadmin
+                        </span>
+                      )}
                     </h2>
                     <div className="flex flex-wrap items-center mt-1 text-sm">
                       <span className={`inline-flex items-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -180,14 +288,21 @@ const UserDetail = () => {
                     <StatusBadge status={user.status} size="large" />
                     <button
                       onClick={() => {
+                        if (!canModifyUser()) {
+                          setPermissionError('You do not have permission to change this user\'s status.');
+                          return;
+                        }
                         setNewStatus(user.status);
                         setShowStatusModal(true);
                       }}
                       className={`text-xs px-2 py-1 rounded ${
-                        darkMode 
+                        !canModifyUser()
+                        ? `cursor-not-allowed opacity-50 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`
+                        : darkMode 
                           ? 'text-gray-300 hover:bg-gray-700' 
                           : 'text-gray-500 hover:bg-gray-100'
                       }`}
+                      disabled={!canModifyUser()}
                     >
                       Change
                     </button>
@@ -354,27 +469,41 @@ const UserDetail = () => {
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => {
+                      if (!canModifyUser()) {
+                        setPermissionError('You do not have permission to change this user\'s status.');
+                        return;
+                      }
                       setNewStatus('active');
                       setShowStatusModal(true);
                     }}
                     className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-                      darkMode 
+                      !canModifyUser()
+                      ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                      : darkMode 
                         ? 'bg-green-900/30 text-green-400 hover:bg-green-900/50' 
                         : 'bg-green-100 text-green-700 hover:bg-green-200'
                     }`}
+                    disabled={!canModifyUser()}
                   >
                     <FaUserCheck className="mr-2" /> Activate
                   </button>
                   <button
                     onClick={() => {
+                      if (!canModifyUser()) {
+                        setPermissionError('You do not have permission to change this user\'s status.');
+                        return;
+                      }
                       setNewStatus('suspended');
                       setShowStatusModal(true);
                     }}
                     className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-                      darkMode 
+                      !canModifyUser()
+                      ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                      : darkMode 
                         ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50' 
                         : 'bg-red-100 text-red-700 hover:bg-red-200'
                     }`}
+                    disabled={!canModifyUser()}
                   >
                     <FaBan className="mr-2" /> Suspend
                   </button>
@@ -483,27 +612,41 @@ const UserDetail = () => {
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => {
+                      if (!canModifyUser()) {
+                        setPermissionError('You do not have permission to perform this action.');
+                        return;
+                      }
                       // Would typically show a modal to confirm and send password reset
                       alert('Password reset functionality would be implemented here.');
                     }}
                     className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-                      darkMode 
+                      !canModifyUser()
+                      ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                      : darkMode 
                         ? 'bg-blue-900/30 text-blue-400 hover:bg-blue-900/50' 
                         : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                     }`}
+                    disabled={!canModifyUser()}
                   >
                     <FaLock className="mr-2" /> Reset Password
                   </button>
                   <button
                     onClick={() => {
+                      if (!canModifyUser()) {
+                        setPermissionError('You do not have permission to perform this action.');
+                        return;
+                      }
                       // Would typically toggle 2FA status
                       alert('2FA toggle functionality would be implemented here.');
                     }}
                     className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
-                      darkMode 
+                      !canModifyUser()
+                      ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                      : darkMode 
                         ? 'bg-indigo-900/30 text-indigo-400 hover:bg-indigo-900/50' 
                         : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
                     }`}
+                    disabled={!canModifyUser()}
                   >
                     {user.twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
                   </button>
@@ -519,84 +662,65 @@ const UserDetail = () => {
                   Recent Transactions
                 </h3>
                 <Link
-                  to={`/admin/transactions?userId=${user.id}`}
+                  to={`/admin/transactions?userId=${user._id || user.id}`}
                   className="text-primary-500 hover:text-primary-600 text-sm"
                 >
                   View All
                 </Link>
               </div>
               
-              <div className={`rounded-lg overflow-hidden ${
-                darkMode ? 'border border-gray-700' : 'border border-gray-200'
-              }`}>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className={darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Type
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Amount
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Date
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y divide-gray-200 dark:divide-gray-700 ${
-                      darkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      {/* In a real implementation, this would show actual transaction data */}
-                      <tr className={darkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm capitalize">
-                          Deposit
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-500">
-                          +$1,000.00
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status="completed" />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(new Date().toISOString())}
-                        </td>
-                      </tr>
-                      <tr className={darkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm capitalize">
-                          Withdrawal
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">
-                          -$500.00
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status="pending" />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(new Date().toISOString())}
-                        </td>
-                      </tr>
-                      <tr className={darkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm capitalize">
-                          Investment
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500">
-                          -$2,000.00
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <StatusBadge status="completed" />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(new Date().toISOString())}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+              {user.recentActivity && user.recentActivity.transactions && user.recentActivity.transactions.length > 0 ? (
+                <div className={`rounded-lg overflow-hidden ${
+                  darkMode ? 'border border-gray-700' : 'border border-gray-200'
+                }`}>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className={darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}>
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Type
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Amount
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Date
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y divide-gray-200 dark:divide-gray-700 ${
+                        darkMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        {user.recentActivity.transactions.map((transaction) => (
+                          <tr key={transaction._id} className={darkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm capitalize">
+                              {transaction.type}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span className={transaction.type === 'deposit' ? 'text-green-500' : 'text-red-500'}>
+                                {transaction.type === 'deposit' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <StatusBadge status={transaction.status} />
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              {formatDate(transaction.createdAt)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className={`rounded-lg p-8 text-center ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>No recent transactions found for this user.</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -618,6 +742,19 @@ const UserDetail = () => {
                   Change User Status
                 </h3>
                 
+                {showPermissionWarning && (
+                  <div className={`mb-4 p-3 rounded-lg ${
+                    darkMode ? 'bg-yellow-900/20 text-yellow-400 border border-yellow-900/50' : 'bg-yellow-50 text-yellow-700 border border-yellow-100'
+                  }`}>
+                    <div className="flex items-start">
+                      <FaInfoCircle className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0" />
+                      <p className="text-sm">
+                        Warning: This is an {user.role} user. Only superadmins can modify admin accounts.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="mb-4">
                   <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     New Status
@@ -630,6 +767,7 @@ const UserDetail = () => {
                         ? 'bg-gray-700 border-gray-600 text-white' 
                         : 'bg-white border-gray-300 text-gray-900'
                     } border`}
+                    disabled={!canModifyUser()}
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -652,6 +790,7 @@ const UserDetail = () => {
                     } border`}
                     rows="3"
                     placeholder="Add a note about this status change..."
+                    disabled={!canModifyUser()}
                   ></textarea>
                 </div>
               </div>
@@ -662,10 +801,10 @@ const UserDetail = () => {
                 <button
                   type="button"
                   onClick={handleStatusChange}
-                  disabled={actionStatus === 'loading'}
+                  disabled={actionStatus === 'loading' || !canModifyUser()}
                   className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${
-                    actionStatus === 'loading' 
-                      ? 'bg-primary-400 cursor-not-allowed' 
+                    actionStatus === 'loading' || !canModifyUser()
+                      ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-primary-600 hover:bg-primary-700'
                   } text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm`}
                 >

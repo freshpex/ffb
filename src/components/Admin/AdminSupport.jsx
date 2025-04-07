@@ -335,6 +335,8 @@ const AdminSupport = () => {
                 <Pagination
                   currentPage={pagination.page}
                   totalPages={pagination.totalPages}
+                  totalItems={pagination.totalTickets}
+                  itemsPerPage={limit}
                   onPageChange={handlePageChange}
                 />
               </div>

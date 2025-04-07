@@ -1,162 +1,131 @@
+import React from 'react';
 import PropTypes from 'prop-types';
-import { FaChevronLeft, FaChevronRight, FaEllipsisH } from 'react-icons/fa';
+import { FaAngleLeft, FaAngleRight } from 'react-icons/fa';
 import { useDarkMode } from '../../../context/DarkModeContext';
 
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
-  siblingCount = 1,
-  className = '' 
-}) => {
+const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageChange }) => {
   const { darkMode } = useDarkMode();
-
-  // If there's only one page, don't render pagination
-  if (totalPages <= 1) return null;
-
-  // Generate page numbers to show
-  const generatePagination = () => {
-    // Always show first page
-    const firstPage = 1;
-    // Always show last page
-    const lastPage = totalPages;
-    
-    // Calculate range of visible pages
-    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
-    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-    
-    // Show dots only if there are more than 1 page between the sibling and the end value
-    const showLeftDots = leftSiblingIndex > 2;
-    const showRightDots = rightSiblingIndex < totalPages - 1;
-    
-    // Initialize an array to store page numbers
-    const pages = [];
-    
-    // Handle case when showing left dots
-    if (showLeftDots) {
-      pages.push(firstPage);
-      pages.push('leftDots');
-    } else {
-      // No left dots, show all pages from 1 to leftSiblingIndex
-      for (let i = firstPage; i <= leftSiblingIndex; i++) {
-        pages.push(i);
-      }
+  
+  // Early return if we don't have enough data to render pagination
+  if (!totalPages || totalPages <= 0) {
+    return null;
+  }
+  
+  // Generate page range to display
+  const getPageRange = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
     
-    // Show pages between siblings (inclusive)
-    for (let i = leftSiblingIndex + (showLeftDots ? 1 : 0); i <= rightSiblingIndex - (showRightDots ? 1 : 0); i++) {
-      pages.push(i);
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5];
     }
     
-    // Handle case when showing right dots
-    if (showRightDots) {
-      pages.push('rightDots');
-      pages.push(lastPage);
-    } else {
-      // No right dots, show all pages from rightSiblingIndex to lastPage
-      for (let i = rightSiblingIndex + 1; i <= lastPage; i++) {
-        pages.push(i);
-      }
+    if (currentPage >= totalPages - 2) {
+      return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     }
     
-    return pages;
+    return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
   };
   
-  const pages = generatePagination();
+  const pageRange = getPageRange();
   
-  // Base styles for pagination buttons
-  const baseButtonClass = `flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-colors duration-150 ${
-    darkMode 
-      ? 'focus:ring-primary-600 focus:ring-offset-gray-800'
-      : 'focus:ring-primary-600 focus:ring-offset-white'
-  } focus:outline-none focus:ring-2 focus:ring-offset-2`;
+  // Calculate displayed items range
+  const startItem = ((currentPage - 1) * itemsPerPage) + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
   
-  const activeButtonClass = `${baseButtonClass} ${
-    darkMode 
-      ? 'bg-primary-600 text-white' 
-      : 'bg-primary-600 text-white'
-  }`;
-  
-  const inactiveButtonClass = `${baseButtonClass} ${
-    darkMode 
-      ? 'text-gray-400 hover:bg-gray-700 hover:text-white' 
-      : 'text-gray-700 hover:bg-gray-100'
-  }`;
-  
-  const disabledButtonClass = `${baseButtonClass} ${
-    darkMode 
-      ? 'text-gray-600 bg-gray-800 cursor-not-allowed' 
-      : 'text-gray-400 bg-gray-200 cursor-not-allowed'
-  }`;
-
   return (
-    <nav className={`flex items-center justify-between flex-wrap gap-4 ${className}`}>
-      <div className="flex items-center text-sm">
-        <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-          Page <span className="font-medium">{currentPage}</span> of{' '}
-          <span className="font-medium">{totalPages}</span>
-        </span>
+    <div className="flex flex-col md:flex-row items-center justify-between">
+      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'} mb-4 md:mb-0`}>
+        Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
+        <span className="font-medium">{totalItems}</span> results
       </div>
       
-      <div className="flex items-center space-x-2">
-        {/* Previous page button */}
+      <div className="flex items-center space-x-1">
         <button
-          onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+          onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={currentPage === 1 ? disabledButtonClass : inactiveButtonClass}
-          aria-label="Previous page"
+          className={`p-2 rounded-md ${
+            darkMode 
+              ? (currentPage === 1 ? 'text-gray-600 cursor-not-allowed' : 'text-gray-300 hover:bg-gray-700')
+              : (currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100')
+          }`}
         >
-          <FaChevronLeft className="h-4 w-4" />
+          <FaAngleLeft className="h-4 w-4" />
         </button>
         
-        {/* Page numbers */}
-        {pages.map((page, index) => {
-          if (page === 'leftDots' || page === 'rightDots') {
-            return (
-              <span
-                key={`dots-${index}`}
-                className={`flex items-center justify-center w-9 h-9 ${
-                  darkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}
-              >
-                <FaEllipsisH className="h-3 w-3" />
-              </span>
-            );
-          }
-          
-          return (
+        {pageRange[0] > 1 && (
+          <>
             <button
-              key={page}
-              onClick={() => onPageChange(page)}
-              className={page === currentPage ? activeButtonClass : inactiveButtonClass}
-              aria-label={`Page ${page}`}
-              aria-current={page === currentPage ? 'page' : undefined}
+              onClick={() => onPageChange(1)}
+              className={`px-3 py-1 rounded-md ${
+                darkMode 
+                  ? 'text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              {page}
+              1
             </button>
-          );
-        })}
+            {pageRange[0] > 2 && (
+              <span className={`px-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>...</span>
+            )}
+          </>
+        )}
         
-        {/* Next page button */}
+        {pageRange.map(page => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`px-3 py-1 rounded-md ${
+              currentPage === page
+                ? (darkMode ? 'bg-primary-600 text-white' : 'bg-primary-600 text-white')
+                : (darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100')
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        
+        {pageRange[pageRange.length - 1] < totalPages && (
+          <>
+            {pageRange[pageRange.length - 1] < totalPages - 1 && (
+              <span className={`px-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>...</span>
+            )}
+            <button
+              onClick={() => onPageChange(totalPages)}
+              className={`px-3 py-1 rounded-md ${
+                darkMode 
+                  ? 'text-gray-300 hover:bg-gray-700' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+        
         <button
-          onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+          onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={currentPage === totalPages ? disabledButtonClass : inactiveButtonClass}
-          aria-label="Next page"
+          className={`p-2 rounded-md ${
+            darkMode 
+              ? (currentPage === totalPages ? 'text-gray-600 cursor-not-allowed' : 'text-gray-300 hover:bg-gray-700')
+              : (currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100')
+          }`}
         >
-          <FaChevronRight className="h-4 w-4" />
+          <FaAngleRight className="h-4 w-4" />
         </button>
       </div>
-    </nav>
+    </div>
   );
 };
 
 Pagination.propTypes = {
   currentPage: PropTypes.number.isRequired,
   totalPages: PropTypes.number.isRequired,
-  onPageChange: PropTypes.func.isRequired,
-  siblingCount: PropTypes.number,
-  className: PropTypes.string
+  totalItems: PropTypes.number.isRequired,
+  itemsPerPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired
 };
 
 export default Pagination;
