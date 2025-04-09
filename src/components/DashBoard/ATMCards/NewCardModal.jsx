@@ -85,13 +85,13 @@ const NewCardModal = ({ isOpen, onClose, onSuccess }) => {
       return false;
     }
     
-    // Only validate shipping address for physical cards
+    // Validate name for all card types
+    if (!shipping.name.trim()) {
+      setError('Please enter your name');
+      return false;
+    }
+    
     if (selectedType !== 'virtual-debit') {
-      if (!shipping.name.trim()) {
-        setError('Please enter your name');
-        return false;
-      }
-      
       if (!shipping.street.trim()) {
         setError('Please enter your street address');
         return false;
@@ -129,7 +129,7 @@ const NewCardModal = ({ isOpen, onClose, onSuccess }) => {
         type: selectedType,
         currency,
         name: shipping.name,
-        address: selectedType === 'virtual-debit' ? null : {
+        shippingAddress: selectedType === 'virtual-debit' ? null : {
           street: shipping.street,
           city: shipping.city,
           postalCode: shipping.postalCode,
@@ -332,6 +332,18 @@ const NewCardModal = ({ isOpen, onClose, onSuccess }) => {
                       </select>
                     </div>
                     
+                    {/* Add name field for all card types */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">Card Name (as it will appear on the card)</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={shipping.name}
+                        onChange={handleShippingChange}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white"
+                      />
+                    </div>
+                    
                     {selectedType !== 'virtual-debit' && (
                       <div className="border-t border-gray-700 pt-4">
                         <h4 className="text-white font-medium mb-3">Shipping Information</h4>
@@ -417,6 +429,10 @@ const NewCardModal = ({ isOpen, onClose, onSuccess }) => {
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-gray-400">Type:</span>
                           <span className="text-white">{cardTypes.find(ct => ct.id === selectedType)?.name}</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-400">Name on Card:</span>
+                          <span className="text-white">{shipping.name}</span>
                         </div>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-gray-400">Currency:</span>

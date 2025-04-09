@@ -101,7 +101,6 @@ export const selectResources = state => {
   const { resources, filters } = state.education;
   
   return resources.filter(resource => {
-    // Filter by category
     if (filters.category !== 'all' && resource.category !== filters.category) {
       return false;
     }

@@ -34,7 +34,7 @@ export const submitWithdrawal = createAsyncThunk(
   'withdrawal/submitWithdrawal',
   async (withdrawalData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.createWithdrawal(withdrawalData);
+      const response = await apiClient.post('/withdrawals', withdrawalData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to process withdrawal');
@@ -46,7 +46,7 @@ export const fetchWithdrawalHistory = createAsyncThunk(
   'withdrawal/fetchHistory',
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/transactions/withdrawals?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(`/withdrawals/history?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch withdrawal history');
@@ -58,7 +58,7 @@ export const cancelWithdrawal = createAsyncThunk(
   'withdrawal/cancelWithdrawal',
   async (withdrawalId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/transactions/${withdrawalId}/cancel`);
+      const response = await apiClient.put(`/withdrawals/${withdrawalId}/cancel`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to cancel withdrawal');
@@ -161,5 +161,6 @@ export const selectWithdrawalError = state => state.withdrawal.error;
 export const selectPendingWithdrawal = state => state.withdrawal.pendingWithdrawals[0] || null;
 export const selectWithdrawalHistory = state => state.withdrawal.withdrawalHistory;
 export const selectWithdrawalPagination = state => state.withdrawal.pagination;
+export const selectWithdrawalForm = state => state.withdrawal.withdrawalForm;
 
 export default withdrawalSlice.reducer;

@@ -59,7 +59,14 @@ export const requestCard = createAsyncThunk(
   'atmCards/requestCard',
   async (cardData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/atm-cards/request', cardData);
+      const payload = {
+        type: cardData.type,
+        name: cardData.name,
+        currency: cardData.currency,
+        shippingAddress: cardData.shippingAddress
+      };
+      
+      const response = await apiClient.post('/atm-cards/request', payload);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to request card');
@@ -260,5 +267,7 @@ export const selectCardById = (state, cardId) =>
   state.atmCards.cards.find(card => card._id === cardId);
 export const selectCardTransactions = (state, cardId) => 
   state.atmCards.cardTransactions[cardId] || { data: [], pagination: { total: 0 } };
+export const selectCardsStatus = (state) => state.atmCards.status;
+export const selectCardsError = (state) => state.atmCards.error;
 
 export default atmCardsSlice.reducer;

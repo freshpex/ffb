@@ -20,7 +20,7 @@ const initialState = {
     page: 1,
     limit: 10,
     totalPages: 0,
-    totalRequests: 0 // Make sure this property exists in the initial state
+    totalRequests: 0
   },
   selectedKycRequest: null,
   status: 'idle',

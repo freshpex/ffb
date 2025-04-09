@@ -23,6 +23,7 @@ const TradingDashboard = lazy(() => import("./components/DashBoard/TradingDashbo
 const ReferralProgram = lazy(() => import("./components/DashBoard/ReferralProgram"));
 const EducationCenter = lazy(() => import("./components/DashBoard/EducationCenter"));
 const ATMCardsPage = lazy(() => import("./components/DashBoard/ATMCards/ATMCardsPage"));
+const CardRequestsList = lazy(() => import("./components/DashBoard/ATMCards/CardRequestsList"));
 const CardDetailsPage = lazy(() => import("./components/DashBoard/ATMCards/CardDetailsPage"));
 const Tradingplatform = lazy(() => import("./components/DashBoard/TradingPlatform"));
 
@@ -51,6 +52,7 @@ const TransactionAnalytics = lazy(() => import("./components/Admin/analytics/Tra
 const UserGrowthAnalytics = lazy(() => import("./components/Admin/analytics/UserGrowthAnalytics"));
 const PerformanceAnalytics = lazy(() => import("./components/Admin/analytics/PerformanceAnalytics"));
 const FinancialAnalytics = lazy(() => import("./components/Admin/analytics/FinancialAnalytics"));
+const AdminATMCardsPage = lazy(() => import("./components/Admin/ATMCards/AdminATMCardsPage"));
 
 // Error page
 const ErrorPage = lazy(() => import("./components/ErrorPage"));
@@ -130,6 +132,11 @@ function App() {
                 <ATMCardsPage />
               </ProtectedRoute>
             } />
+            <Route path="/login/cards/requests" element={
+              <ProtectedRoute>
+                <CardRequestsList />
+              </ProtectedRoute>
+            } />
             <Route path="/login/cards/:cardId" element={
               <ProtectedRoute>
                 <CardDetailsPage />
@@ -160,6 +167,9 @@ function App() {
               <Route path="users" element={<AdminUsers />} />
               <Route path="users/:userId" element={<UserDetail />} />
               <Route path="users/:userId/edit" element={<UserEdit />} />
+
+              {/* User Cards Approval Page  */}
+              <Route path="cards" element={<AdminATMCardsPage />} />
               
               {/* Transaction management routes */}
               <Route path="transactions" element={<AdminTransactions />} />

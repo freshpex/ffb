@@ -1,268 +1,175 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { format } from 'date-fns';
-import { FaSpinner, FaTimes, FaInfoCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { cancelCardRequest } from '../../../redux/slices/atmCardsSlice';
-import Button from '../../common/Button';
+import { FaCreditCard, FaInfoCircle, FaCheck, FaTimes, FaClock } from 'react-icons/fa';
+import { selectCardsStatus } from '../../../redux/slices/atmCardsSlice';
+import Loader from '../../common/Loader';
 
-const getCardTypeName = (type) => {
-  switch (type) {
-    case 'virtual-debit': return 'Virtual Card';
-    case 'standard-debit': return 'Standard Card';
-    case 'premium-debit': return 'Premium Card';
-    default: return 'Credit Card';
-  }
-};
-
-const getStatusBadge = (status) => {
-  switch (status) {
-    case 'pending':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-          Pending
-        </span>
-      );
-    case 'approved':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-          Approved
-        </span>
-      );
-    case 'processing':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-          <FaSpinner className="animate-spin mr-1" />
-          Processing
-        </span>
-      );
-    case 'rejected':
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-          Rejected
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-          {status}
-        </span>
-      );
-  }
-};
-
-const CardRequestsList = ({ requests, onRequestAction }) => {
-  const dispatch = useDispatch();
-  const [expandedRequest, setExpandedRequest] = useState(null);
+const CardRequestsList = ({ requests = [], onRequestAction }) => {
+  const status = useSelector(selectCardsStatus);
   
-  const handleCancelRequest = async (requestId) => {
-    if (window.confirm('Are you sure you want to cancel this card request?')) {
-      await dispatch(cancelCardRequest(requestId));
-      onRequestAction('cancelRequest', 'Card request canceled successfully.');
+  // Local state for tracking expanded cards
+  const [expandedCard, setExpandedCard] = useState(null);
+
+  const toggleCardExpanded = (cardId) => {
+    setExpandedCard(expandedCard === cardId ? null : cardId);
+  };
+
+  // Function to render status badge with appropriate color and icon
+  const renderStatusBadge = (status) => {
+    switch (status) {
+      case 'pending':
+        return (
+          <div className="px-3 py-1 rounded-full bg-yellow-900/40 text-yellow-400 flex items-center text-sm">
+            <FaClock className="mr-1" /> Pending
+          </div>
+        );
+      case 'approved':
+        return (
+          <div className="px-3 py-1 rounded-full bg-green-900/40 text-green-400 flex items-center text-sm">
+            <FaCheck className="mr-1" /> Approved
+          </div>
+        );
+      case 'rejected':
+        return (
+          <div className="px-3 py-1 rounded-full bg-red-900/40 text-red-400 flex items-center text-sm">
+            <FaTimes className="mr-1" /> Rejected
+          </div>
+        );
+      case 'cancelled':
+        return (
+          <div className="px-3 py-1 rounded-full bg-gray-900/40 text-gray-400 flex items-center text-sm">
+            <FaTimes className="mr-1" /> Cancelled
+          </div>
+        );
+      default:
+        return (
+          <div className="px-3 py-1 rounded-full bg-gray-900/40 text-gray-400 flex items-center text-sm">
+            {status}
+          </div>
+        );
     }
   };
-  
-  const toggleExpandRequest = (requestId) => {
-    setExpandedRequest(expandedRequest === requestId ? null : requestId);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric'
+    }).format(date);
   };
-  
+
+  const formatCardType = (type) => {
+    switch (type) {
+      case 'virtual-debit': return 'Virtual Debit Card';
+      case 'standard-debit': return 'Standard Debit Card';
+      case 'premium-debit': return 'Premium Debit Card';
+      default: return type;
+    }
+  };
+
+  if (status === 'loading') {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader size="md" />
+      </div>
+    );
+  }
+
+  if (!requests || requests.length === 0) {
+    return (
+      <div className="bg-gray-800 rounded-lg p-6 text-center border border-gray-700">
+        <div className="w-16 h-16 mx-auto bg-gray-700 rounded-full flex items-center justify-center mb-4">
+          <FaCreditCard className="text-gray-500" size={24} />
+        </div>
+        <h3 className="text-lg font-medium text-white mb-2">No Card Requests</h3>
+        <p className="text-gray-400">You haven't requested any cards yet.</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {/* Desktop View (hidden on mobile) */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-900">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Card Type
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Date Requested
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Currency
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Status
-              </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {requests.map((request) => (
-              <tr key={request.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">{getCardTypeName(request.type)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                  {format(new Date(request.submittedAt), 'MMM dd, yyyy')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                  {request.currency}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getStatusBadge(request.status)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => toggleExpandRequest(request.id)}
-                      className="text-primary-500 hover:text-primary-400"
-                    >
-                      <FaInfoCircle />
-                    </button>
-                    {request.status === 'pending' && (
-                      <button
-                        onClick={() => handleCancelRequest(request.id)}
-                        className="text-red-500 hover:text-red-400"
-                      >
-                        <FaTimes />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      {/* Mobile View */}
-      <div className="md:hidden space-y-4">
-        {requests.map((request) => (
+    <div className="space-y-4">
+      {requests.map((card) => (
+        <div 
+          key={card._id} 
+          className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 transition-all duration-200"
+        >
           <div 
-            key={request.id} 
-            className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700"
+            className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-700/50"
+            onClick={() => toggleCardExpanded(card._id)}
           >
-            <div className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                    {getCardTypeName(request.type)}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {format(new Date(request.submittedAt), 'MMM dd, yyyy')}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {getStatusBadge(request.status)}
-                  <button
-                    onClick={() => toggleExpandRequest(request.id)}
-                    className="ml-2 text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400"
-                  >
-                    {expandedRequest === request.id ? <FaChevronUp /> : <FaChevronDown />}
-                  </button>
-                </div>
+            <div className="flex items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                card.type === 'virtual-debit' 
+                  ? 'bg-gray-700 text-gray-400' 
+                  : card.type === 'standard-debit'
+                    ? 'bg-blue-900/40 text-blue-400'
+                    : 'bg-yellow-900/40 text-yellow-400'
+              }`}>
+                <FaCreditCard />
               </div>
-              
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Currency: <span className="text-gray-900 dark:text-white">{request.currency}</span>
-                </span>
+              <div>
+                <h3 className="font-medium text-white">
+                  {formatCardType(card.type)}
+                </h3>
+                <p className="text-sm text-gray-400">
+                  Requested on {formatDate(card.createdAt)}
+                </p>
               </div>
-              
-              {expandedRequest === request.id && (
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Shipping Address</h4>
-                      <p className="text-sm text-gray-900 dark:text-white">{request.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{request.address.street}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {request.address.city}, {request.address.postalCode}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{request.address.country}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Request Details</h4>
-                      <p className="text-sm"><span className="text-gray-500 dark:text-gray-400">Card Type:</span> <span className="text-gray-900 dark:text-white">{getCardTypeName(request.type)}</span></p>
-                      <p className="text-sm"><span className="text-gray-500 dark:text-gray-400">Currency:</span> <span className="text-gray-900 dark:text-white">{request.currency}</span></p>
-                      <p className="text-sm"><span className="text-gray-500 dark:text-gray-400">Status:</span> <span className="text-gray-900 dark:text-white">{request.status}</span></p>
-                      {request.notes && (
-                        <p className="text-sm"><span className="text-gray-500 dark:text-gray-400">Notes:</span> <span className="text-gray-900 dark:text-white">{request.notes}</span></p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {request.status === 'pending' && (
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleCancelRequest(request.id)}
-                      >
-                        Cancel Request
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
-            
-            {/* Quick actions below */}
-            {request.status === 'pending' && expandedRequest !== request.id && (
-              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-750 text-right border-t border-gray-200 dark:border-gray-700">
-                <Button
-                  variant="danger"
-                  size="xs"
-                  onClick={() => handleCancelRequest(request.id)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center">
+              {renderStatusBadge(card.status)}
+            </div>
           </div>
-        ))}
-      </div>
-      
-      {/* Expanded request details for desktop */}
-      {expandedRequest && (
-        <div className="hidden md:block mt-4 bg-gray-50 dark:bg-gray-750 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-          {requests.filter(r => r.id === expandedRequest).map(request => (
-            <div key={`detail-${request.id}`} className="text-sm text-gray-600 dark:text-gray-300">
+          
+          {expandedCard === card._id && (
+            <div className="border-t border-gray-700 p-4 bg-gray-700/20">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Shipping Address</h4>
-                  <p>{request.name}</p>
-                  <p>{request.address.street}</p>
-                  <p>{request.address.city}, {request.address.postalCode}</p>
-                  <p>{request.address.country}</p>
+                  <h4 className="text-sm text-gray-400 mb-1">Request ID</h4>
+                  <p className="text-white font-mono text-sm">{card._id}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Request Details</h4>
-                  <p><span className="text-gray-500 dark:text-gray-400">Card Type:</span> {getCardTypeName(request.type)}</p>
-                  <p><span className="text-gray-500 dark:text-gray-400">Currency:</span> {request.currency}</p>
-                  <p><span className="text-gray-500 dark:text-gray-400">Status:</span> {request.status}</p>
-                  {request.notes && (
-                    <p><span className="text-gray-500 dark:text-gray-400">Notes:</span> {request.notes}</p>
-                  )}
+                  <h4 className="text-sm text-gray-400 mb-1">Currency</h4>
+                  <p className="text-white">{card.currency || 'USD'}</p>
                 </div>
+                
+                {card.shippingAddress && (
+                  <div className="col-span-1 md:col-span-2">
+                    <h4 className="text-sm text-gray-400 mb-1">Shipping Address</h4>
+                    <p className="text-white">
+                      {card.shippingAddress.street}, {card.shippingAddress.city}, {card.shippingAddress.country}
+                    </p>
+                  </div>
+                )}
+                
+                {card.status === 'rejected' && card.rejectionReason && (
+                  <div className="col-span-1 md:col-span-2">
+                    <h4 className="text-sm text-gray-400 mb-1">Rejection Reason</h4>
+                    <p className="text-red-400">{card.rejectionReason}</p>
+                  </div>
+                )}
+                
+                {card.status === 'pending' && (
+                  <div className="col-span-1 md:col-span-2 mt-2 text-sm text-gray-400 flex items-start">
+                    <FaInfoCircle className="mr-2 mt-0.5 text-primary-400" />
+                    <p>Your request is being reviewed. This usually takes 1-2 business days.</p>
+                  </div>
+                )}
               </div>
-              {request.status === 'pending' && (
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleCancelRequest(request.id)}
-                  >
-                    Cancel Request
-                  </Button>
-                </div>
-              )}
             </div>
-          ))}
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 };
 
 CardRequestsList.propTypes = {
-  requests: PropTypes.array.isRequired,
-  onRequestAction: PropTypes.func.isRequired
+  requests: PropTypes.array,
+  onRequestAction: PropTypes.func
 };
 
 export default CardRequestsList;

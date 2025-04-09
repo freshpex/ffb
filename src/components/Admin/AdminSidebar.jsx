@@ -15,7 +15,8 @@ import {
   FaChartPie,
   FaChartBar,
   FaDollarSign,
-  FaHome
+  FaHome,
+  FaCreditCard
 } from 'react-icons/fa';
 import { useDarkMode } from '../../context/DarkModeContext';
 
@@ -115,6 +116,11 @@ const sidebarItems = [
         name: 'Users',
         path: '/admin/users',
         icon: FaUsers
+    },
+    {
+      name: 'ATM Cards',
+      path: '/admin/cards',
+      icon: FaCreditCard
     },
     {
         name: 'Transactions',

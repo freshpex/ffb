@@ -12,7 +12,7 @@ import DashboardLayout from '../DashboardLayout';
 import Button from '../../common/Button';
 import Alert from '../../common/Alert';
 import Loader from '../../common/Loader';
-import { FaPlus, FaCreditCard, FaHistory, FaInfoCircle } from 'react-icons/fa';
+import { FaPlus, FaCreditCard, FaHistory, FaInfoCircle, FaListAlt } from 'react-icons/fa';
 import CardsList from './CardsList';
 import CardRequestsList from './CardRequestsList';
 import NewCardModal from './NewCardModal';
@@ -27,6 +27,7 @@ const ATMCardsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState({ type: '', message: '' });
+  const [showRequests, setShowRequests] = useState(false);
   
   useEffect(() => {
     dispatch(fetchCards());
@@ -49,6 +50,7 @@ const ATMCardsPage = () => {
       message: 'Card request submitted successfully. We will process your request shortly.'
     });
     setShowAlert(true);
+    dispatch(fetchCards());
   };
   
   const handleCardAction = (action, message) => {
@@ -57,6 +59,10 @@ const ATMCardsPage = () => {
       message
     });
     setShowAlert(true);
+  };
+
+  const toggleRequestsVisibility = () => {
+    setShowRequests(!showRequests);
   };
   
   return (
@@ -118,16 +124,26 @@ const ATMCardsPage = () => {
             </div>
             
             {/* Card requests section */}
-            {requests.length > 0 && (
-              <div className="mb-12">
-                <div className="flex items-center mb-6">
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center">
                   <FaHistory className="text-primary-400 mr-3" size={24} />
                   <h2 className="text-xl font-semibold text-white">Card Requests</h2>
                 </div>
-                
-                <CardRequestsList requests={requests} onRequestAction={handleCardAction} />
+                <Button 
+                  variant={showRequests ? "primary" : "outline"}
+                  onClick={toggleRequestsVisibility}
+                  className="flex items-center"
+                >
+                  <FaListAlt className="mr-2" /> 
+                  {showRequests ? "Hide Requests" : "View All Requests"}
+                </Button>
               </div>
-            )}
+              
+              {(requests.length > 0 || showRequests) && (
+                <CardRequestsList requests={requests} onRequestAction={handleCardAction} />
+              )}
+            </div>
             
             {/* Information section */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">

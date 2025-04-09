@@ -16,11 +16,16 @@ const TransactionList = ({
   detailFields = [],
   onRefresh = null,
   renderCustomActions = null,
+  onViewDetails = null,
 }) => {
   const [expandedId, setExpandedId] = useState(null);
 
   const handleViewDetails = (transaction) => {
-    setExpandedId(expandedId === transaction._id ? null : transaction._id);
+    if (onViewDetails) {
+      onViewDetails(transaction);
+    } else {
+      setExpandedId(expandedId === transaction._id ? null : transaction._id);
+    }
   };
 
   if (isLoading && (!transactions || transactions.length === 0)) {
@@ -75,6 +80,7 @@ const TransactionList = ({
                 onViewDetails={handleViewDetails}
                 isExpanded={isExpanded}
                 detailFields={detailFields}
+                showDetailButton={!onViewDetails || isExpanded}
               />
               
               {/* Render custom actions if provided and transaction is expanded */}
@@ -125,6 +131,7 @@ TransactionList.propTypes = {
   detailFields: PropTypes.arrayOf(PropTypes.string),
   onRefresh: PropTypes.func,
   renderCustomActions: PropTypes.func,
+  onViewDetails: PropTypes.func,
 };
 
 export default TransactionList;
