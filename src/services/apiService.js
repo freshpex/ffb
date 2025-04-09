@@ -11,14 +11,57 @@ const api = axios.create({
   },
 });
 
+// Function to get the real token, not any mock tokens
+const getValidAuthToken = () => {
+  const token = localStorage.getItem('ffb_auth_token');
+  
+  if (token && token.startsWith('mock_token_')) {
+    console.log('Found a mock token - this will never work with the backend');
+    return null;
+  }
+  
+  return token;
+};
+
 // Add auth token to requests
 api.interceptors.request.use(async (config) => {
-  const user = auth.currentUser;
-  if (user) {
-    const token = await user.getIdToken();
-    config.headers.Authorization = `Bearer ${token}`;
+  try {
+    const token = getValidAuthToken();
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      return config;
+    }
+    
+    const publicEndpoints = [
+      '/auth/login', 
+      '/auth/register', 
+      '/auth/forgot-password',
+      '/market/prices',
+      '/dashboard'
+    ];
+    
+    const isPublicEndpoint = publicEndpoints.some(endpoint => 
+      config.url.includes(endpoint)
+    );
+    
+    if (isPublicEndpoint) {
+      return config;
+    }
+    
+
+    console.log(`No valid auth token available for request to ${config.url}`);
+    return Promise.reject({
+      response: {
+        status: 401,
+        data: { message: 'Not authenticated with a valid token' }
+      },
+      isAuthError: true
+    });
+  } catch (error) {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
   }
-  return config;
 }, (error) => {
   return Promise.reject(error);
 });
@@ -27,8 +70,10 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message = error.response?.data?.message || 'An unexpected error occurred';
-    console.error('API Error:', message);
+    if (!error.isAuthError) {
+      const message = error.response?.data?.message || 'An unexpected error occurred';
+      console.error('API Error:', message);
+    }
     return Promise.reject(error);
   }
 );

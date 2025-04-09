@@ -34,7 +34,7 @@ export const submitWithdrawal = createAsyncThunk(
   'withdrawal/submitWithdrawal',
   async (withdrawalData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/withdrawals', withdrawalData);
+      const response = await apiClient.createWithdrawal(withdrawalData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to process withdrawal');
@@ -46,7 +46,7 @@ export const fetchWithdrawalHistory = createAsyncThunk(
   'withdrawal/fetchHistory',
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/api/withdrawals/history?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(`/transactions/withdrawals?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch withdrawal history');
@@ -58,7 +58,7 @@ export const cancelWithdrawal = createAsyncThunk(
   'withdrawal/cancelWithdrawal',
   async (withdrawalId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/api/withdrawals/${withdrawalId}/cancel`);
+      const response = await apiClient.post(`/transactions/${withdrawalId}/cancel`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to cancel withdrawal');
@@ -108,12 +108,13 @@ const withdrawalSlice = createSlice({
       })
       .addCase(fetchWithdrawalHistory.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.withdrawalHistory = action.payload.data;
+        // Update to correctly handle the backend response structure
+        state.withdrawalHistory = action.payload.data.withdrawals || [];
         state.pagination = {
-          currentPage: action.payload.currentPage || 1,
-          totalPages: action.payload.totalPages || 1,
-          totalItems: action.payload.totalItems || 0,
-          itemsPerPage: action.payload.itemsPerPage || 10
+          currentPage: action.payload.data.pagination?.page || 1,
+          totalPages: action.payload.data.pagination?.pages || 1,
+          totalItems: action.payload.data.pagination?.total || 0,
+          itemsPerPage: action.payload.data.pagination?.limit || 10
         };
       })
       .addCase(fetchWithdrawalHistory.rejected, (state, action) => {

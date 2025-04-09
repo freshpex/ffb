@@ -13,7 +13,7 @@ import {
   FaEyeSlash,
   FaArrowRight
 } from 'react-icons/fa';
-import { freezeCard, unfreezeCard, cancelCard } from '../../../redux/slices/atmCardsSlice';
+import { freezeCard, unfreezeCard, cancelCardRequest } from '../../../redux/slices/atmCardsSlice';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../common/Button';
 import CardLimitsModal from './CardLimitsModal';
@@ -67,7 +67,7 @@ const CardsList = ({ cards, onCardAction }) => {
   
   const handleCancelCard = async (cardId) => {
     if (window.confirm('Are you sure you want to cancel this card? This action cannot be undone.')) {
-      await dispatch(cancelCard(cardId));
+      await dispatch(cancelCardRequest(cardId));
       setActionMenuOpen(null);
       onCardAction('cancel', 'Card canceled successfully.');
     }

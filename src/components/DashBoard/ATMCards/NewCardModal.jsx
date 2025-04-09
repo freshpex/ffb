@@ -159,8 +159,6 @@ const NewCardModal = ({ isOpen, onClose, onSuccess }) => {
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
         
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
         >

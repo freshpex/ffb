@@ -4,15 +4,46 @@ import apiClient from '../../services/apiService';
 // Initial state structure
 const initialState = {
   methods: [
-    { id: 'bank_transfer', name: 'Bank Transfer', icon: 'bank', minAmount: 100, maxAmount: 50000 },
-    { id: 'card', name: 'Credit/Debit Card', icon: 'credit-card', minAmount: 50, maxAmount: 10000 },
-    { id: 'crypto', name: 'Cryptocurrency', icon: 'bitcoin', minAmount: 20, maxAmount: 100000 },
+    // { id: 'bank_transfer', name: 'Bank Transfer', icon: 'bank', minAmount: 100, maxAmount: 50000 },
+    // { id: 'card', name: 'Credit/Debit Card', icon: 'credit-card', minAmount: 50, maxAmount: 10000 },
+    { 
+      id: 'cryptocurrency', 
+      name: 'Cryptocurrency', 
+      icon: 'bitcoin', 
+      minAmount: 20, 
+      maxAmount: 100000,
+      cryptoOptions: [
+        { 
+          id: 'bitcoin', 
+          name: 'Bitcoin (BTC)', 
+          address: '3FZbgi29cpjq2GjdwV8eyHuJJnkLtktZc5',
+          networkType: 'Bitcoin Network',
+          confirmations: 3
+        },
+        { 
+          id: 'ethereum', 
+          name: 'Ethereum (ETH)', 
+          address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+          networkType: 'ERC-20',
+          confirmations: 12
+        },
+        { 
+          id: 'usdt', 
+          name: 'Tether (USDT)', 
+          address: 'TYW6A8Lfb9uLgtTU3dtjdtW7vCcEYyZJjp',
+          networkType: 'TRC-20',
+          confirmations: 6
+        }
+      ]
+    }
   ],
   activeMethod: null,
+  selectedCrypto: null,
   depositForm: {
     amount: '',
     currency: 'USD',
     note: '',
+    transactionId: ''
   },
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
@@ -31,7 +62,7 @@ export const submitDeposit = createAsyncThunk(
   'deposit/submitDeposit',
   async (depositData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/deposits', depositData);
+      const response = await apiClient.post('/deposits', depositData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to process deposit');
@@ -43,7 +74,7 @@ export const fetchDepositHistory = createAsyncThunk(
   'deposit/fetchHistory',
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/api/deposits/history?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(`/deposits/history?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch deposit history');

@@ -19,7 +19,7 @@ import {
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import NotificationsPanel from './NotificationsPanel';
 
-const DashboardHeader = ({ isMobile, isSidebarOpen, toggleSidebar }) => {
+const DashboardHeader = ({ isMobile, isSidebarOpen, onToggleSidebar }) => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
   const notifications = useSelector(selectNotifications) || [];
@@ -30,7 +30,11 @@ const DashboardHeader = ({ isMobile, isSidebarOpen, toggleSidebar }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   
   const handleToggleSidebar = () => {
-    dispatch(toggleSidebar());
+    if (onToggleSidebar) {
+      onToggleSidebar();
+    } else {
+      dispatch(toggleSidebar());
+    }
   };
   
   // Toggle dark mode
@@ -53,7 +57,6 @@ const DashboardHeader = ({ isMobile, isSidebarOpen, toggleSidebar }) => {
   const toggleNotifications = () => {
     setIsNotificationsOpen(!isNotificationsOpen);
     if (!isNotificationsOpen) {
-      // Fetch latest notifications when opening panel
       dispatch(fetchNotifications());
     }
   };

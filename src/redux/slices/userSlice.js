@@ -1,12 +1,38 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiClient from '../../services/apiService';
+import { auth } from '../../firebase';
+
+// Helper function to ensure auth is initialized
+const getAuthToken = async () => {
+  if (!auth.currentUser) {
+    return null;
+  }
+  
+  try {
+    return await auth.currentUser.getIdToken();
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+};
+
+// Helper to check authentication status
+const checkAuthStatus = () => {
+  return !!localStorage.getItem('ffb_auth_token') || !!sessionStorage.getItem('ffb_auth_token');
+};
 
 // Async thunk for updating user profile
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
   async (profileData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put('/api/users/profile', profileData);
+      const token = await getAuthToken();
+      
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      
+      const response = await apiClient.put('/users/profile', profileData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update profile');
@@ -19,13 +45,20 @@ export const uploadProfileImage = createAsyncThunk(
   'user/uploadProfileImage',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/users/profile/image', formData, {
+      const token = await getAuthToken();
+      
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      
+      const response = await apiClient.post('/users/profile/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       return response.data;
     } catch (error) {
+      console.error('Error uploading profile image:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to upload profile image');
     }
   }
@@ -36,9 +69,21 @@ export const fetchUserProfile = createAsyncThunk(
   'user/fetchProfile',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('/api/users/profile');
+      // Skip request entirely if we know we're not authenticated
+      if (!checkAuthStatus()) {
+        console.log('Skipping profile fetch - user not authenticated');
+        return { data: null };
+      }
+      
+      const response = await apiClient.get('/users/profile');
       return response.data;
     } catch (error) {
+      // If this is an auth error, don't show error to user
+      if (error.isAuthError || error.response?.status === 401) {
+        console.log('Not authenticated for profile fetch');
+        return { data: null };
+      }
+      
       console.error('Error fetching profile:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch profile');
     }
@@ -50,9 +95,16 @@ export const addPaymentMethod = createAsyncThunk(
   'user/addPaymentMethod',
   async (paymentMethodData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/users/payment-methods', paymentMethodData);
+      const token = await getAuthToken();
+      
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      
+      const response = await apiClient.post('/users/payment-methods', paymentMethodData);
       return response.data;
     } catch (error) {
+      console.error('Error adding payment method:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to add payment method');
     }
   }
@@ -62,9 +114,16 @@ export const removePaymentMethod = createAsyncThunk(
   'user/removePaymentMethod',
   async (paymentMethodId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.delete(`/api/users/payment-methods/${paymentMethodId}`);
+      const token = await getAuthToken();
+      
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      
+      const response = await apiClient.delete(`/users/payment-methods/${paymentMethodId}`);
       return { ...response.data, paymentMethodId };
     } catch (error) {
+      console.error('Error removing payment method:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to remove payment method');
     }
   }
@@ -74,9 +133,16 @@ export const setDefaultPaymentMethod = createAsyncThunk(
   'user/setDefaultPaymentMethod',
   async (paymentMethodId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put(`/api/users/payment-methods/${paymentMethodId}/default`);
+      const token = await getAuthToken();
+      
+      if (!token) {
+        return rejectWithValue('User not authenticated');
+      }
+      
+      const response = await apiClient.put(`/users/payment-methods/${paymentMethodId}/default`);
       return response.data;
     } catch (error) {
+      console.error('Error setting default payment method:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to set default payment method');
     }
   }
@@ -86,9 +152,17 @@ export const fetchPaymentMethods = createAsyncThunk(
   'user/fetchPaymentMethods',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('/api/users/payment-methods');
+      const token = await getAuthToken();
+      
+      if (!token) {
+        console.log('User not authenticated, skipping payment methods fetch');
+        return { data: [] };
+      }
+      
+      const response = await apiClient.get('/users/payment-methods');
       return response.data;
     } catch (error) {
+      console.error('Error fetching payment methods:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch payment methods');
     }
   }
@@ -251,7 +325,9 @@ export const selectUserName = state => {
 
 export const selectUserBalance = state => {
   const profile = state.user.profile;
-  return profile ? (profile.accountBalance || profile.balance || 0) : 0;
+  if (!profile) return 0;
+  
+  return profile.accountBalance ?? profile.balance ?? 0;
 };
 
 export const selectUserEmail = state => {

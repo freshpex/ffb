@@ -8,7 +8,7 @@ import {
   removePaymentMethod,
   setDefaultPaymentMethod
 } from '../../redux/slices/userSlice';
-import { FaCreditCard, FaPlus, FaTrash, FaCheck, FaTimes, FaSpinner, FaUniversity } from 'react-icons/fa';
+import { FaCreditCard, FaPlus, FaTrash, FaCheck, FaTimes, FaSpinner, FaUniversity, FaInfoCircle } from 'react-icons/fa';
 import FormInput from '../common/FormInput';
 import Button from '../common/Button';
 import Alert from '../common/Alert';

@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSelector } from 'reselect';
 
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -541,63 +542,221 @@ const dashboardSlice = createSlice({
 // Export actions
 export const { clearDashboardError } = dashboardSlice.actions;
 
-// Export selectors
-export const selectAccountSummary = (state) => state.dashboard.accountSummary?.data || null;
-export const selectAccountActivity = (state) => state.dashboard.accountActivity?.data || [];
-export const selectAccountBalanceHistory = (state) => state.dashboard.accountBalanceHistory?.data || [];
-export const selectAccountOverview = (state) => state.dashboard.accountOverview?.data || null;
-export const selectRecentTransactions = (state) => state.dashboard.recentTransactions?.data || [];
-export const selectFinancialHighlights = (state) => state.dashboard.financialHighlights?.data || null;
-export const selectMarketOverview = (state) => state.dashboard.marketOverview?.data || null;
-export const selectMarketPulse = (state) => state.dashboard.marketPulse?.data || null;
-export const selectMarketNews = (state) => state.dashboard.marketNews?.data || [];
-export const selectPriceAlerts = (state) => state.dashboard.priceAlerts?.data || [];
+// Base selectors
+const getDashboardState = state => state.dashboard;
+const getAccountSummary = state => state.dashboard.accountSummary;
+const getAccountActivity = state => state.dashboard.accountActivity;
+const getRecentTransactions = state => state.dashboard.recentTransactions;
+const getFinancialHighlights = state => state.dashboard.financialHighlights;
+const getMarketOverview = state => state.dashboard.marketOverview;
+const getMarketPulse = state => state.dashboard.marketPulse;
+const getMarketNews = state => state.dashboard.marketNews;
+const getPriceAlerts = state => state.dashboard.priceAlerts;
 
-export const selectAccountBalance = (state) => state.dashboard?.accountSummary?.data?.balance || 0;
-export const selectDashboardComponentStatus = (state, component) => 
-  state.dashboard.componentStatus?.[component] || 'idle';
+// Memoized selectors using createSelector to prevent unnecessary rerenders
+export const selectAccountSummary = createSelector(
+  [getAccountSummary],
+  summary => summary?.data || null
+);
 
-export const selectTransactionCount = (state) => state.dashboard.recentTransactions?.meta?.total || 0;
-export const selectTransactionsLoading = (state) => 
-  state.dashboard.status?.recentTransactions === 'loading';
-export const selectTransactionsError = (state) => 
-  state.dashboard.error?.recentTransactions;
+export const selectAccountActivity = createSelector(
+  [getAccountActivity],
+  activity => activity?.data || []
+);
 
-export const selectDashboardLoading = (state, section) => 
-  state.dashboard.status[section] === 'loading';
+export const selectAccountBalanceHistory = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.accountBalanceHistory?.data || []
+);
 
-export const selectDashboardError = (state, section) => 
-  state.dashboard.error[section];
+export const selectAccountOverview = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.accountOverview?.data || null
+);
 
-export const selectDashboardStatus = (state, section) => state.dashboard.status[section];
-export const selectActionStatus = state => state.dashboard.actionStatus;
+export const selectRecentTransactions = createSelector(
+  [getRecentTransactions],
+  transactions => transactions?.data || []
+);
 
-export const selectMarketPrices = (state) => state.dashboard.marketOverview?.data?.prices || [];
-export const selectMarketIndices = (state) => state.dashboard.marketOverview?.data?.indices || [];
-export const selectMarketCurrencies = (state) => state.dashboard.marketOverview?.data?.currencies || [];
-export const selectMarketCommodities = (state) => state.dashboard.marketOverview?.data?.commodities || [];
+export const selectFinancialHighlights = createSelector(
+  [getFinancialHighlights],
+  highlights => highlights?.data || null
+);
 
-export const selectMarketSentiment = (state) => state.dashboard.marketPulse?.data?.sentiment || { overall: 'neutral', score: 50 };
-export const selectMarketTrends = (state) => state.dashboard.marketPulse?.data?.trends || [];
-export const selectMarketVolatility = (state) => state.dashboard.marketPulse?.data?.volatilityIndex || 0;
-export const selectMarketCapitalization = (state) => state.dashboard.marketPulse?.data?.marketCap || { total: 0, change: 0 };
+export const selectMarketOverview = createSelector(
+  [getMarketOverview],
+  overview => overview?.data || null
+);
 
-export const selectLatestNews = (state) => state.dashboard.marketNews?.data?.slice(0, 3) || [];
-export const selectNewsCategories = (state) => state.dashboard.marketNews?.categories || [];
-export const selectNewsSources = (state) => state.dashboard.marketNews?.sources || [];
+export const selectMarketPulse = createSelector(
+  [getMarketPulse],
+  pulse => pulse?.data || null
+);
 
-export const selectDepositStats = (state) => state.dashboard.financialHighlights?.data?.depositTotal || 0;
-export const selectWithdrawalStats = (state) => state.dashboard.financialHighlights?.data?.withdrawalTotal || 0;
-export const selectInvestmentStats = (state) => state.dashboard.financialHighlights?.data?.investmentTotal || 0;
-export const selectProfitLoss = (state) => state.dashboard.financialHighlights?.data?.profitLoss || 0;
-export const selectProfitLossPercentage = (state) => state.dashboard.financialHighlights?.data?.profitLossPercentage || 0;
+export const selectMarketNews = createSelector(
+  [getMarketNews],
+  news => news?.data || []
+);
 
-export const selectPriceAlertById = (state, id) => 
-  state.dashboard.priceAlerts?.data?.find(alert => alert.id === id) || null;
-export const selectPriceAlertsStatus = (state) => state.dashboard.status.priceAlerts;
-export const selectAddPriceAlertStatus = (state) => state.dashboard.status.addPriceAlert;
-export const selectUpdatePriceAlertStatus = (state) => state.dashboard.status.updatePriceAlert;
-export const selectDeletePriceAlertStatus = (state) => state.dashboard.status.deletePriceAlert;
-export const selectPriceAlertsError = (state) => state.dashboard.error.priceAlerts;
+export const selectPriceAlerts = createSelector(
+  [getPriceAlerts],
+  alerts => alerts?.data || []
+);
+
+export const selectAccountBalance = createSelector(
+  [getAccountSummary],
+  summary => summary?.data?.balance || 0
+);
+
+export const selectDashboardComponentStatus = createSelector(
+  [getDashboardState, (_, component) => component],
+  (dashboard, component) => dashboard.componentStatus?.[component] || 'idle'
+);
+
+export const selectTransactionCount = createSelector(
+  [getRecentTransactions],
+  transactions => transactions?.meta?.total || 0
+);
+
+export const selectTransactionsLoading = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.status?.recentTransactions === 'loading'
+);
+
+export const selectTransactionsError = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.error?.recentTransactions
+);
+
+export const selectDashboardLoading = createSelector(
+  [getDashboardState, (_, section) => section],
+  (dashboard, section) => dashboard.status[section] === 'loading'
+);
+
+export const selectDashboardError = createSelector(
+  [getDashboardState, (_, section) => section],
+  (dashboard, section) => dashboard.error[section]
+);
+
+export const selectDashboardStatus = createSelector(
+  [getDashboardState, (_, section) => section],
+  (dashboard, section) => dashboard.status[section]
+);
+
+export const selectActionStatus = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.actionStatus
+);
+
+export const selectMarketPrices = createSelector(
+  [getMarketOverview],
+  overview => overview?.data?.prices || []
+);
+
+export const selectMarketIndices = createSelector(
+  [getMarketOverview],
+  overview => overview?.data?.indices || []
+);
+
+export const selectMarketCurrencies = createSelector(
+  [getMarketOverview],
+  overview => overview?.data?.currencies || []
+);
+
+export const selectMarketCommodities = createSelector(
+  [getMarketOverview],
+  overview => overview?.data?.commodities || []
+);
+
+export const selectMarketSentiment = createSelector(
+  [getMarketPulse],
+  pulse => pulse?.data?.sentiment || { overall: 'neutral', score: 50 }
+);
+
+export const selectMarketTrends = createSelector(
+  [getMarketPulse],
+  pulse => pulse?.data?.trends || []
+);
+
+export const selectMarketVolatility = createSelector(
+  [getMarketPulse],
+  pulse => pulse?.data?.volatilityIndex || 0
+);
+
+export const selectMarketCapitalization = createSelector(
+  [getMarketPulse],
+  pulse => pulse?.data?.marketCap || { total: 0, change: 0 }
+);
+
+export const selectLatestNews = createSelector(
+  [getMarketNews],
+  news => news?.data?.slice(0, 3) || []
+);
+
+export const selectNewsCategories = createSelector(
+  [getMarketNews],
+  news => news?.categories || []
+);
+
+export const selectNewsSources = createSelector(
+  [getMarketNews],
+  news => news?.sources || []
+);
+
+export const selectDepositStats = createSelector(
+  [getFinancialHighlights],
+  highlights => highlights?.data?.depositTotal || 0
+);
+
+export const selectWithdrawalStats = createSelector(
+  [getFinancialHighlights],
+  highlights => highlights?.data?.withdrawalTotal || 0
+);
+
+export const selectInvestmentStats = createSelector(
+  [getFinancialHighlights],
+  highlights => highlights?.data?.investmentTotal || 0
+);
+
+export const selectProfitLoss = createSelector(
+  [getFinancialHighlights],
+  highlights => highlights?.data?.profitLoss || 0
+);
+
+export const selectProfitLossPercentage = createSelector(
+  [getFinancialHighlights],
+  highlights => highlights?.data?.profitLossPercentage || 0
+);
+
+export const selectPriceAlertById = createSelector(
+  [getPriceAlerts, (_, id) => id],
+  (alerts, id) => alerts?.data?.find(alert => alert.id === id) || null
+);
+
+export const selectPriceAlertsStatus = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.status.priceAlerts
+);
+
+export const selectAddPriceAlertStatus = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.status.addPriceAlert
+);
+
+export const selectUpdatePriceAlertStatus = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.status.updatePriceAlert
+);
+
+export const selectDeletePriceAlertStatus = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.status.deletePriceAlert
+);
+
+export const selectPriceAlertsError = createSelector(
+  [getDashboardState],
+  dashboard => dashboard.error.priceAlerts
+);
 
 export default dashboardSlice.reducer;

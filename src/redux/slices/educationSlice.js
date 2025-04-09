@@ -6,7 +6,7 @@ export const fetchResources = createAsyncThunk(
   'education/fetchResources',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('/api/education/resources');
+      const response = await apiClient.get('/education/resources');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch resources');

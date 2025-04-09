@@ -7,9 +7,36 @@ const initialState = {
   cardRequests: [],
   cardTransactions: {},
   cardTypes: [
-    { id: 'visa_classic', name: 'Visa Classic', annual_fee: 25, benefits: ['No foreign transaction fees', 'Worldwide acceptance'] },
-    { id: 'visa_gold', name: 'Visa Gold', annual_fee: 75, benefits: ['Travel insurance', 'Extended warranty', 'Concierge service'] },
-    { id: 'visa_platinum', name: 'Visa Platinum', annual_fee: 150, benefits: ['Premium travel insurance', 'Airport lounge access', 'Exclusive discounts'] }
+    { 
+      id: 'virtual-debit', 
+      name: 'Virtual Debit Card', 
+      annual_fee: 5, 
+      fee: 5,
+      monthlyFee: 0,
+      processingTime: 'Instant',
+      description: 'Instant virtual card for online purchases',
+      benefits: ['Instant issuance', 'Online purchases', 'Low fees'] 
+    },
+    { 
+      id: 'standard-debit', 
+      name: 'Standard Debit Card', 
+      annual_fee: 15, 
+      fee: 15,
+      monthlyFee: 1.99,
+      processingTime: '3-5 business days',
+      description: 'Physical card with ATM access',
+      benefits: ['Physical card', 'ATM withdrawals', 'In-store purchases'] 
+    },
+    { 
+      id: 'premium-debit', 
+      name: 'Premium Debit Card', 
+      annual_fee: 30, 
+      fee: 30,
+      monthlyFee: 3.99,
+      processingTime: '1-3 business days',
+      description: 'Premium card with enhanced benefits',
+      benefits: ['Priority support', 'Higher spending limits', 'Extended benefits'] 
+    }
   ],
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null
@@ -20,7 +47,7 @@ export const fetchCards = createAsyncThunk(
   'atmCards/fetchCards',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('/api/atm-cards');
+      const response = await apiClient.get('/atm-cards');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch cards');
@@ -32,7 +59,7 @@ export const requestCard = createAsyncThunk(
   'atmCards/requestCard',
   async (cardData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/atm-cards/request', cardData);
+      const response = await apiClient.post('/atm-cards/request', cardData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to request card');
@@ -44,7 +71,7 @@ export const freezeCard = createAsyncThunk(
   'atmCards/freezeCard',
   async (cardId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/api/atm-cards/${cardId}/freeze`);
+      const response = await apiClient.post(`/atm-cards/${cardId}/freeze`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to freeze card');
@@ -56,22 +83,10 @@ export const unfreezeCard = createAsyncThunk(
   'atmCards/unfreezeCard',
   async (cardId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/api/atm-cards/${cardId}/unfreeze`);
+      const response = await apiClient.post(`/atm-cards/${cardId}/unfreeze`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to unfreeze card');
-    }
-  }
-);
-
-export const cancelCard = createAsyncThunk(
-  'atmCards/cancelCard',
-  async (cardId, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post(`/api/atm-cards/${cardId}/cancel`);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to cancel card');
     }
   }
 );
@@ -80,7 +95,7 @@ export const cancelCardRequest = createAsyncThunk(
   'atmCards/cancelCardRequest',
   async (requestId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post(`/api/atm-cards/request/${requestId}/cancel`);
+      const response = await apiClient.post(`/atm-cards/${requestId}/cancel`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to cancel card request');
@@ -92,7 +107,7 @@ export const updateCardLimits = createAsyncThunk(
   'atmCards/updateCardLimits',
   async ({ cardId, limits }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put(`/api/atm-cards/${cardId}/limits`, { limits });
+      const response = await apiClient.put(`/atm-cards/${cardId}/limits`, limits);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update card limits');
@@ -104,7 +119,7 @@ export const fetchCardTransactions = createAsyncThunk(
   'atmCards/fetchCardTransactions',
   async ({ cardId, page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/api/atm-cards/${cardId}/transactions?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(`/atm-cards/${cardId}/transactions?page=${page}&limit=${limit}`);
       return { cardId, data: response.data };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch card transactions');
@@ -125,8 +140,15 @@ const atmCardsSlice = createSlice({
       })
       .addCase(fetchCards.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.cards = action.payload.cards || [];
-        state.cardRequests = action.payload.cardRequests || [];
+        // Separate active cards and pending requests
+        if (action.payload.data) {
+          const allCards = action.payload.data || [];
+          state.cards = allCards.filter(card => card.status === 'active');
+          state.cardRequests = allCards.filter(card => ['pending', 'rejected'].includes(card.status));
+        } else {
+          state.cards = [];
+          state.cardRequests = [];
+        }
       })
       .addCase(fetchCards.rejected, (state, action) => {
         state.status = 'failed';
@@ -152,9 +174,9 @@ const atmCardsSlice = createSlice({
       })
       .addCase(freezeCard.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.cards.findIndex(card => card.id === action.payload.data.id);
+        const index = state.cards.findIndex(card => card._id === action.payload.data._id);
         if (index !== -1) {
-          state.cards[index] = { ...state.cards[index], status: 'frozen' };
+          state.cards[index] = { ...state.cards[index], frozen: true };
         }
       })
       .addCase(freezeCard.rejected, (state, action) => {
@@ -168,28 +190,12 @@ const atmCardsSlice = createSlice({
       })
       .addCase(unfreezeCard.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.cards.findIndex(card => card.id === action.payload.data.id);
+        const index = state.cards.findIndex(card => card._id === action.payload.data._id);
         if (index !== -1) {
-          state.cards[index] = { ...state.cards[index], status: 'active' };
+          state.cards[index] = { ...state.cards[index], frozen: false };
         }
       })
       .addCase(unfreezeCard.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
-      })
-      
-      // Handle cancelCard
-      .addCase(cancelCard.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(cancelCard.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        const index = state.cards.findIndex(card => card.id === action.payload.data.id);
-        if (index !== -1) {
-          state.cards[index] = { ...state.cards[index], status: 'cancelled' };
-        }
-      })
-      .addCase(cancelCard.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       })
@@ -200,7 +206,7 @@ const atmCardsSlice = createSlice({
       })
       .addCase(cancelCardRequest.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.cardRequests.findIndex(request => request.id === action.payload.data.id);
+        const index = state.cardRequests.findIndex(request => request._id === action.payload.data._id);
         if (index !== -1) {
           state.cardRequests[index] = { ...state.cardRequests[index], status: 'cancelled' };
         }
@@ -216,7 +222,7 @@ const atmCardsSlice = createSlice({
       })
       .addCase(updateCardLimits.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.cards.findIndex(card => card.id === action.payload.data.id);
+        const index = state.cards.findIndex(card => card._id === action.payload.data._id);
         if (index !== -1) {
           state.cards[index] = { 
             ...state.cards[index], 
@@ -251,7 +257,7 @@ export const selectCardTypes = state => state.atmCards.cardTypes;
 export const selectATMCardsStatus = state => state.atmCards.status;
 export const selectATMCardsError = state => state.atmCards.error;
 export const selectCardById = (state, cardId) => 
-  state.atmCards.cards.find(card => card.id === cardId);
+  state.atmCards.cards.find(card => card._id === cardId);
 export const selectCardTransactions = (state, cardId) => 
   state.atmCards.cardTransactions[cardId] || { data: [], pagination: { total: 0 } };
 

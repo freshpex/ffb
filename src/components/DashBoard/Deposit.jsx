@@ -11,7 +11,9 @@ import {
   FaArrowRight,
   FaCheckCircle,
   FaHistory,
-  FaQrcode
+  FaQrcode,
+  FaDollarSign,
+  FaCopy
 } from "react-icons/fa";
 import DashboardLayout from "./DashboardLayout";
 import FormInput from "../common/FormInput";
@@ -36,7 +38,9 @@ const Deposit = () => {
   
   // Redux state
   const depositMethods = useSelector(selectDepositMethods);
-  const activeMethod = useSelector(selectActiveMethod);
+  const activeMethod = useSelector(selectDepositMethods).find(
+    method => method.id === useSelector(selectActiveMethod)
+  );
   const formData = useSelector(selectDepositForm);
   const depositStatus = useSelector(selectDepositStatus);
   const depositError = useSelector(selectDepositError);
@@ -46,6 +50,8 @@ const Deposit = () => {
   const [errors, setErrors] = useState({});
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [selectedCrypto, setSelectedCrypto] = useState(null);
+  const [copySuccess, setCopySuccess] = useState('');
   
   // Clear alerts after 5 seconds
   useEffect(() => {
@@ -66,6 +72,11 @@ const Deposit = () => {
   
   const handleMethodSelect = (methodId) => {
     dispatch(setActiveMethod(methodId));
+    setSelectedCrypto(null);
+  };
+  
+  const handleCryptoSelect = (crypto) => {
+    setSelectedCrypto(crypto);
   };
   
   const handleChange = (e) => {
@@ -81,6 +92,13 @@ const Deposit = () => {
     }
   };
   
+  const handleCopyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopySuccess('Copied!');
+      setTimeout(() => setCopySuccess(''), 2000);
+    });
+  };
+  
   const validateForm = () => {
     const newErrors = {};
     
@@ -89,18 +107,13 @@ const Deposit = () => {
       newErrors.amount = "Amount is required";
     } else if (isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
       newErrors.amount = "Please enter a valid amount";
-    } else if (activeMethod && parseFloat(formData.amount) < activeMethod.minDeposit) {
-      newErrors.amount = `Minimum deposit amount is $${activeMethod.minDeposit}`;
+    } else if (activeMethod && parseFloat(formData.amount) < activeMethod.minAmount) {
+      newErrors.amount = `Minimum deposit amount is $${activeMethod.minAmount}`;
     }
     
-    // Transaction ID validation for crypto methods
-    if ((activeMethod?.id === 'bitcoin' || activeMethod?.id === 'ethereum') && !formData.transactionId) {
+    // Transaction ID validation for crypto deposits
+    if (activeMethod?.id === 'cryptocurrency' && !formData.transactionId) {
       newErrors.transactionId = "Transaction ID is required";
-    }
-    
-    // Reference validation for bank transfers
-    if (activeMethod?.id === 'bank' && !formData.reference) {
-      newErrors.reference = "Reference number is required";
     }
     
     setErrors(newErrors);
@@ -118,15 +131,32 @@ const Deposit = () => {
       return;
     }
     
+    if (activeMethod.id === 'cryptocurrency' && !selectedCrypto) {
+      setAlert({
+        type: "error",
+        message: "Please select a cryptocurrency"
+      });
+      return;
+    }
+    
     if (!validateForm()) return;
     
     try {
-      await dispatch(submitDeposit({
-        method: activeMethod,
-        amount: formData.amount,
+      const depositData = {
+        method: activeMethod.id,
+        amount: parseFloat(formData.amount),
         transactionId: formData.transactionId,
-        reference: formData.reference
-      }));
+        note: formData.note
+      };
+      
+      // Add crypto-specific details if applicable
+      if (activeMethod.id === 'cryptocurrency' && selectedCrypto) {
+        depositData.cryptoType = selectedCrypto.id;
+        depositData.cryptoAddress = selectedCrypto.address;
+        depositData.networkType = selectedCrypto.networkType;
+      }
+      
+      await dispatch(submitDeposit(depositData));
       
       // Success will be handled by useEffect when pendingDeposit is updated
     } catch (error) {
@@ -143,14 +173,27 @@ const Deposit = () => {
   
   const getMethodIcon = (methodId) => {
     switch (methodId) {
+      case 'cryptocurrency':
+        return <FaBitcoin className="text-yellow-500" />;
+      // case 'bank_transfer':
+      //   return <FaUniversity className="text-gray-400" />;
+      // case 'card':
+      //   return <FaMoneyBillWave className="text-green-500" />;
+      default:
+        return <FaDollarSign className="text-green-500" />;
+    }
+  };
+  
+  const getCryptoIcon = (cryptoId) => {
+    switch (cryptoId) {
       case 'bitcoin':
         return <FaBitcoin className="text-yellow-500" />;
       case 'ethereum':
         return <FaEthereum className="text-blue-400" />;
-      case 'bank':
-        return <FaUniversity className="text-gray-400" />;
+      case 'usdt':
+        return <FaDollarSign className="text-green-500" />;
       default:
-        return <FaMoneyBillWave className="text-green-500" />;
+        return <FaBitcoin className="text-yellow-500" />;
     }
   };
   
@@ -179,7 +222,7 @@ const Deposit = () => {
               <FaCheckCircle className="text-green-500 text-3xl" />
             </div>
             <h3 className="text-xl font-medium text-white mb-2">Deposit Submitted</h3>
-            <p className="text-gray-400">Your deposit request has been successfully submitted.</p>
+            <p className="text-gray-400">Your deposit request has been successfully submitted. Admin will approve it soon.</p>
           </div>
           
           <div className="space-y-4 mb-6">
@@ -190,22 +233,30 @@ const Deposit = () => {
             <div className="flex justify-between py-2 border-b border-gray-700">
               <span className="text-gray-400">Method:</span>
               <span className="text-white font-medium flex items-center">
-                {getMethodIcon(pendingDeposit.method.toLowerCase())}
-                <span className="ml-2">{pendingDeposit.method}</span>
+                {pendingDeposit.cryptoType ? 
+                  getCryptoIcon(pendingDeposit.cryptoType) : 
+                  getMethodIcon(pendingDeposit.method)}
+                <span className="ml-2">
+                  {pendingDeposit.cryptoType ? 
+                    activeMethod?.cryptoOptions?.find(c => c.id === pendingDeposit.cryptoType)?.name || pendingDeposit.cryptoType : 
+                    pendingDeposit.method}
+                </span>
               </span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-700">
               <span className="text-gray-400">Status:</span>
-              <span className="text-yellow-400 font-medium">{pendingDeposit.status}</span>
+              <span className="text-yellow-400 font-medium">{pendingDeposit.status || "Pending"}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-700">
               <span className="text-gray-400">Date:</span>
-              <span className="text-white font-medium">{pendingDeposit.date}</span>
+              <span className="text-white font-medium">{new Date(pendingDeposit.createdAt || Date.now()).toLocaleString()}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-gray-700">
-              <span className="text-gray-400">Transaction ID:</span>
-              <span className="text-white font-medium">{pendingDeposit.transactionId}</span>
-            </div>
+            {pendingDeposit.transactionId && (
+              <div className="flex justify-between py-2 border-b border-gray-700">
+                <span className="text-gray-400">Transaction ID:</span>
+                <span className="text-white font-medium break-all text-xs">{pendingDeposit.transactionId}</span>
+              </div>
+            )}
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3">
@@ -233,7 +284,7 @@ const Deposit = () => {
   return (
     <DashboardLayout>
       <motion.div 
-        className="w-full"
+        className="w-full p-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -256,13 +307,14 @@ const Deposit = () => {
                 type={alert.type} 
                 message={alert.message}
                 onDismiss={() => setAlert(null)}
+                className="mb-6"
               />
             )}
             
             {/* Deposit Methods */}
             <div className="mb-6">
               <h2 className="text-lg font-medium text-white mb-4">Select Deposit Method</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {depositMethods.map((method) => (
                   <div 
                     key={method.id}
@@ -273,132 +325,125 @@ const Deposit = () => {
                       }`}
                     onClick={() => handleMethodSelect(method.id)}
                   >
-                    <div className="flex flex-col items-center text-center">
-                      <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mb-3">
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mr-4">
                         {getMethodIcon(method.id)}
                       </div>
-                      <h3 className="text-white font-medium mb-1">{method.name}</h3>
-                      <p className="text-xs text-gray-400">Min: ${method.minDeposit}</p>
-                      <p className="text-xs text-gray-400 mt-1">{method.processingTime}</p>
+                      <div>
+                        <h3 className="text-white font-medium mb-1">{method.name}</h3>
+                        <p className="text-xs text-gray-400">Min: ${method.minAmount} - Max: ${method.maxAmount}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             
-            {/* Active Method Details */}
-            <AnimatePresence mode="wait">
-              {activeMethod && (
-                <motion.div 
-                  key={activeMethod.id}
+            {/* Cryptocurrency Options */}
+            <AnimatePresence>
+              {activeMethod?.id === 'cryptocurrency' && (
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
+                  className="mb-6"
+                >
+                  <h2 className="text-lg font-medium text-white mb-4">Select Cryptocurrency</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {activeMethod.cryptoOptions.map((crypto) => (
+                      <div 
+                        key={crypto.id}
+                        className={`bg-gray-800 p-5 rounded-lg border-2 cursor-pointer transition-all
+                          ${selectedCrypto?.id === crypto.id 
+                            ? 'border-primary-500 shadow-lg' 
+                            : 'border-gray-700 hover:border-gray-600'
+                          }`}
+                        onClick={() => handleCryptoSelect(crypto)}
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center mb-3">
+                            {getCryptoIcon(crypto.id)}
+                          </div>
+                          <h3 className="text-white font-medium mb-1">{crypto.name}</h3>
+                          <p className="text-xs text-gray-400">{crypto.networkType}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {/* Selected Crypto Details */}
+            <AnimatePresence>
+              {selectedCrypto && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
                   className="mb-6"
                 >
                   <div className="bg-gray-800 p-5 rounded-lg">
                     <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-                      {getMethodIcon(activeMethod.id)}
-                      <span className="ml-2">{activeMethod.name} Deposit Instructions</span>
+                      {getCryptoIcon(selectedCrypto.id)}
+                      <span className="ml-2">{selectedCrypto.name} Deposit Instructions</span>
                     </h3>
                     
-                    {/* Crypto Method */}
-                    {(activeMethod.id === 'bitcoin' || activeMethod.id === 'ethereum') && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <p className="text-gray-300 mb-4">
-                            Please send your {activeMethod.name} to the address below. After sending, enter the transaction ID below to complete your deposit.
-                          </p>
-                          
-                          <div className="bg-gray-700/50 p-4 rounded-lg mb-4">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm text-gray-400">Address:</span>
-                              <span className="text-sm text-white font-medium">{formatCryptoAddress(activeMethod.address)}</span>
-                            </div>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm text-gray-400">Minimum Deposit:</span>
-                              <span className="text-sm text-white font-medium">${activeMethod.minDeposit}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-400">Processing Time:</span>
-                              <span className="text-sm text-white font-medium">{activeMethod.processingTime}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 text-sm text-blue-300 flex items-start">
-                            <FaInfoCircle className="text-blue-400 mr-2 mt-1 flex-shrink-0" />
-                            <p>
-                              Your deposit will be credited after {activeMethod.confirmations} network confirmations. 
-                              Do not send any other cryptocurrency to this address.
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-center">
-                          <QRCode 
-                            value={activeMethod.address}
-                            label={`${activeMethod.name} Deposit Address`}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Bank Transfer Method */}
-                    {activeMethod.id === 'bank' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <p className="text-gray-300 mb-4">
-                          Please use the following bank details to make your transfer. After sending, enter the reference number below to complete your deposit.
+                          Please send your {selectedCrypto.name} to the address below. After sending, enter the transaction ID to complete your deposit.
                         </p>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                          <div className="bg-gray-700/50 p-4 rounded-lg">
-                            <div className="mb-2">
-                              <span className="text-sm text-gray-400">Bank Name:</span>
-                              <p className="text-sm text-white font-medium">{activeMethod.bankName}</p>
-                            </div>
-                            <div className="mb-2">
-                              <span className="text-sm text-gray-400">Account Name:</span>
-                              <p className="text-sm text-white font-medium">{activeMethod.accountName}</p>
-                            </div>
-                            <div>
-                              <span className="text-sm text-gray-400">Account Number:</span>
-                              <p className="text-sm text-white font-medium">{activeMethod.accountNumber}</p>
+                        <div className="bg-gray-700/50 p-4 rounded-lg mb-4">
+                          <div className="mb-2">
+                            <span className="text-sm text-gray-400">Address:</span>
+                            <div className="flex items-center mt-1">
+                              <span className="text-sm text-white font-medium break-all mr-2">{selectedCrypto.address}</span>
+                              <button 
+                                onClick={() => handleCopyToClipboard(selectedCrypto.address)}
+                                className="text-gray-400 hover:text-white"
+                              >
+                                <FaCopy size={16} />
+                              </button>
+                              {copySuccess === 'Copied!' && 
+                                <span className="text-xs text-green-500 ml-2">{copySuccess}</span>}
                             </div>
                           </div>
-                          
-                          <div className="bg-gray-700/50 p-4 rounded-lg">
-                            <div className="mb-2">
-                              <span className="text-sm text-gray-400">SWIFT Code:</span>
-                              <p className="text-sm text-white font-medium">{activeMethod.swiftCode}</p>
-                            </div>
-                            <div className="mb-2">
-                              <span className="text-sm text-gray-400">Routing Number:</span>
-                              <p className="text-sm text-white font-medium">{activeMethod.routingNumber}</p>
-                            </div>
-                            <div>
-                              <span className="text-sm text-gray-400">Reference Prefix:</span>
-                              <p className="text-sm text-white font-medium">{activeMethod.reference}</p>
-                            </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm text-gray-400">Network Type:</span>
+                            <span className="text-sm text-white font-medium">{selectedCrypto.networkType}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-400">Required Confirmations:</span>
+                            <span className="text-sm text-white font-medium">{selectedCrypto.confirmations}</span>
                           </div>
                         </div>
                         
-                        <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4 text-sm text-yellow-300 flex items-start">
-                          <FaInfoCircle className="text-yellow-400 mr-2 mt-1 flex-shrink-0" />
+                        <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 text-sm text-blue-300 flex items-start">
+                          <FaInfoCircle className="text-blue-400 mr-2 mt-1 flex-shrink-0" />
                           <p>
-                            Important: Please include the reference number in your bank transfer description. 
-                            This helps us identify your deposit. Processing may take {activeMethod.processingTime}.
+                            Your deposit will be credited after {selectedCrypto.confirmations} network confirmations. 
+                            Do not send any other cryptocurrency to this address.
                           </p>
                         </div>
                       </div>
-                    )}
+                      
+                      <div className="flex justify-center items-center">
+                        <QRCode 
+                          value={selectedCrypto.address}
+                          size={180}
+                          label={`${selectedCrypto.name} Address`}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
             
             {/* Deposit Form */}
-            {activeMethod && (
+            {activeMethod && (activeMethod.id !== 'cryptocurrency' || selectedCrypto) && (
               <form onSubmit={handleSubmit}>
                 <FormInput
                   label="Deposit Amount ($)"
@@ -411,47 +456,45 @@ const Deposit = () => {
                   required
                 />
                 
-                {/* Transaction ID field for crypto methods */}
-                {(activeMethod.id === 'bitcoin' || activeMethod.id === 'ethereum') && (
+                {activeMethod.id === 'cryptocurrency' && (
                   <FormInput
-                    label={`${activeMethod.name} Transaction ID`}
+                    label="Transaction ID/Hash"
                     name="transactionId"
                     value={formData.transactionId}
                     onChange={handleChange}
-                    placeholder="Enter the transaction hash/ID"
+                    placeholder="Enter the transaction ID from your wallet"
                     error={errors.transactionId}
                     required
                   />
                 )}
                 
-                {/* Reference field for bank transfers */}
-                {activeMethod.id === 'bank' && (
-                  <FormInput
-                    label="Reference Number"
-                    name="reference"
-                    value={formData.reference}
-                    onChange={handleChange}
-                    placeholder="Enter the reference number used in your transfer"
-                    error={errors.reference}
-                    required
-                  />
-                )}
+                <FormInput
+                  label="Note (Optional)"
+                  name="note"
+                  value={formData.note}
+                  onChange={handleChange}
+                  placeholder="Add a note to your deposit"
+                />
                 
                 <div className="bg-gray-800 p-4 rounded-lg mb-6">
                   <h4 className="text-white font-medium mb-3">Deposit Summary</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Method:</span>
-                      <span className="text-white">{activeMethod.name}</span>
+                      <span className="text-white">
+                        {activeMethod.id === 'cryptocurrency' ? selectedCrypto?.name : activeMethod.name}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Amount:</span>
                       <span className="text-white">${formData.amount || '0.00'}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Processing Time:</span>
-                      <span className="text-white">{activeMethod.processingTime}</span>
-                    </div>
+                    {activeMethod.id === 'cryptocurrency' && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Processing:</span>
+                        <span className="text-white">After {selectedCrypto?.confirmations || 'required'} confirmations</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 

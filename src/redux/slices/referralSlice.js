@@ -6,7 +6,7 @@ export const fetchReferrals = createAsyncThunk(
   'referral/fetchReferrals',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get('/api/referrals');
+      const response = await apiClient.get('/referrals');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch referrals');
@@ -19,7 +19,7 @@ export const fetchCommissionHistory = createAsyncThunk(
   'referral/fetchCommissionHistory',
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/api/referrals/commissions?page=${page}&limit=${limit}`);
+      const response = await apiClient.get(`/referrals/commissions?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch commission history');
@@ -32,7 +32,7 @@ export const generateNewReferralLink = createAsyncThunk(
   'referral/generateNewReferralLink',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/api/referrals/generate-link');
+      const response = await apiClient.post('/referrals/generate-link');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to generate new referral link');

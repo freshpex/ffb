@@ -9,7 +9,7 @@ import {
 import CardLoader from '../common/CardLoader';
 import { formatDistanceToNow } from 'date-fns';
 
-const MarketNews = ({ maxItems }) => {
+const MarketNews = ({ maxItems = 3 }) => {
   const navigate = useNavigate();
   const newsItems = useSelector(selectMarketNews);
   const componentStatus = useSelector(state => 
@@ -71,10 +71,6 @@ const MarketNews = ({ maxItems }) => {
 
 MarketNews.propTypes = {
   maxItems: PropTypes.number
-};
-
-MarketNews.defaultProps = {
-  maxItems: 3
 };
 
 export default MarketNews;

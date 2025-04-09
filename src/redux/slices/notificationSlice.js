@@ -1,14 +1,35 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiClient from '../../services/apiService';
+import { auth } from '../../firebase';
+
+// Helper to check authentication status
+const checkAuthStatus = () => {
+  return !!localStorage.getItem('ffb_auth_token') || !!sessionStorage.getItem('ffb_auth_token');
+};
 
 // Async thunks
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetchNotifications',
-  async (_, { rejectWithValue }) => {
+  async ({ limit = 10, page = 1 } = {}, { rejectWithValue, dispatch }) => {
     try {
-      const response = await apiClient.get('/api/notifications');
+      // Skip request entirely if we know we're not authenticated
+      if (!checkAuthStatus()) {
+        console.log('Skipping notifications fetch - user not authenticated');
+        return { data: [], unreadCount: 0 };
+      }
+      
+      const response = await apiClient.get('/notifications', {
+        params: { limit, page }
+      });
       return response.data;
     } catch (error) {
+      // If this is an auth error, don't show error to user
+      if (error.isAuthError || error.response?.status === 401) {
+        console.log('Not authenticated for notifications');
+        return { data: [], unreadCount: 0 };
+      }
+      
+      console.error('Error fetching notifications:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications');
     }
   }
@@ -18,9 +39,21 @@ export const markAsRead = createAsyncThunk(
   'notifications/markAsRead',
   async (notificationId, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put(`/api/notifications/${notificationId}/read`);
+      // Skip request entirely if we know we're not authenticated
+      if (!checkAuthStatus()) {
+        console.log('Skipping mark as read - user not authenticated');
+        return { notificationId };
+      }
+      
+      const response = await apiClient.put(`/notifications/${notificationId}/read`);
       return { ...response.data, notificationId };
     } catch (error) {
+      // If this is an auth error, don't show error to user
+      if (error.isAuthError || error.response?.status === 401) {
+        return { notificationId };
+      }
+      
+      console.error('Error marking notification as read:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to mark notification as read');
     }
   }
@@ -30,9 +63,21 @@ export const markAllAsRead = createAsyncThunk(
   'notifications/markAllAsRead',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put('/api/notifications/read-all');
+      // Skip request entirely if we know we're not authenticated
+      if (!checkAuthStatus()) {
+        console.log('Skipping mark all as read - user not authenticated');
+        return { success: true };
+      }
+      
+      const response = await apiClient.put('/notifications/read-all');
       return response.data;
     } catch (error) {
+      // If this is an auth error, don't show error to user
+      if (error.isAuthError || error.response?.status === 401) {
+        return { success: true };
+      }
+      
+      console.error('Error marking all notifications as read:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to mark all notifications as read');
     }
   }
@@ -42,9 +87,21 @@ export const deleteNotification = createAsyncThunk(
   'notifications/deleteNotification',
   async (notificationId, { rejectWithValue }) => {
     try {
-      await apiClient.delete(`/api/notifications/${notificationId}`);
+      // Skip request entirely if we know we're not authenticated
+      if (!checkAuthStatus()) {
+        console.log('Skipping delete notification - user not authenticated');
+        return { notificationId };
+      }
+      
+      await apiClient.delete(`/notifications/${notificationId}`);
       return { notificationId };
     } catch (error) {
+      // If this is an auth error, don't show error to user
+      if (error.isAuthError || error.response?.status === 401) {
+        return { notificationId };
+      }
+      
+      console.error('Error deleting notification:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to delete notification');
     }
   }
