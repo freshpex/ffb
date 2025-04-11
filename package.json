@@ -38,7 +38,7 @@
     "redux": "5.0.1",
     "redux-thunk": "3.1.0",
     "tradingview-widget": "^0.0.1",
-    "vite": "^6.2.1"
+    "vite": "^6.2.6"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
