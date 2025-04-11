@@ -29,8 +29,8 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
       <div className="p-5">
         <div className="flex justify-between items-start">
           <h3 className="text-xl font-bold text-gray-100">{plan.name}</h3>
-          <span className={`text-sm font-medium ${getRiskColor(plan.riskLevel)}`}>
-            {plan.riskLevel || 'Unknown'} Risk
+          <span className={`text-sm font-medium ${getRiskColor(plan.riskLevel || plan.id)}`}>
+            {(plan.riskLevel || plan.id) + " Risk"}
           </span>
         </div>
         
@@ -42,7 +42,9 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
               <FaPercent className="mr-1" size={12} />
               <span>RETURN</span>
             </div>
-            <div className="text-xl font-bold text-primary-500">{plan.roi}%</div>
+            <div className="text-xl font-bold text-primary-500">
+              {plan.roi ?? (plan.returnRate * 100)}%
+            </div>
           </div>
           
           <div className="bg-gray-700/50 rounded-lg p-3">

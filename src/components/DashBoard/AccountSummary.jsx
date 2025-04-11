@@ -5,11 +5,10 @@ import { FaEye, FaEyeSlash, FaExchangeAlt, FaWallet, FaChartLine, FaArrowUp, FaA
 import { selectUserProfile } from '../../redux/slices/userSlice';
 import { 
   fetchAccountSummary, 
-  selectAccountSummary, 
+  selectAccountSummary,
   selectAccountActivity, 
   selectAccountBalanceHistory,
   selectAccountOverview,
-  selectAccountBalance,
   selectDashboardStatus
 } from '../../redux/slices/dashboardSlice';
 import Loader from '../common/Loader';
@@ -17,19 +16,17 @@ import Loader from '../common/Loader';
 const AccountSummary = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
-  const accountBalance = useSelector(selectAccountBalance);
+  const accountSummary = useSelector(selectAccountSummary);
   const accountActivity = useSelector(selectAccountActivity);
+  const dashboardStatus = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
   
   const [isLoading, setIsLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
   
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
       try {
         await dispatch(fetchAccountSummary());
-      } catch (error) {
-        console.error("Failed to fetch account summary", error);
       } finally {
         setIsLoading(false);
       }
@@ -38,7 +35,10 @@ const AccountSummary = () => {
     loadData();
   }, [dispatch]);
   
-  if (isLoading) {
+  // Determine if we're still loading the data
+  const loading = isLoading || dashboardStatus === 'loading';
+  
+  if (loading) {
     return (
       <div className="bg-gray-800 rounded-lg p-6 h-full flex items-center justify-center">
         <Loader />
@@ -47,16 +47,23 @@ const AccountSummary = () => {
   }
   
   // Add proper null/undefined checks using optional chaining and default values
-  const accountNumber = userProfile?.accountNumber || 'XXXX-XXXX-XXXX';
+  const accountNumber = userProfile?.accountNumber || accountSummary?.accountNumber || 'XXXX-XXXX-XXXX';
   const userName = userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() : 'User';
-  const currentBalance = accountBalance || 0;
-  const availableBalance = accountBalance?.available || 0;
-  const pendingBalance = accountBalance?.pending || 0;
+  const accountType = accountSummary?.accountType || 'Standard';
+  
+  // Get balance information with proper fallbacks
+  const availableBalance = accountSummary?.availableBalance || 0;
+  const totalInvestments = accountSummary?.totalInvestments || 0;
+  const totalAssets = accountSummary?.totalAssets || availableBalance + totalInvestments;
+  const pendingBalance = 0; // Add this if your API provides it
   
   // Get activity stats (with safe defaults)
-  const deposits = accountActivity?.deposits || 0;
-  const withdrawals = accountActivity?.withdrawals || 0;
+  const totalDeposits = accountSummary?.totalDeposits || 0;
+  const totalWithdrawals = accountSummary?.totalWithdrawals || 0;
   const trades = accountActivity?.trades || 0;
+  
+  // Determine currency
+  const currency = accountSummary?.currency || 'USD';
   
   return (
     <div className="bg-gray-800 rounded-lg p-6">
@@ -86,6 +93,10 @@ const AccountSummary = () => {
             <p className="text-gray-400 text-sm">Account Holder</p>
             <p className="text-white font-medium">{userName}</p>
           </div>
+          <div className="mt-2 md:mt-0">
+            <p className="text-gray-400 text-sm">Account Type</p>
+            <p className="text-white font-medium">{accountType}</p>
+          </div>
         </div>
       </div>
       
@@ -97,20 +108,20 @@ const AccountSummary = () => {
         </div>
         
         <p className="text-3xl font-bold text-white mb-4">
-          {showBalance ? `$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$•••••.••'}
+          {showBalance ? `${currency}${availableBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currency}•••••.••`}
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-white/70 text-sm">Available Balance</p>
+            <p className="text-white/70 text-sm">Total Assets</p>
             <p className="text-white font-semibold">
-              {showBalance ? `$${availableBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$•••••.••'}
+              {showBalance ? `${currency}${totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currency}•••••.••`}
             </p>
           </div>
           <div>
-            <p className="text-white/70 text-sm">Pending Balance</p>
+            <p className="text-white/70 text-sm">Total Investments</p>
             <p className="text-white font-semibold">
-              {showBalance ? `$${pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$•••••.••'}
+              {showBalance ? `${currency}${totalInvestments.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currency}•••••.••`}
             </p>
           </div>
         </div>
@@ -123,8 +134,8 @@ const AccountSummary = () => {
             <FaArrowDown className="text-green-500" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs">Deposits (30d)</p>
-            <p className="text-white font-semibold">{deposits}</p>
+            <p className="text-gray-400 text-xs">Deposits (Total)</p>
+            <p className="text-white font-semibold">{currency}{totalDeposits.toLocaleString()}</p>
           </div>
         </div>
         
@@ -133,8 +144,8 @@ const AccountSummary = () => {
             <FaArrowUp className="text-red-500" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs">Withdrawals (30d)</p>
-            <p className="text-white font-semibold">{withdrawals}</p>
+            <p className="text-gray-400 text-xs">Withdrawals (Total)</p>
+            <p className="text-white font-semibold">{currency}{totalWithdrawals.toLocaleString()}</p>
           </div>
         </div>
         
@@ -143,8 +154,8 @@ const AccountSummary = () => {
             <FaExchangeAlt className="text-blue-500" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs">Trades (30d)</p>
-            <p className="text-white font-semibold">{trades}</p>
+            <p className="text-gray-400 text-xs">Projected Earnings</p>
+            <p className="text-white font-semibold">{currency}{(accountSummary?.projectedEarnings || 0).toLocaleString()}</p>
           </div>
         </div>
       </div>

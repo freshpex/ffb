@@ -46,7 +46,7 @@ const AdminTransactions = () => {
   };
   
   const handleSearch = ({ searchTerm, filters }) => {
-    setPage(1); // Reset to first page when applying new search/filters
+    setPage(1);
     
     dispatch(fetchTransactions({
       page: 1,
@@ -306,7 +306,7 @@ const AdminTransactions = () => {
                     ) : (
                       transactions.map((transaction) => (
                         <tr 
-                          key={transaction.id} 
+                          key={transaction._id}
                           className={darkMode ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -346,18 +346,18 @@ const AdminTransactions = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm">
-                              {formatDate(transaction.date)}
+                              {formatDate(transaction.createdAt)}
                             </div>
-                            {transaction.completedAt && (
+                            {transaction.updatedAt && (
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Completed: {formatDate(transaction.completedAt)}
+                                Completed: {formatDate(transaction.updatedAt)}
                               </div>
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                             <div className="flex items-center justify-end space-x-2">
                               <Link
-                                to={`/admin/transactions/${transaction.id}`}
+                                to={`/admin/transactions/${transaction._id || transaction.id}`}
                                 className={`p-1.5 rounded-full ${
                                   darkMode 
                                     ? 'bg-gray-700 text-blue-400 hover:bg-gray-600' 
@@ -370,7 +370,7 @@ const AdminTransactions = () => {
                               {transaction.status === 'pending' && (
                                 <>
                                   <Link
-                                    to={`/admin/transactions/${transaction.id}`}
+                                    to={`/admin/transactions/${transaction._id || transaction.id}?action=approve`}
                                     className={`p-1.5 rounded-full ${
                                       darkMode 
                                         ? 'bg-gray-700 text-green-400 hover:bg-gray-600' 
@@ -381,7 +381,7 @@ const AdminTransactions = () => {
                                     <FaCheck size={14} />
                                   </Link>
                                   <Link
-                                    to={`/admin/transactions/${transaction.id}`}
+                                    to={`/admin/transactions/${transaction._id || transaction.id}?action=reject`}
                                     className={`p-1.5 rounded-full ${
                                       darkMode 
                                         ? 'bg-gray-700 text-red-400 hover:bg-gray-600' 

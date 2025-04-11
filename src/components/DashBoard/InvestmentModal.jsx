@@ -67,7 +67,7 @@ const InvestmentModal = ({ plan, onClose, userBalance }) => {
     try {
       await dispatch(makeInvestment({
         planId: plan.id,
-        amount: form.amount
+        amount: parseFloat(form.amount)
       }));
       
       onClose();

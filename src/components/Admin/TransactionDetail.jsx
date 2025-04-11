@@ -52,7 +52,11 @@ const TransactionDetail = () => {
   
   useEffect(() => {
     document.title = "Transaction Details | Admin Dashboard";
-    dispatch(fetchTransactionById(transactionId));
+    if (transactionId && transactionId !== "undefined") {
+      dispatch(fetchTransactionById(transactionId));
+    } else {
+      console.error("Transaction ID is undefined");
+    }
     
     // If action parameter is present, show the corresponding modal
     if (actionParam === 'approve') {
@@ -281,7 +285,7 @@ const TransactionDetail = () => {
                     <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Date</p>
                     <p className={`${darkMode ? 'text-white' : 'text-gray-900'} flex items-center`}>
                       <FaCalendarAlt className="mr-2 h-4 w-4 text-gray-400" />
-                      {formatDate(transaction.date)} at {formatTime(transaction.date)}
+                      {formatDate(transaction.createdAt)} at {formatTime(transaction.createdAt)}
                     </p>
                   </div>
                   
@@ -416,7 +420,7 @@ const TransactionDetail = () => {
                 
                 <div className="mt-4">
                   <Link
-                    to={`/admin/users/${transaction.user.id}`}
+                    to={`/admin/users/${transaction.user._id}`}
                     className="w-full flex items-center justify-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                   >
                     View User Profile
@@ -512,11 +516,11 @@ const TransactionDetail = () => {
                 <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className="flex justify-between mb-2">
                     <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>User:</span>
-                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction.user.fullName}</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction.user.firstName} {transaction.user.lastName}</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Transaction ID:</span>
-                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction.id}</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction._id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Amount:</span>
@@ -611,11 +615,11 @@ const TransactionDetail = () => {
                 <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className="flex justify-between mb-2">
                     <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>User:</span>
-                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction.user.fullName}</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction.user.firstName} {transaction.user.lastName}</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Transaction ID:</span>
-                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction.id}</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{transaction._id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Amount:</span>

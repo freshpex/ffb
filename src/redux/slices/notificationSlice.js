@@ -12,7 +12,6 @@ export const fetchNotifications = createAsyncThunk(
   'notifications/fetchNotifications',
   async ({ limit = 10, page = 1 } = {}, { rejectWithValue, dispatch }) => {
     try {
-      // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
         console.log('Skipping notifications fetch - user not authenticated');
         return { data: [], unreadCount: 0 };

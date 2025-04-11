@@ -40,8 +40,10 @@ import {
 const InvestmentPlans = () => {
   const dispatch = useDispatch();
   const plans = useSelector(selectInvestmentPlans);
+  console.log("Plans", plans);
   const activeInvestments = useSelector(selectActiveInvestments);
   const historyInvestments = useSelector(selectHistoryInvestments);
+  console.log("History", historyInvestments);
   const status = useSelector(selectInvestmentStatus);
   const error = useSelector(selectInvestmentError);
   const stats = useSelector(selectInvestmentStatistics);

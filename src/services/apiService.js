@@ -13,8 +13,12 @@ const api = axios.create({
 
 // Function to get the real token, not any mock tokens
 const getValidAuthToken = () => {
-  const token = localStorage.getItem('ffb_auth_token');
+  const adminToken = localStorage.getItem('ffb_admin_token');
+  if (adminToken && !adminToken.startsWith('mock_token_')) {
+    return adminToken;
+  }
   
+  const token = localStorage.getItem('ffb_auth_token');
   if (token && token.startsWith('mock_token_')) {
     console.log('Found a mock token - this will never work with the backend');
     return null;

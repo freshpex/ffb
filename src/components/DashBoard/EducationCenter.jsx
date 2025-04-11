@@ -42,6 +42,10 @@ const EducationCenter = () => {
   const bookmarks = useSelector(selectBookmarks);
   const status = useSelector(selectEducationStatus);
   
+  console.log("Education resources:", resources);
+  console.log("Education status:", status);
+  console.log("Resources loaded:", resources.length);
+  
   // Local state
   const [activeTab, setActiveTab] = useState("all"); // "all" | "courses" | "bookmarks"
   const [showFilters, setShowFilters] = useState(false);

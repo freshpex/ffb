@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -21,7 +21,6 @@ import {
   selectAdminCardsError,
   selectAdminCardsPagination
 } from '../../../redux/slices/adminCardSlice';
-import AdminLayout from '../AdminLayout';
 import Button from '../../common/Button';
 import Alert from '../../common/Alert';
 import Loader from '../../common/Loader';
@@ -30,9 +29,10 @@ import AdminCardRequestModal from './AdminCardRequestModal';
 const AdminATMCardsPage = () => {
   const dispatch = useDispatch();
   
-  // Selectors
-  const cards = useSelector(selectAdminCards);
+  const adminCards = useSelector(selectAdminCards);
   const cardRequests = useSelector(selectAdminCardRequests);
+  console.log("Admin Cards", adminCards);
+  console.log("Requests", cardRequests)
   const status = useSelector(selectAdminCardsStatus);
   const error = useSelector(selectAdminCardsError);
   const pagination = useSelector(selectAdminCardsPagination);
@@ -215,8 +215,10 @@ const AdminATMCardsPage = () => {
     }
   };
 
+  const displayCards = activeTab === 'requests' ? cardRequests : adminCards;
+
   return (
-    <AdminLayout>
+    <>
       <div className="p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-0">
@@ -398,8 +400,8 @@ const AdminATMCardsPage = () => {
           </div>
         ) : (
           <>
-            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-              {cards.length > 0 ? (
+            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">              
+              {displayCards && displayCards.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-700">
                     <thead className="bg-gray-900">
@@ -422,8 +424,8 @@ const AdminATMCardsPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
-                      {cards.map((card) => (
-                        <tr key={card._id} className="hover:bg-gray-750">
+                      {displayCards.map((card) => (
+                        <tr key={card.id || card._id} className="hover:bg-gray-750">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <div>
@@ -433,15 +435,15 @@ const AdminATMCardsPage = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-white capitalize">{card.type.replace('-', ' ')}</div>
-                            <div className="text-sm text-gray-400">{card.currency}</div>
+                            <div className="text-sm text-white capitalize">{card.type?.replace('-', ' ') || 'Unknown'}</div>
+                            <div className="text-sm text-gray-400">{card.currency || 'USD'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-white">{new Date(card.createdAt).toLocaleDateString()}</div>
-                            <div className="text-sm text-gray-400">{new Date(card.createdAt).toLocaleTimeString()}</div>
+                            <div className="text-sm text-white">{card.createdAt ? new Date(card.createdAt).toLocaleDateString() : 'N/A'}</div>
+                            <div className="text-sm text-gray-400">{card.createdAt ? new Date(card.createdAt).toLocaleTimeString() : ''}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            {renderStatusBadge(card.status)}
+                            {renderStatusBadge(card.status || 'unknown')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-2">
@@ -458,7 +460,7 @@ const AdminATMCardsPage = () => {
                                   <Button 
                                     variant="success" 
                                     size="xs" 
-                                    onClick={() => handleApproveCard(card._id)}
+                                    onClick={() => handleApproveCard(card.id || card._id)}
                                   >
                                     <FaCheckCircle className="mr-1" /> Approve
                                   </Button>
@@ -577,7 +579,7 @@ const AdminATMCardsPage = () => {
         onApprove={handleApproveCard}
         onReject={handleRejectCard}
       />
-    </AdminLayout>
+    </>
   );
 };
 

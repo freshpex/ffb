@@ -34,9 +34,26 @@ export const submitWithdrawal = createAsyncThunk(
   'withdrawal/submitWithdrawal',
   async (withdrawalData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post('/withdrawals', withdrawalData);
+      const formattedData = {
+        amount: parseFloat(withdrawalData.amount),
+        method: withdrawalData.method,
+        description: withdrawalData.description || `Withdrawal via ${withdrawalData.method}`
+      };
+      
+      if (withdrawalData.method === 'cryptocurrency') {
+        formattedData.walletAddress = withdrawalData.walletAddress;
+        formattedData.cryptoType = withdrawalData.cryptoType;
+      } else if (withdrawalData.method === 'bank_transfer') {
+        formattedData.bankDetails = withdrawalData.bankDetails;
+      } else if (withdrawalData.method === 'paypal') {
+        formattedData.paypalEmail = withdrawalData.paypalEmail;
+      }
+      
+      console.log("Sending withdrawal data:", formattedData);
+      const response = await apiClient.post('/withdrawals', formattedData);
       return response.data;
     } catch (error) {
+      console.error("Withdrawal submission error:", error.response?.data || error.message);
       return rejectWithValue(error.response?.data?.message || 'Failed to process withdrawal');
     }
   }

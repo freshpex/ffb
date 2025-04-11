@@ -93,12 +93,12 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
     <div className="space-y-4">
       {requests.map((card) => (
         <div 
-          key={card._id} 
+          key={card.id} 
           className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 transition-all duration-200"
         >
           <div 
             className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-700/50"
-            onClick={() => toggleCardExpanded(card._id)}
+            onClick={() => toggleCardExpanded(card.id)}
           >
             <div className="flex items-center">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
@@ -124,12 +124,12 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
             </div>
           </div>
           
-          {expandedCard === card._id && (
+          {expandedCard === card.id && (
             <div className="border-t border-gray-700 p-4 bg-gray-700/20">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h4 className="text-sm text-gray-400 mb-1">Request ID</h4>
-                  <p className="text-white font-mono text-sm">{card._id}</p>
+                  <p className="text-white font-mono text-sm">{card.id}</p>
                 </div>
                 <div>
                   <h4 className="text-sm text-gray-400 mb-1">Currency</h4>

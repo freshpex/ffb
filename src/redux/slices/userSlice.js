@@ -326,8 +326,7 @@ export const selectUserName = state => {
 export const selectUserBalance = state => {
   const profile = state.user.profile;
   if (!profile) return 0;
-  
-  return profile.accountBalance ?? profile.balance ?? 0;
+  return profile.accountBalance ?? profile.balance ?? profile.availableBalance ?? 0;
 };
 
 export const selectUserEmail = state => {

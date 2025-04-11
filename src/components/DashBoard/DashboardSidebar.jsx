@@ -133,10 +133,8 @@ const DashboardSidebar = ({ isMobile }) => {
   
   // Initialize expanded groups
   useEffect(() => {
-    // Initially expand all groups for desktop, or just the active one for mobile
     const initialExpanded = {};
     navigationGroups.forEach(group => {
-      // Check if any item in this group is active
       const hasActiveItem = group.items.some(item => location.pathname === item.path);
       initialExpanded[group.id] = !isMobile || hasActiveItem;
     });

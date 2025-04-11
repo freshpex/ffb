@@ -27,7 +27,7 @@ import {
   selectATMCardsStatus,
   freezeCard,
   unfreezeCard,
-  cancelCard 
+  cancelCardRequest 
 } from '../../../redux/slices/atmCardsSlice';
 import DashboardLayout from '../DashboardLayout';
 import Button from '../../common/Button';
@@ -60,7 +60,9 @@ const CardDetailsPage = () => {
   const navigate = useNavigate();
   
   const card = useSelector(state => selectCardById(state, cardId));
-  const transactions = useSelector(selectCardTransactions);
+  console.log("card", card)
+  const transactions = useSelector(state => selectCardTransactions(state, cardId));
+  console.log("transactions", transactions);
   const status = useSelector(selectATMCardsStatus);
   
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -71,7 +73,7 @@ const CardDetailsPage = () => {
   
   useEffect(() => {
     if (cardId) {
-      dispatch(fetchCardTransactions(cardId));
+      dispatch(fetchCardTransactions({ cardId }));
     }
   }, [dispatch, cardId]);
   
@@ -123,7 +125,7 @@ const CardDetailsPage = () => {
   
   const handleCancelCard = async () => {
     if (window.confirm('Are you sure you want to cancel this card? This action cannot be undone.')) {
-      await dispatch(cancelCard(card.id));
+      await dispatch(cancelCardRequest(card.id));
       setAlertMessage({
         type: 'success',
         message: 'Card canceled successfully.'
@@ -147,7 +149,7 @@ const CardDetailsPage = () => {
   };
   
   // Filter transactions
-  const filteredTransactions = transactions.filter(tx => {
+  const filteredTransactions = transactions?.data?.filter(tx => {
     // Filter by category
     if (categoryFilter !== 'all' && tx.category !== categoryFilter) {
       return false;
@@ -169,7 +171,7 @@ const CardDetailsPage = () => {
     }
     
     return true;
-  });
+  }) || [];
   
   return (
     <DashboardLayout>
@@ -341,7 +343,7 @@ const CardDetailsPage = () => {
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs">Total Transactions</p>
-                    <p className="text-white text-xl font-semibold">{transactions.length}</p>
+                    <p className="text-white text-xl font-semibold">{transactions?.data?.length || 0}</p>
                   </div>
                 </div>
               </div>

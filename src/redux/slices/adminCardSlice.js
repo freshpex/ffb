@@ -58,25 +58,12 @@ const initialState = {
   adminPagination: null
 };
 
-// Async thunks
-export const fetchCards = createAsyncThunk(
-  'atmCards/fetchCards',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await apiService.get('/atm-cards');
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch cards');
-    }
-  }
-);
-
-
 export const fetchAdminCards = createAsyncThunk(
-  'atmCards/fetchAdminCards',
+  'adminCards/fetchAdminCards',
   async (params, { rejectWithValue }) => {
     try {
-      const response = await apiService.get('/admin/atm-cards', { params });
+      const response = await apiService.get('/admin/atm-cards/all', { params });
+      console.log("response Data", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch admin cards');
@@ -85,7 +72,7 @@ export const fetchAdminCards = createAsyncThunk(
 );
 
 export const approveCardRequest = createAsyncThunk(
-  'atmCards/approveCardRequest',
+  'adminCards/approveCardRequest',
   async (cardId, { rejectWithValue }) => {
     try {
       const response = await apiService.post(`/admin/atm-cards/${cardId}/approve`);
@@ -97,7 +84,7 @@ export const approveCardRequest = createAsyncThunk(
 );
 
 export const rejectCardRequest = createAsyncThunk(
-  'atmCards/rejectCardRequest',
+  'adminCards/rejectCardRequest',
   async ({ cardId, reason }, { rejectWithValue }) => {
     try {
       const response = await apiService.post(`/admin/atm-cards/${cardId}/reject`, { reason });
@@ -109,8 +96,8 @@ export const rejectCardRequest = createAsyncThunk(
 );
 
 // Card slice
-const atmCardsSlice = createSlice({
-  name: 'atmCards',
+const adminCardSlice = createSlice({
+  name: 'adminCards',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -120,9 +107,15 @@ const atmCardsSlice = createSlice({
         state.adminStatus = 'loading';
       })
       .addCase(fetchAdminCards.fulfilled, (state, action) => {
-        state.adminStatus = 'succeeded';
-        state.adminCards = action.payload.cards;
-        state.adminPagination = action.payload.pagination;
+        state.adminStatus = 'succeeded';       
+        if (action.payload.data) {  
+          state.adminCards = action.payload.data.cards;
+          state.adminPagination = action.payload.data.pagination;
+          console.log("Cards stored in Redux:", state.adminCards.length, state.adminCards);
+        } else {;
+          state.adminPagination = null;
+          console.warn("Invalid response format or no cards in response");
+        }
       })
       .addCase(fetchAdminCards.rejected, (state, action) => {
         state.adminStatus = 'failed';
@@ -135,9 +128,9 @@ const atmCardsSlice = createSlice({
       })
       .addCase(approveCardRequest.fulfilled, (state, action) => {
         state.adminStatus = 'succeeded';
-        const index = state.adminCards.findIndex(card => card._id === action.payload._id);
+        const index = state.adminCards.findIndex(card => card.id === action.payload.data.id);
         if (index !== -1) {
-          state.adminCards[index] = action.payload;
+          state.adminCards[index] = action.payload.data;
         }
       })
       .addCase(approveCardRequest.rejected, (state, action) => {
@@ -151,9 +144,9 @@ const atmCardsSlice = createSlice({
       })
       .addCase(rejectCardRequest.fulfilled, (state, action) => {
         state.adminStatus = 'succeeded';
-        const index = state.adminCards.findIndex(card => card._id === action.payload._id);
+        const index = state.adminCards.findIndex(card => card.id === action.payload.data.id);
         if (index !== -1) {
-          state.adminCards[index] = action.payload;
+          state.adminCards[index] = action.payload.data;
         }
       })
       .addCase(rejectCardRequest.rejected, (state, action) => {
@@ -164,10 +157,30 @@ const atmCardsSlice = createSlice({
 });
 
 // Selectors
-export const selectAdminCards = (state) => state.atmCards.adminCards;
-export const selectAdminCardRequests = (state) => state.atmCards.adminCards.filter(card => card.status === 'pending');
-export const selectAdminCardsStatus = (state) => state.atmCards.adminStatus;
-export const selectAdminCardsError = (state) => state.atmCards.adminError;
-export const selectAdminCardsPagination = (state) => state.atmCards.adminPagination;
+export const selectAdminCards = (state) => {
+  if (!state || !state.adminCards) return [];
+  return state.adminCards.adminCards || [];
+};
 
-export default atmCardsSlice.reducer;
+export const selectAdminCardRequests = (state) => {
+  if (!state || !state.adminCards) return [];
+  const cards = state.adminCards.adminCards || [];
+  return cards.filter(card => card && card.status === 'pending');
+};
+
+export const selectAdminCardsStatus = (state) => {
+  if (!state || !state.adminCards) return 'idle';
+  return state.adminCards.adminStatus;
+};
+
+export const selectAdminCardsError = (state) => {
+  if (!state || !state.adminCards) return null;
+  return state.adminCards.adminError;
+};
+
+export const selectAdminCardsPagination = (state) => {
+  if (!state || !state.adminCards) return null;
+  return state.adminCards.adminPagination;
+};
+
+export default adminCardSlice.reducer;

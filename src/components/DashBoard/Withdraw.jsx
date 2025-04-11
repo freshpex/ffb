@@ -231,7 +231,7 @@ const Withdraw = () => {
       const withdrawalData = {
         method: activeMethod.id,
         amount: parseFloat(formData.amount),
-        description: formData.description
+        description: formData.description || `Withdrawal via ${activeMethod.name}`
       };
       
       // Add method-specific details
@@ -239,15 +239,21 @@ const Withdraw = () => {
         withdrawalData.walletAddress = formData.walletAddress;
         withdrawalData.cryptoType = formData.cryptoType;
       } else if (activeMethod.id === 'bank_transfer') {
-        withdrawalData.bankDetails = formData.bankDetails;
+        withdrawalData.bankDetails = {
+          accountName: formData.bankDetails.accountName,
+          accountNumber: formData.bankDetails.accountNumber,
+          bankName: formData.bankDetails.bankName,
+          routingNumber: formData.bankDetails.routingNumber
+        };
       } else if (activeMethod.id === 'paypal') {
         withdrawalData.paypalEmail = formData.paypalEmail;
       }
       
+      console.log("Submitting withdrawal:", withdrawalData);
+      
       await dispatch(submitWithdrawal(withdrawalData));
       
       // Success will be handled by useEffect when pendingWithdrawal is updated
-      
     } catch (error) {
       setAlert({
         type: "error",

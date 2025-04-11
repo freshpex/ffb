@@ -89,10 +89,17 @@ export const makeInvestment = createAsyncThunk(
   async (investmentData, { rejectWithValue }) => {
     try {
       const response = await apiClient.post('/investments', investmentData);
-      return response.data;
+      return response.data.data || response.data;
     } catch (error) {
-      console.error('Error making investment:', error);
-      return rejectWithValue(error.response?.data?.message || 'Failed to make investment');
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      return rejectWithValue(
+        error.response?.data?.message || 
+        error.response?.data?.error ||
+        'Failed to make investment. Please try again later.'
+      );
     }
   }
 );
@@ -290,11 +297,10 @@ export const {
   resetInvestmentForm
 } = investmentSlice.actions;
 
-// Export selectors
-const getInvestmentState = state => state.investments;
-const getInvestmentPlansState = state => state.investments?.investmentPlans;
-const getUserInvestmentsState = state => state.investments?.userInvestments;
-const getStatisticsState = state => state.investments?.statistics;
+const getInvestmentState = state => state.investment;
+const getInvestmentPlansState = state => state.investment?.investmentPlans;
+const getUserInvestmentsState = state => state.investment?.userInvestments;
+const getStatisticsState = state => state.investment?.statistics;
 
 // Memoized selectors
 export const selectInvestmentPlans = createSelector(
@@ -339,7 +345,7 @@ export const selectInvestmentStatistics = createSelector(
   }
 );
 
-const getSuccessModalState = state => state.investments?.successModal;
+const getSuccessModalState = state => state.investment?.successModal;
 
 export const selectSuccessModal = createSelector(
   [getSuccessModalState],

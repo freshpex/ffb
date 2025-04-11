@@ -80,11 +80,9 @@ const UserEdit = () => {
       console.log("Loading user data into form:", user);
       
       setFormData({
-        // Use existing data or empty string as fallback
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        // For fields that might not exist in the user object, provide fallbacks
         phoneNumber: user.phoneNumber || '',
         country: user.country || '',
         accountType: user.accountType || '',

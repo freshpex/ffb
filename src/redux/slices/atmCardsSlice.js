@@ -147,7 +147,6 @@ const atmCardsSlice = createSlice({
       })
       .addCase(fetchCards.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Separate active cards and pending requests
         if (action.payload.data) {
           const allCards = action.payload.data || [];
           state.cards = allCards.filter(card => card.status === 'active');
@@ -264,7 +263,7 @@ export const selectCardTypes = state => state.atmCards.cardTypes;
 export const selectATMCardsStatus = state => state.atmCards.status;
 export const selectATMCardsError = state => state.atmCards.error;
 export const selectCardById = (state, cardId) => 
-  state.atmCards.cards.find(card => card._id === cardId);
+  state.atmCards.cards.find(card => card.id === cardId || card._id === cardId);
 export const selectCardTransactions = (state, cardId) => 
   state.atmCards.cardTransactions[cardId] || { data: [], pagination: { total: 0 } };
 export const selectCardsStatus = (state) => state.atmCards.status;
