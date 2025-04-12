@@ -17,6 +17,7 @@ const AccountSummary = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
   const accountSummary = useSelector(selectAccountSummary);
+  console.log("accountSummary", accountSummary)
   const accountActivity = useSelector(selectAccountActivity);
   const dashboardStatus = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
   
@@ -52,14 +53,14 @@ const AccountSummary = () => {
   const accountType = accountSummary?.accountType || 'Standard';
   
   // Get balance information with proper fallbacks
-  const availableBalance = accountSummary?.availableBalance || 0;
-  const totalInvestments = accountSummary?.totalInvestments || 0;
+  const availableBalance = accountSummary?.balance || 0;
+  const totalInvestments = accountSummary?.investmentTotal || 0;
   const totalAssets = accountSummary?.totalAssets || availableBalance + totalInvestments;
   const pendingBalance = 0; // Add this if your API provides it
   
   // Get activity stats (with safe defaults)
-  const totalDeposits = accountSummary?.totalDeposits || 0;
-  const totalWithdrawals = accountSummary?.totalWithdrawals || 0;
+  const totalDeposits = accountSummary?.depositTotal || 0;
+  const totalWithdrawals = accountSummary?.withdrawalTotal || 0;
   const trades = accountActivity?.trades || 0;
   
   // Determine currency

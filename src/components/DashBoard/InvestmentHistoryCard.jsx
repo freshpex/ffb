@@ -79,7 +79,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <FaMoneyBillWave className="mr-1" size={12} />
               <span>INVESTMENT</span>
             </div>
-            <div className="text-base font-bold text-gray-100">${investment.amount.toLocaleString()}</div>
+            <div className="text-base font-bold text-gray-100">${(investment?.amount?.toLocaleString() || '0')}</div>
           </div>
           
           <div className="bg-gray-700/30 rounded-lg p-3">
@@ -87,7 +87,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <FaPercent className="mr-1" size={12} />
               <span>ROI</span>
             </div>
-            <div className="text-base font-bold text-primary-500">{investment.roi}%</div>
+            <div className="text-base font-bold text-primary-500">{(investment?.roi || investment?.returnRate) + '%'}</div>
           </div>
           
           <div className="bg-gray-700/30 rounded-lg p-3">
@@ -95,7 +95,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <FaCalendarDay className="mr-1" size={12} />
               <span>START DATE</span>
             </div>
-            <div className="text-base font-bold text-gray-100">{formatDate(investment.startDate)}</div>
+            <div className="text-base font-bold text-gray-100">{formatDate(investment?.startDate)}</div>
           </div>
           
           <div className="bg-gray-700/30 rounded-lg p-3">
@@ -103,7 +103,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <FaCalendarCheck className="mr-1" size={12} />
               <span>{investment.status === 'active' ? 'END DATE' : 'COMPLETED DATE'}</span>
             </div>
-            <div className="text-base font-bold text-gray-100">{formatDate(investment.endDate)}</div>
+            <div className="text-base font-bold text-gray-100">{formatDate(investment?.endDate)}</div>
           </div>
         </div>
         
@@ -117,7 +117,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <div className="w-full bg-gray-700 rounded-full h-2.5">
                 <div 
                   className="bg-primary-500 h-2.5 rounded-full" 
-                  style={{ width: `${investment.progress}%` }}
+                  style={{ width: `${investment?.progress}%` }}
                 ></div>
               </div>
             </div>
@@ -128,7 +128,9 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
                   <FaMoneyBillAlt className="mr-1" size={12} />
                   <span>CURRENT VALUE</span>
                 </div>
-                <div className="text-base font-bold text-green-500">${investment.currentValue.toLocaleString()}</div>
+                <div className="text-base font-bold text-green-500">
+                  ${investment.currentValue ? investment.currentValue.toLocaleString() : '0.00'}
+                </div>
               </div>
               
               <div className="bg-gray-700/30 rounded-lg p-3">
@@ -137,7 +139,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
                   <span>EXPECTED RETURN</span>
                 </div>
                 <div className="text-base font-bold text-gray-100">
-                  ${investment.expectedReturn.toLocaleString()}
+                  ${investment.expectedReturn ? investment?.expectedReturn.toLocaleString() : '0.00'}
                 </div>
               </div>
             </div>
@@ -151,7 +153,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <span className="font-medium">Return Amount</span>
             </div>
             <div className="text-lg font-bold text-green-500">
-              +${investment.returnAmount.toLocaleString()}
+              +${investment.returnAmount ? investment.returnAmount.toLocaleString() : '0.00'}
             </div>
           </div>
         )}

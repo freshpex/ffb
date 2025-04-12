@@ -49,7 +49,7 @@ const AdminDashboard = () => {
         
         // Fetch transactions data
         const transactionsResponse = await dispatch(fetchTransactions({ page: 1, limit: 50 })).unwrap();
-        
+
         // Fetch KYC requests data
         const kycResponse = await dispatch(fetchKycRequests({ page: 1, limit: 50 })).unwrap();
         
@@ -337,7 +337,7 @@ const AdminDashboard = () => {
                                 {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
                               </p>
                               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                {new Date(transaction.date).toLocaleDateString()}
+                                {new Date(transaction.createdAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>

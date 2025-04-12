@@ -7,15 +7,16 @@ const InvestmentSuccessModal = () => {
   const dispatch = useDispatch();
   const successModal = useSelector(selectSuccessModal);
   
-  if (!successModal.show) return null;
+  if (!successModal.isOpen) return null;
   
   const handleClose = () => {
     dispatch(closeSuccessModal());
+    window.location.reload();
   };
   
   return (
     <AnimatePresence>
-      {successModal.show && (
+      {successModal.isOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-75 flex items-center justify-center p-4">
           <motion.div
             className="relative w-full max-w-md mx-auto"
@@ -41,15 +42,15 @@ const InvestmentSuccessModal = () => {
                   </div>
                   <h2 className="text-xl font-bold text-gray-100 mb-2">Investment Successful!</h2>
                   <p className="text-gray-400">
-                    Your investment of <span className="text-gray-200 font-medium">${successModal.details?.amount.toLocaleString()}</span> in 
-                    <span className="text-primary-500 font-medium"> {successModal.details?.planName}</span> has been created.
+                    Your investment of <span className="text-gray-200 font-medium">${successModal.investmentData?.amount?.toLocaleString()}</span> in 
+                    <span className="text-primary-500 font-medium"> {successModal.investmentData?.planName}</span> has been created.
                   </p>
                 </div>
                 
                 <div className="bg-gray-700/30 p-4 rounded-lg mb-6">
                   <div className="flex justify-between text-gray-300 mb-2">
                     <span>Investment ID:</span>
-                    <span className="font-medium">{successModal.details?.id}</span>
+                    <span className="font-medium">{successModal.investmentData?.id}</span>
                   </div>
                   <div className="flex justify-between text-gray-300 mb-2">
                     <span>Status:</span>
@@ -58,13 +59,13 @@ const InvestmentSuccessModal = () => {
                   <div className="flex justify-between text-gray-300 mb-2">
                     <span>Expected Return:</span>
                     <span className="text-green-500 font-medium">
-                      ${(successModal.details?.amount * (successModal.details?.roi / 100)).toFixed(2)}
+                      ${(successModal.investmentData?.amount * (successModal.investmentData?.returnRate / 100)).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-300">
                     <span>Maturity Date:</span>
                     <span className="font-medium">
-                      {successModal.details?.endDate ? new Date(successModal.details.endDate).toLocaleDateString() : 'N/A'}
+                      {successModal.investmentData?.endDate ? new Date(successModal.investmentData.endDate).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
                 </div>

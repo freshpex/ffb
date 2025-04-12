@@ -34,16 +34,19 @@ import {
   selectInvestmentPlans, 
   selectActiveInvestments, 
   selectHistoryInvestments,
-  selectInvestmentStatistics 
-} from '../../redux/selectors/selectors';
+  selectInvestmentStatistics,
+  allTheOnes
+} from '../../redux/slices/investmentSlice';
 
 const InvestmentPlans = () => {
   const dispatch = useDispatch();
   const plans = useSelector(selectInvestmentPlans);
-  console.log("Plans", plans);
   const activeInvestments = useSelector(selectActiveInvestments);
+  console.log("activeInvestments", activeInvestments);
   const historyInvestments = useSelector(selectHistoryInvestments);
   console.log("History", historyInvestments);
+  const all = useSelector(allTheOnes);
+  console.log("All", all);
   const status = useSelector(selectInvestmentStatus);
   const error = useSelector(selectInvestmentError);
   const stats = useSelector(selectInvestmentStatistics);
@@ -85,6 +88,7 @@ const InvestmentPlans = () => {
     if (window.confirm('Are you sure you want to cancel this investment? You will not receive any returns.')) {
       try {
         await dispatch(cancelInvestment(investmentId));
+        window.location.reload();
       } catch (error) {
         console.error('Failed to cancel investment:', error);
       }
@@ -316,8 +320,8 @@ const InvestmentPlans = () => {
                         key={investment.id}
                         investment={investment}
                         type="active"
-                        onCancel={() => handleCancelInvestment(investment.id)}
-                        onWithdraw={() => handleWithdrawInvestment(investment.id)}
+                        onCancel={() => handleCancelInvestment(investment._id)}
+                        onWithdraw={() => handleWithdrawInvestment(investment._id)}
                       />
                     ))}
                   </div>

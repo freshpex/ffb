@@ -44,8 +44,6 @@ import {
 
 const ReferralProgram = () => {
   const dispatch = useDispatch();
-  
-  // Redux state
   const referrals = useSelector(selectReferrals);
   const commissionHistory = useSelector(selectCommissionHistory);
   const referralLink = useSelector(selectReferralLink);
@@ -53,8 +51,6 @@ const ReferralProgram = () => {
   const statistics = useSelector(selectReferralStatistics);
   const status = useSelector(selectReferralStatus);
   const error = useSelector(selectReferralError);
-  
-  // Local state
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'referrals', 'commissions'
   const [showStats, setShowStats] = useState(true);
   const [copied, setCopied] = useState(false);

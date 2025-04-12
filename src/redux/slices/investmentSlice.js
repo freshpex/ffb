@@ -63,6 +63,7 @@ export const fetchInvestmentPlans = createAsyncThunk(
     try {
       const response = await apiClient.get('/investments/plans');
       console.log('Investment plans response:', response.data);
+      console.log('Investment plans data:', response.data.data);
       return response.data.data || [];
     } catch (error) {
       console.error('Error fetching investment plans:', error);
@@ -76,6 +77,7 @@ export const fetchUserInvestments = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiClient.get('/investments/user');
+      console.log('User investments response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching user investments:', error);
@@ -157,7 +159,6 @@ const investmentSlice = createSlice({
         state.status[operation] = 'idle';
         state.error[operation] = null;
       } else {
-        // Reset all statuses if no operation specified
         Object.keys(state.status).forEach(key => {
           state.status[key] = 'idle';
           state.error[key] = null;
@@ -176,20 +177,17 @@ const investmentSlice = createSlice({
         investmentData: null
       };
     },
-    // Add updateInvestmentForm reducer
     updateInvestmentForm: (state, action) => {
       state.investmentForm = {
         ...state.investmentForm,
         ...action.payload
       };
     },
-    // Add resetInvestmentForm reducer for convenience
     resetInvestmentForm: (state) => {
       state.investmentForm = initialState.investmentForm;
     }
   },
   extraReducers: (builder) => {
-    // Handle fetchInvestmentPlans
     builder
       .addCase(fetchInvestmentPlans.pending, (state) => {
         state.status.fetchPlans = 'loading';
@@ -209,8 +207,8 @@ const investmentSlice = createSlice({
         state.status.fetchInvestments = 'loading';
       })
       .addCase(fetchUserInvestments.fulfilled, (state, action) => {
-        state.userInvestments.active = action.payload.active || [];
-        state.userInvestments.history = action.payload.history || [];
+        state.userInvestments.active = action.payload.data?.active || [];
+        state.userInvestments.history = action.payload.data?.history || [];
         state.status.fetchInvestments = 'succeeded';
         state.error.fetchInvestments = null;
       })
@@ -218,8 +216,6 @@ const investmentSlice = createSlice({
         state.status.fetchInvestments = 'failed';
         state.error.fetchInvestments = action.payload;
       })
-
-      // Handle makeInvestment
       .addCase(makeInvestment.pending, (state) => {
         state.status.investmentOperation = 'loading';
       })
@@ -227,20 +223,20 @@ const investmentSlice = createSlice({
         state.userInvestments.active.push(action.payload);
         state.status.investmentOperation = 'succeeded';
         state.error.investmentOperation = null;
-        // Reset form on successful investment
         state.investmentForm = initialState.investmentForm;
+        state.successModal = {
+          isOpen: true,
+          investmentData: action.payload
+        };
       })
       .addCase(makeInvestment.rejected, (state, action) => {
         state.status.investmentOperation = 'failed';
         state.error.investmentOperation = action.payload;
       })
-
-      // Handle cancelInvestment
       .addCase(cancelInvestment.pending, (state) => {
         state.status.cancellation = 'loading';
       })
       .addCase(cancelInvestment.fulfilled, (state, action) => {
-        // Move from active to history
         state.userInvestments.active = state.userInvestments.active.filter(
           investment => investment.id !== action.payload.id
         );
@@ -258,7 +254,6 @@ const investmentSlice = createSlice({
         state.status.withdrawal = 'loading';
       })
       .addCase(withdrawInvestment.fulfilled, (state, action) => {
-        // Move from active to history
         state.userInvestments.active = state.userInvestments.active.filter(
           investment => investment.id !== action.payload.id
         );
@@ -276,7 +271,7 @@ const investmentSlice = createSlice({
         state.status.statistics = 'loading';
       })
       .addCase(fetchInvestmentStatistics.fulfilled, (state, action) => {
-        state.statistics.data = action.payload;
+        state.statistics.data = action.payload.data || {};
         state.status.statistics = 'succeeded';
         state.error.statistics = null;
       })
@@ -323,6 +318,11 @@ export const selectSelectedPlan = createSelector(
   (investments) => investments?.selectedPlan
 );
 
+export const allTheOnes = createSelector(
+  [getInvestmentState],
+  (investments) => investments
+);
+
 export const selectInvestmentStatus = createSelector(
   [getInvestmentState, (_, operation) => operation],
   (investments, operation) => investments?.status[operation] || 'idle'
@@ -355,7 +355,6 @@ export const selectSuccessModal = createSelector(
   }
 );
 
-// Add the missing selector
 export const selectInvestmentForm = createSelector(
   [getInvestmentState],
   (investments) => investments?.investmentForm || initialState.investmentForm

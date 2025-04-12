@@ -39,7 +39,9 @@ const initialState = {
     }
   ],
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
-  error: null
+  error: null,
+  transactionStatus: 'idle',
+  transactionError: null
 };
 
 // Async thunks
@@ -124,12 +126,31 @@ export const updateCardLimits = createAsyncThunk(
 
 export const fetchCardTransactions = createAsyncThunk(
   'atmCards/fetchCardTransactions',
-  async ({ cardId, page = 1, limit = 10 }, { rejectWithValue }) => {
+  async ({ cardId, page = 1, limit = 10, filters = {} }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/atm-cards/${cardId}/transactions?page=${page}&limit=${limit}`);
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...filters
+      });
+      
+      const response = await apiClient.get(`/atm-cards/${cardId}/transactions?${queryParams}`);
       return { cardId, data: response.data };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch card transactions');
+    }
+  }
+);
+
+// New transaction thunk
+export const createCardTransaction = createAsyncThunk(
+  'atmCards/createCardTransaction',
+  async ({ cardId, transaction }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post(`/atm-cards/${cardId}/transactions`, transaction);
+      return { cardId, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create transaction');
     }
   }
 );
@@ -138,7 +159,12 @@ export const fetchCardTransactions = createAsyncThunk(
 const atmCardsSlice = createSlice({
   name: 'atmCards',
   initialState,
-  reducers: {},
+  reducers: {
+    clearTransactionStatus: (state) => {
+      state.transactionStatus = 'idle';
+      state.transactionError = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       // Handle fetchCards
@@ -252,9 +278,49 @@ const atmCardsSlice = createSlice({
       .addCase(fetchCardTransactions.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
+      })
+      
+      // Handle createCardTransaction
+      .addCase(createCardTransaction.pending, (state) => {
+        state.transactionStatus = 'loading';
+      })
+      .addCase(createCardTransaction.fulfilled, (state, action) => {
+        state.transactionStatus = 'succeeded';
+        
+        // Update card balance
+        const cardId = action.payload.cardId;
+        const transaction = action.payload.data.transaction;
+        const cardIndex = state.cards.findIndex(card => card._id === cardId || card.id === cardId);
+        
+        if (cardIndex !== -1) {
+          // Deduct the transaction amount from card balance
+          // Only for purchase or withdrawal transactions
+          if (['purchase', 'withdrawal'].includes(transaction.type)) {
+            state.cards[cardIndex].balance -= transaction.amount;
+          }
+        }
+        
+        // Add transaction to the transactions list if it exists for this card
+        if (state.cardTransactions[cardId]?.data) {
+          state.cardTransactions[cardId].data.unshift(transaction);
+          
+          // Update pagination if it exists
+          if (state.cardTransactions[cardId].pagination) {
+            state.cardTransactions[cardId].pagination.total += 1;
+          }
+        }
+        
+        state.transactionError = null;
+      })
+      .addCase(createCardTransaction.rejected, (state, action) => {
+        state.transactionStatus = 'failed';
+        state.transactionError = action.payload;
       });
   }
 });
+
+// Export actions
+export const { clearTransactionStatus } = atmCardsSlice.actions;
 
 // Selectors
 export const selectCards = state => state.atmCards.cards;
@@ -268,5 +334,7 @@ export const selectCardTransactions = (state, cardId) =>
   state.atmCards.cardTransactions[cardId] || { data: [], pagination: { total: 0 } };
 export const selectCardsStatus = (state) => state.atmCards.status;
 export const selectCardsError = (state) => state.atmCards.error;
+export const selectTransactionStatus = (state) => state.atmCards.transactionStatus;
+export const selectTransactionError = (state) => state.atmCards.transactionError;
 
 export default atmCardsSlice.reducer;
