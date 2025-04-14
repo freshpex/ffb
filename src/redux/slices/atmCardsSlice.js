@@ -155,6 +155,19 @@ export const createCardTransaction = createAsyncThunk(
   }
 );
 
+// Fund card from user balance
+export const fundCardFromBalance = createAsyncThunk(
+  'atmCards/fundCardFromBalance',
+  async ({ cardId, amount }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post(`/atm-cards/${cardId}/fund`, { amount });
+      return { cardId, data: response.data };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fund card');
+    }
+  }
+);
+
 // Create the slice
 const atmCardsSlice = createSlice({
   name: 'atmCards',
@@ -313,6 +326,40 @@ const atmCardsSlice = createSlice({
         state.transactionError = null;
       })
       .addCase(createCardTransaction.rejected, (state, action) => {
+        state.transactionStatus = 'failed';
+        state.transactionError = action.payload;
+      })
+      
+      // Handle fundCardFromBalance
+      .addCase(fundCardFromBalance.pending, (state) => {
+        state.transactionStatus = 'loading';
+      })
+      .addCase(fundCardFromBalance.fulfilled, (state, action) => {
+        state.transactionStatus = 'succeeded';
+        
+        // Update card balance
+        const cardId = action.payload.cardId;
+        const { card, transaction } = action.payload.data.data;
+        const cardIndex = state.cards.findIndex(c => c._id === cardId || c.id === cardId);
+        
+        if (cardIndex !== -1) {
+          // Update card balance with the new balance from the API response
+          state.cards[cardIndex].balance = card.balance;
+        }
+        
+        // Add transaction to the transactions list if it exists for this card
+        if (state.cardTransactions[cardId]?.data) {
+          state.cardTransactions[cardId].data.unshift(transaction);
+          
+          // Update pagination if it exists
+          if (state.cardTransactions[cardId].pagination) {
+            state.cardTransactions[cardId].pagination.total += 1;
+          }
+        }
+        
+        state.transactionError = null;
+      })
+      .addCase(fundCardFromBalance.rejected, (state, action) => {
         state.transactionStatus = 'failed';
         state.transactionError = action.payload;
       });

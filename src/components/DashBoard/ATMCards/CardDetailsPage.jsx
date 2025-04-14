@@ -19,7 +19,8 @@ import {
   FaFilter,
   FaDownload,
   FaSlidersH,
-  FaPlus
+  FaPlus,
+  FaExchangeAlt
 } from 'react-icons/fa';
 import { 
   fetchCardTransactions, 
@@ -39,6 +40,7 @@ import Button from '../../common/Button';
 import Loader from '../../common/Loader';
 import Alert from '../../common/Alert';
 import CardLimitsModal from './CardLimitsModal';
+import FundCardModal from './FundCardModal';
 import { format, subDays, startOfMonth, isAfter } from 'date-fns';
 import Modal from '../../common/Modal';
 
@@ -77,6 +79,7 @@ const CardDetailsPage = () => {
   const [alertMessage, setAlertMessage] = useState({ type: '', message: '' });
   const [isLimitsModalOpen, setIsLimitsModalOpen] = useState(false);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isFundCardModalOpen, setIsFundCardModalOpen] = useState(false);
   const [transactionForm, setTransactionForm] = useState({
     amount: '',
     merchantName: '',
@@ -245,6 +248,15 @@ const CardDetailsPage = () => {
     setShowAlert(true);
   };
   
+  const handleFundCardSuccess = (message) => {
+    setIsFundCardModalOpen(false);
+    setAlertMessage({
+      type: 'success',
+      message
+    });
+    setShowAlert(true);
+  };
+  
   const handleCreateTransaction = () => {
     if (!transactionForm.amount || isNaN(parseFloat(transactionForm.amount)) || parseFloat(transactionForm.amount) <= 0) {
       setAlertMessage({
@@ -315,6 +327,14 @@ const CardDetailsPage = () => {
           </Button>
           
           <div className="flex space-x-3">
+            <Button
+              variant="primary"
+              onClick={() => setIsFundCardModalOpen(true)}
+              disabled={card.status !== 'active'}
+            >
+              <FaExchangeAlt className="mr-2" /> Fund Card
+            </Button>
+            
             <Button
               variant="primary"
               onClick={() => setIsTransactionModalOpen(true)}
@@ -646,6 +666,14 @@ const CardDetailsPage = () => {
         onClose={() => setIsLimitsModalOpen(false)}
         card={card}
         onSuccess={handleLimitsUpdate}
+      />
+      
+      {/* Fund Card Modal */}
+      <FundCardModal
+        isOpen={isFundCardModalOpen}
+        onClose={() => setIsFundCardModalOpen(false)}
+        card={card}
+        onSuccess={handleFundCardSuccess}
       />
       
       {/* Create Transaction Modal */}

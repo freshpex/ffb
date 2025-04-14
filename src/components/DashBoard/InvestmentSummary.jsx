@@ -9,20 +9,19 @@ import {
 import CardLoader from '../common/CardLoader';
 
 const InvestmentSummary = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const accountSummary = useSelector(selectAccountSummary);
   const status = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
-  
+  console.log("InvestmentSummary", accountSummary);
   // Show loading state
   if (status === 'loading') {
     return <CardLoader title="Investment Summary" height="h-72" />;
   }
   
   // Extract investment data from account summary
-  const totalInvested = accountSummary?.totalInvestments || 0;
+  const totalInvested = accountSummary?.investmentTotal || 0;
   const totalReturns = accountSummary?.projectedEarnings || 0;
-  const activeInvestments = accountSummary?.activeInvestments || 0;
+  const activeInvestments = accountSummary?.investmentCount || 0;
   const completedInvestments = accountSummary?.completedInvestments || 0;
   
   // Calculate ROI if possible

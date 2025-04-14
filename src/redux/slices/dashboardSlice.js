@@ -369,7 +369,6 @@ const dashboardSlice = createSlice({
       if (source) {
         state.error[source] = null;
       } else {
-        // Clear all errors if no source specified
         state.error = {
           dashboard: null,
           accountSummary: null,
@@ -394,7 +393,7 @@ const dashboardSlice = createSlice({
         state.accountSummary = action.payload.accountSummary;
         state.recentTransactions = action.payload.recentTransactions;
         
-        // Update the priceAlerts array (maintaining pagination structure)
+        // Update the priceAlerts array
         state.priceAlerts.alerts = action.payload.priceAlerts;
         
         // Update market news
@@ -557,13 +556,9 @@ export const selectAccountSummary = createSelector(
   [getAccountSummary],
   summary => {
     if (!summary) return null;
-    
-    // Check if the data is in the success response format
     if (summary.success && summary.data) {
       return summary.data;
     }
-    
-    // If data is already extracted or in a different format
     return summary;
   }
 );
@@ -617,19 +612,10 @@ export const selectAccountBalance = createSelector(
   [getAccountSummary],
   summary => {
     if (!summary) return 0;
-    
-    // Handle different possible structures:
-    // 1. The data might be in summary.data.availableBalance
-    // 2. The data might be in summary.data.balance
-    // 3. The data might be directly in summary.balance or summary.availableBalance
-    
     if (summary.data) {
-      // Case 1 & 2: The balance is in a nested data object
-      return summary.data.availableBalance || summary.data.balance || 0;
+      return summary.data.balance || 0;
     }
-    
-    // Case 3: The balance might be directly on the summary object
-    return summary.availableBalance || summary.balance || 0;
+    return summary.balance || 0;
   }
 );
 
