@@ -1,14 +1,30 @@
 import PropTypes from 'prop-types';
-import { FaCreditCard, FaUniversity, FaTrash, FaStar, FaRegStar } from 'react-icons/fa';
+import { FaCreditCard, FaUniversity, FaTrash, FaStar, FaRegStar, FaBitcoin } from 'react-icons/fa';
 
 const PaymentMethodCard = ({ method, onRemove, onSetDefault }) => {
   const isCard = method.type === 'card';
+  const isBank = method.type === 'bank_account';
+  const isCrypto = method.type === 'crypto_wallet';
   
   // Format expiry date for cards
   const getExpiryDate = () => {
     if (isCard && method.expiryMonth && method.expiryYear) {
       return `${method.expiryMonth.toString().padStart(2, '0')}/${method.expiryYear.toString().substring(2)}`;
     }
+    return null;
+  };
+  
+  const getIconBackground = () => {
+    if (isCard) return 'bg-blue-900/20 text-blue-500';
+    if (isBank) return 'bg-green-900/20 text-green-500';
+    if (isCrypto) return 'bg-yellow-900/20 text-yellow-500';
+    return 'bg-gray-900/20 text-gray-500';
+  };
+  
+  const getIcon = () => {
+    if (isCard) return <FaCreditCard size={20} />;
+    if (isBank) return <FaUniversity size={20} />;
+    if (isCrypto) return <FaBitcoin size={20} />;
     return null;
   };
   
@@ -26,10 +42,10 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault }) => {
             w-12 h-12 
             flex items-center justify-center 
             rounded-full 
-            ${isCard ? 'bg-blue-900/20 text-blue-500' : 'bg-green-900/20 text-green-500'}
+            ${getIconBackground()}
             mr-4
           `}>
-            {isCard ? <FaCreditCard size={20} /> : <FaUniversity size={20} />}
+            {getIcon()}
           </div>
           
           <div>
@@ -43,14 +59,27 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault }) => {
             </div>
             
             <div className="text-sm text-gray-400 mt-1">
-              {isCard ? (
+              {isCard && (
                 <span>
                   •••• {method.last4} 
                   {getExpiryDate() && <span className="ml-2">Expires {getExpiryDate()}</span>}
                 </span>
-              ) : (
+              )}
+              
+              {isBank && (
                 <span>
                   {method.bankName} •••{method.last4}
+                </span>
+              )}
+              
+              {isCrypto && (
+                <span>
+                  {method.cryptocurrency} • {method.walletAddress.substring(0, 6)}...{method.walletAddress.substring(method.walletAddress.length - 4)}
+                  {method.network && method.network !== 'mainnet' && (
+                    <span className="ml-2 text-xs bg-gray-700 px-1.5 py-0.5 rounded">
+                      {method.network}
+                    </span>
+                  )}
                 </span>
               )}
             </div>
@@ -86,14 +115,15 @@ PaymentMethodCard.propTypes = {
     id: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    last4: PropTypes.string.isRequired,
+    last4: PropTypes.string,
     isDefault: PropTypes.bool.isRequired,
-    // Card specific props
     expiryMonth: PropTypes.number,
     expiryYear: PropTypes.number,
-    // Bank specific props
     bankName: PropTypes.string,
-    accountName: PropTypes.string
+    accountName: PropTypes.string,
+    cryptocurrency: PropTypes.string,
+    walletAddress: PropTypes.string,
+    network: PropTypes.string
   }).isRequired,
   onRemove: PropTypes.func.isRequired,
   onSetDefault: PropTypes.func.isRequired

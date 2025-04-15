@@ -13,13 +13,12 @@ import {
   selectMarginAvailable,
   selectOpenOrders,
   selectChartTimeframe
-} from '../../redux/slices/tradingSlice';
-import DashboardLayout from './DashboardLayout';
-import TradingHeader from './Trading/TradingHeader';
-// Use SimpleTradingChart instead of TradingChart
-import SimpleTradingChart from './Trading/SimpleTradingChart';
-import OrderForm from './Trading/OrderForm';
-import Loader from '../common/Loader';
+} from '../../../redux/slices/tradingSlice';
+import DashboardLayout from '../Layout/DashboardLayout';
+import TradingHeader from './TradingHeader';
+import SimpleTradingChart from './SimpleTradingChart';
+import OrderForm from './OrderForm';
+import Loader from '../../common/Loader';
 
 const TradingDashboard = () => {
   const dispatch = useDispatch();

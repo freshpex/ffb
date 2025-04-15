@@ -9,9 +9,9 @@ import {
   selectUnreadCount,
   selectNotificationLoading,
   selectNotificationError
-} from '../../redux/slices/notificationSlice';
+} from '../../../redux/slices/notificationSlice';
 import { FaBell, FaCheck, FaTrash, FaCheckDouble } from 'react-icons/fa';
-import Loader from '../Loader';
+import Loader from '../../Loader';
 
 const NotificationsPanel = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();

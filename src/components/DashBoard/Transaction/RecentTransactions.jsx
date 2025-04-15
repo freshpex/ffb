@@ -14,9 +14,9 @@ import {
   selectRecentTransactions,
   selectTransactionsLoading,
   selectDashboardStatus
-} from '../../redux/slices/dashboardSlice';
-import TransactionStatusBadge from '../common/TransactionStatusBadge';
-import CardLoader from '../common/CardLoader';
+} from '../../../redux/slices/dashboardSlice';
+import TransactionStatusBadge from '../../common/TransactionStatusBadge';
+import CardLoader from '../../common/CardLoader';
 
 const RecentTransactions = () => {
   const dispatch = useDispatch();

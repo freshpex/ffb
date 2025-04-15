@@ -4,8 +4,6 @@ import {
   FaBell, 
   FaPlus, 
   FaTrash, 
-  FaArrowUp, 
-  FaArrowDown, 
   FaTimes,
   FaCheck
 } from 'react-icons/fa';
@@ -13,20 +11,23 @@ import {
   addPriceAlert, 
   removePriceAlert, 
   selectPriceAlerts,
-  selectDashboardComponentStatus 
+  selectDashboardComponentStatus,
+  fetchPriceAlerts
 } from '../../redux/slices/dashboardSlice';
 import CardLoader from '../common/CardLoader';
 
 const PriceAlerts = () => {
   const dispatch = useDispatch();
   const alerts = useSelector(selectPriceAlerts);
+  const [isLoading, setIsLoading] = useState(true);
+  console.log("Alerts", alerts);
   const componentStatus = useSelector(state => 
     selectDashboardComponentStatus(state, 'priceAlerts')
   );
   
   const [showAddForm, setShowAddForm] = useState(false);
   const [newAlert, setNewAlert] = useState({
-    asset: 'BTC',
+    symbol: 'BTC',
     condition: 'above',
     price: ''
   });
@@ -38,19 +39,32 @@ const PriceAlerts = () => {
   
   const handleAddAlert = () => {
     if (!newAlert.price || isNaN(newAlert.price) || parseFloat(newAlert.price) <= 0) {
-      return; // Basic validation
+      return;
     }
+
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     try {
+  //       await dispatch(fetchPriceAlerts());
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+      
+  //   loadData();
+  //   console.log("Price Alerts load data:", loadData());
+  //   }, [dispatch]);
     
     dispatch(addPriceAlert({
       id: `alert_${Date.now()}`,
-      asset: newAlert.asset,
+      symbol: newAlert.symbol,
       condition: newAlert.condition,
       price: parseFloat(newAlert.price),
       createdAt: new Date().toISOString()
     }));
     
     setNewAlert({
-      asset: 'BTC',
+      symbol: 'BTC',
       condition: 'above',
       price: ''
     });
@@ -93,8 +107,8 @@ const PriceAlerts = () => {
           <div className="flex flex-col space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <select
-                name="asset"
-                value={newAlert.asset}
+                name="symbol"
+                value={newAlert.symbol}
                 onChange={handleInputChange}
                 className="bg-gray-700 border border-gray-600 text-sm rounded-lg block w-full p-2 text-gray-200 focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
@@ -141,19 +155,17 @@ const PriceAlerts = () => {
       {alerts.length > 0 ? (
         <div className="space-y-2">
           {alerts.map(alert => (
-            <div key={alert.id} className="bg-gray-700/50 rounded-lg p-3 flex justify-between items-center">
-              <div>
-                <div className="flex items-center">
-                  <span className="text-gray-100 font-medium">{alert.asset}</span>
-                  <span className="text-gray-400 mx-1">{alert.condition === 'above' ? 'above' : 'below'}</span>
-                  <span className="text-primary-500 font-medium">${alert.price.toLocaleString()}</span>
-                </div>
+            <div key={alert._id} className="bg-gray-700/50 rounded-lg p-3 flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-100 font-medium">{alert.symbol}</span>
+                <span className="text-gray-400">{alert.condition === 'above' ? 'above' : 'below'}</span>
+                <span className="text-primary-500 font-medium">${alert.price.toLocaleString()}</span>
                 <p className="text-xs text-gray-400">
                   {new Date(alert.createdAt).toLocaleDateString()}
                 </p>
               </div>
               <button
-                onClick={() => handleRemoveAlert(alert.id)}
+                onClick={() => handleRemoveAlert(alert._id)}
                 className="text-gray-400 hover:text-red-500"
               >
                 <FaTrash size={14} />

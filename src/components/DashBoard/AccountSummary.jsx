@@ -17,12 +17,10 @@ const AccountSummary = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
   const accountSummary = useSelector(selectAccountSummary);
-  console.log("AccountSummaryMain", accountSummary);
   const accountActivity = useSelector(selectAccountActivity);
   const balanceHistory = useSelector(selectAccountBalanceHistory);
   const accountOverview = useSelector(selectAccountOverview);
-  const dashboardStatus = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
-  
+  const dashboardStatus = useSelector(state => selectDashboardStatus(state, 'accountSummary')); 
   const [isLoading, setIsLoading] = useState(true);
   const [showBalance, setShowBalance] = useState(true);
   

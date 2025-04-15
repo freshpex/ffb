@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Chart, registerables } from 'chart.js';
-import { selectOrderBook } from '../../redux/slices/tradingSlice';
+import { selectOrderBook } from '../../../redux/slices/tradingSlice';
 
 // Register Chart.js components
 Chart.register(...registerables);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import DashboardLayout from './DashboardLayout';
+import DashboardLayout from '../Layout/DashboardLayout';
 import ProfileTab from './ProfileTab';
 import SecurityTab from './SecurityTab';
 import PaymentMethodsTab from './PaymentMethodsTab';

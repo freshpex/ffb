@@ -6,7 +6,7 @@ import {
   updateInvestmentForm, 
   selectInvestmentForm, 
   selectInvestmentStatus 
-} from '../../redux/slices/investmentSlice';
+} from '../../../redux/slices/investmentSlice';
 import { 
   FaTimes, 
   FaInfoCircle, 
@@ -16,7 +16,7 @@ import {
   FaArrowRight,
   FaExclamationCircle 
 } from 'react-icons/fa';
-import Loader from '../common/Loader';
+import Loader from '../../common/Loader';
 
 const InvestmentModal = ({ plan, onClose, userBalance }) => {
   const dispatch = useDispatch();

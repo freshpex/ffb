@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { selectSuccessModal, closeSuccessModal } from '../../redux/slices/investmentSlice';
+import { selectSuccessModal, closeSuccessModal } from '../../../redux/slices/investmentSlice';
 import { FaCheckCircle, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 

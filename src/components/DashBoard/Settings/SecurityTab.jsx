@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import FormInput from '../common/FormInput';
-import Button from '../common/Button';
+import FormInput from '../../common/FormInput';
+import Button from '../../common/Button';
 import { FaLock, FaShieldAlt, FaCheck, FaTimes } from 'react-icons/fa';
 import { 
   updatePassword,
   selectSecurityStatus
-} from '../../redux/slices/securitySlice';
+} from '../../../redux/slices/securitySlice';
 
 const SecurityTab = () => {
   const dispatch = useDispatch();

@@ -8,7 +8,7 @@ import {
   selectATMCardsStatus, 
   selectATMCardsError 
 } from '../../../redux/slices/atmCardsSlice';
-import DashboardLayout from '../DashboardLayout';
+import DashboardLayout from '../Layout/DashboardLayout';
 import Button from '../../common/Button';
 import Alert from '../../common/Alert';
 import Loader from '../../common/Loader';

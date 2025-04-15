@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleSidebar } from '../../redux/slices/layoutSlice';
+import { toggleSidebar } from '../../../redux/slices/layoutSlice';
 
 const TouchSidebarHandler = ({ children }) => {
   const dispatch = useDispatch();

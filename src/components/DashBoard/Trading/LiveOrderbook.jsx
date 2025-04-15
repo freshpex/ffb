@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { selectOrderBook } from '../../redux/slices/tradingSlice';
+import { selectOrderBook } from '../../../redux/slices/tradingSlice';
 
 const LiveOrderbook = ({ symbol }) => {
   const orderBook = useSelector(selectOrderBook);

@@ -8,17 +8,17 @@ import {
   selectDashboardError
 } from '../../redux/slices/dashboardSlice';
 
-import DashboardLayout from './DashboardLayout';
+import DashboardLayout from './Layout/DashboardLayout';
 import AccountSummary from './AccountSummary';
-import RecentTransactions from './RecentTransactions';
-import InvestmentSummary from './InvestmentSummary';
+import RecentTransactions from './Transaction/RecentTransactions';
+import InvestmentSummary from './Investment/InvestmentSummary';
 import MarketOverview from './MarketOverview';
 import FinancialHighlights from './FinancialHighlights';
 import MarketPulse from './MarketPulse';
 import MarketNews from './MarketNews';
 import PriceAlerts from './PriceAlerts';
 import QuickActions from './QuickActions';
-import NotificationsPanel from './NotificationsPanel';
+import NotificationsPanel from './Layout/NotificationsPanel';
 
 const DashBoardPage = () => {
   const dispatch = useDispatch();

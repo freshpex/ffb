@@ -9,13 +9,13 @@ import {
   FaMoon, 
   FaSun 
 } from 'react-icons/fa';
-import { toggleSidebar, toggleTheme, selectTheme } from '../../redux/slices/layoutSlice';
-import { selectUserProfile } from '../../redux/selectors/selectors';
+import { toggleSidebar, toggleTheme, selectTheme } from '../../../redux/slices/layoutSlice';
+import { selectUserProfile } from '../../../redux/selectors/selectors';
 import { 
   fetchNotifications,
   selectNotifications, 
   selectUnreadCount 
-} from '../../redux/slices/notificationSlice';
+} from '../../../redux/slices/notificationSlice';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import NotificationsPanel from './NotificationsPanel';
 

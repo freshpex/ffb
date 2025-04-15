@@ -15,11 +15,11 @@ import {
   FaDollarSign,
   FaCopy
 } from "react-icons/fa";
-import DashboardLayout from "./DashboardLayout";
-import FormInput from "../common/FormInput";
-import Button from "../common/Button";
-import Alert from "../common/Alert";
-import QRCode from "../common/QRCode";
+import DashboardLayout from "../Layout/DashboardLayout";
+import FormInput from "../../common/FormInput";
+import Button from "../../common/Button";
+import Alert from "../../common/Alert";
+import QRCode from "../../common/QRCode";
 import { 
   selectDepositMethods,
   selectActiveMethod,
@@ -30,7 +30,7 @@ import {
   setActiveMethod,
   updateDepositForm,
   submitDeposit
-} from "../../redux/slices/depositSlice";
+} from "../../../redux/slices/depositSlice";
 
 const Deposit = () => {
   const dispatch = useDispatch();

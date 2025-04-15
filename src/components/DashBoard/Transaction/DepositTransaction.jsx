@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaChevronDown, FaSearch, FaTimes, FaEye } from 'react-icons/fa';
-import Button from '../common/Button';
-import TransactionStatusBadge from '../common/TransactionStatusBadge';
-import TransactionDetailsModal from '../common/TransactionDetailsModal';
-import DashboardLayout from './DashboardLayout';
-import ComponentLoader from '../common/ComponentLoader';
-import Pagination from '../common/Pagination';
+import Button from '../../common/Button';
+import TransactionStatusBadge from '../../common/TransactionStatusBadge';
+import TransactionDetailsModal from '../../common/TransactionDetailsModal';
+import DashboardLayout from '../Layout/DashboardLayout';
+import ComponentLoader from '../../common/ComponentLoader';
+import Pagination from '../../common/Pagination';
 import {
   fetchDepositHistory,
   selectDepositHistory,
   selectDepositStatus,
   selectDepositError,
   selectDepositPagination
-} from '../../redux/slices/depositSlice';
+} from '../../../redux/slices/depositSlice';
 
 const DepositTransaction = () => {
   const dispatch = useDispatch();

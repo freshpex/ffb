@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toggleSidebar, selectSidebarOpen } from '../../redux/slices/layoutSlice';
+import { toggleSidebar, selectSidebarOpen } from '../../../redux/slices/layoutSlice';
 
 import DashboardSidebar from './DashboardSidebar';
 import DashboardHeader from './DashboardHeader';
-import Loader from '../common/Loader';
+import Loader from '../../common/Loader';
 
 const DashboardLayout = ({ children }) => {
   const location = useLocation();

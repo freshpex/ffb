@@ -19,8 +19,6 @@ const TradingViewWidget = ({ symbol }) => {
     script.async = true;
     script.onload = () => {
       if (typeof TradingView !== 'undefined' && container.current) {
-        // Map our symbol format to TradingView format
-        // Remove slash and replace with nothing (BTC/USD -> BTCUSD)
         const formattedSymbol = safeSymbol.replace('/', '');
         
         // eslint-disable-next-line no-new

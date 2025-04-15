@@ -13,19 +13,19 @@ const SignUp = lazy(() => import("./components/AuthPage/SignUp"));
 const ServicePage = lazy(() => import("./pages/ServicesPage/ServicePage"));
 const PricingPage = lazy(() => import("./pages/PricingPage/PricingPage"));
 const DashBoardPage = lazy(() => import("./components/DashBoard/DashBoardPage"));
-const Deposit = lazy(() => import("./components/DashBoard/Deposit"));
-const Withdraw = lazy(() => import("./components/DashBoard/Withdraw"));
-const DepositTransaction = lazy(() => import("./components/DashBoard/DepositTransaction"));
-const WithdrawTransaction = lazy(() => import("./components/DashBoard/WithdrawTransaction"));
-const AccountSettings = lazy(() => import("./components/DashBoard/AccountSettings"));
-const InvestmentPlans = lazy(() => import("./components/DashBoard/InvestmentPlans"));
-const TradingDashboard = lazy(() => import("./components/DashBoard/TradingDashboard"));
+const Deposit = lazy(() => import("./components/DashBoard/Transaction/Deposit"));
+const Withdraw = lazy(() => import("./components/DashBoard/Transaction/Withdraw"));
+const DepositTransaction = lazy(() => import("./components/DashBoard/Transaction/DepositTransaction"));
+const WithdrawTransaction = lazy(() => import("./components/DashBoard/Transaction/WithdrawTransaction"));
+const AccountSettings = lazy(() => import("./components/DashBoard/Settings/AccountSettings"));
+const InvestmentPlans = lazy(() => import("./components/DashBoard/Investment/InvestmentPlans"));
 const ReferralProgram = lazy(() => import("./components/DashBoard/ReferralProgram"));
 const EducationCenter = lazy(() => import("./components/DashBoard/EducationCenter"));
 const ATMCardsPage = lazy(() => import("./components/DashBoard/ATMCards/ATMCardsPage"));
 const CardRequestsList = lazy(() => import("./components/DashBoard/ATMCards/CardRequestsList"));
 const CardDetailsPage = lazy(() => import("./components/DashBoard/ATMCards/CardDetailsPage"));
-const Tradingplatform = lazy(() => import("./components/DashBoard/TradingPlatform"));
+const Tradingplatform = lazy(() => import("./components/DashBoard/Trading/TradingPlatform"));
+const TradingDashboard = lazy(() => import("./components/DashBoard/Trading/TradingDashboard"));
 
 // Legal pages
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));

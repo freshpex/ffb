@@ -32,6 +32,8 @@ export const fetchDashboardData = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      
+      console.log("Dashboard Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch dashboard data');
@@ -58,6 +60,7 @@ export const fetchAccountSummary = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      
       console.log("Account Summary Response:", data);
       return data;
     } catch (error) {
@@ -91,6 +94,8 @@ export const fetchRecentTransactions = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      
+      console.log("Recent Transaction Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch recent transactions');
@@ -117,6 +122,8 @@ export const fetchFinancialHighlights = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      
+      console.log("Financial Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch financial highlights');
@@ -143,6 +150,8 @@ export const fetchMarketPulse = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      
+      console.log("Market pulse Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch market pulse data');
@@ -194,6 +203,7 @@ export const fetchPriceAlerts = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      console.log("Price Alerts Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch price alerts');
@@ -222,6 +232,8 @@ export const createPriceAlert = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
+      
+      console.log("Create Alerts Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to create price alert');
@@ -331,7 +343,7 @@ const initialState = {
   },
   marketNews: [],
   priceAlerts: {
-    alerts: [],
+    data: [],
     pagination: {
       total: 0,
       page: 1,
@@ -357,7 +369,7 @@ const initialState = {
     marketNews: null,
     priceAlerts: null
   },
-  actionStatus: 'idle' // For create/update/delete actions
+  actionStatus: 'idle'
 };
 
 const dashboardSlice = createSlice({
@@ -394,7 +406,7 @@ const dashboardSlice = createSlice({
         state.recentTransactions = action.payload.recentTransactions;
         
         // Update the priceAlerts array
-        state.priceAlerts.alerts = action.payload.priceAlerts;
+        state.priceAlerts.data = action.payload.priceAlerts || [];
         
         // Update market news
         state.marketNews = action.payload.latestNews;
@@ -496,7 +508,10 @@ const dashboardSlice = createSlice({
       })
       .addCase(createPriceAlert.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
-        state.priceAlerts.alerts.unshift(action.payload);
+        if (!state.priceAlerts.data) {
+          state.priceAlerts.data = [];
+        }
+        state.priceAlerts.data.unshift(action.payload);
         state.error.priceAlerts = null;
       })
       .addCase(createPriceAlert.rejected, (state, action) => {
@@ -510,9 +525,9 @@ const dashboardSlice = createSlice({
       })
       .addCase(updatePriceAlert.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
-        const index = state.priceAlerts.alerts.findIndex(alert => alert._id === action.payload._id);
+        const index = state.priceAlerts.data.findIndex(alert => alert._id === action.payload._id);
         if (index !== -1) {
-          state.priceAlerts.alerts[index] = action.payload;
+          state.priceAlerts.data[index] = action.payload;
         }
         state.error.priceAlerts = null;
       })
@@ -527,7 +542,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(deletePriceAlert.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
-        state.priceAlerts.alerts = state.priceAlerts.alerts.filter(alert => alert._id !== action.payload);
+        state.priceAlerts.data = state.priceAlerts.data.filter(alert => alert._id !== action.payload);
         state.error.priceAlerts = null;
       })
       .addCase(deletePriceAlert.rejected, (state, action) => {

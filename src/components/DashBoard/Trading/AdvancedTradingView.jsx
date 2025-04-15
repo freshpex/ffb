@@ -4,7 +4,7 @@ import { SiLitecoin, SiRipple, SiDogecoin, SiCardano } from 'react-icons/si';
 import { motion } from 'framer-motion';
 import MarketDepthChart from './MarketDepthChart';
 import LiveOrderbook from './LiveOrderbook';
-import Loader from '../common/Loader';
+import Loader from '../../common/Loader';
 
 const AdvancedTradingView = () => {
   const containerRef = useRef(null);

@@ -7,24 +7,25 @@ import {
   updateProfile,
   uploadProfileImage,
   fetchUserProfile
-} from '../../redux/slices/userSlice';
+} from '../../../redux/slices/userSlice';
 import { FaUser, FaCamera, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
-import FormInput from '../common/FormInput';
-import Button from '../common/Button';
-import Alert from '../common/Alert';
+import FormInput from '../../common/FormInput';
+import Button from '../../common/Button';
+import Alert from '../../common/Alert';
 
 const ProfileTab = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
+  console.log("ProfileTab", userProfile);
   const isLoading = useSelector(selectUserLoading);
   const error = useSelector(selectUserError);
   
   const [formData, setFormData] = useState({
-    firstName: userProfile?.firstName || '',
-    lastName: userProfile?.lastName || '',
-    phoneNumber: userProfile?.phoneNumber || '',
-    address: userProfile?.address || '',
-    country: userProfile?.country || ''
+    firstName: userProfile.firstName || '',
+    lastName: userProfile.lastName || '',
+    phoneNumber: userProfile.phone || '',
+    address: userProfile.address || '',
+    country: userProfile.country || ''
   });
   
   const [success, setSuccess] = useState(false);

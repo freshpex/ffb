@@ -8,15 +8,15 @@ import {
   selectInvestmentError,
   cancelInvestment,
   withdrawInvestment
-} from '../../redux/slices/investmentSlice';
-import { selectUserBalance } from '../../redux/slices/userSlice';
-import DashboardLayout from './DashboardLayout';
+} from '../../../redux/slices/investmentSlice';
+import { selectUserBalance } from '../../../redux/slices/userSlice';
+import DashboardLayout from '../Layout/DashboardLayout';
 import InvestmentPlanCard from './InvestmentPlanCard';
 import InvestmentHistoryCard from './InvestmentHistoryCard';
 import InvestmentModal from './InvestmentModal';
 import InvestmentSuccessModal from './InvestmentSuccessModal';
-import ComponentLoader from '../common/ComponentLoader';
-import InfoCard from '../common/InfoCard';
+import ComponentLoader from '../../common/ComponentLoader';
+import InfoCard from '../../common/InfoCard';
 import {
   FaMoneyBillWave,
   FaChartLine,
@@ -29,14 +29,14 @@ import {
   FaCalendarAlt,
   FaClock
 } from 'react-icons/fa';
-import Tabs from '../common/Tabs';
+import Tabs from '../../common/Tabs';
 import { 
   selectInvestmentPlans, 
   selectActiveInvestments, 
   selectHistoryInvestments,
   selectInvestmentStatistics,
   allTheOnes
-} from '../../redux/slices/investmentSlice';
+} from '../../../redux/slices/investmentSlice';
 
 const InvestmentPlans = () => {
   const dispatch = useDispatch();

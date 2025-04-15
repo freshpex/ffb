@@ -16,11 +16,11 @@ import {
   FaPaypal,
   FaWallet
 } from "react-icons/fa";
-import DashboardLayout from "./DashboardLayout";
-import FormInput from "../common/FormInput";
-import Button from "../common/Button";
-import Alert from "../common/Alert";
-import { selectUserBalance } from "../../redux/slices/userSlice";
+import DashboardLayout from "../Layout/DashboardLayout";
+import FormInput from "../../common/FormInput";
+import Button from "../../common/Button";
+import Alert from "../../common/Alert";
+import { selectUserBalance } from "../../../redux/slices/userSlice";
 import { 
   selectWithdrawalStatus,
   selectWithdrawalError,
@@ -28,7 +28,7 @@ import {
   updateWithdrawalForm,
   submitWithdrawal,
   resetWithdrawalForm
-} from "../../redux/slices/withdrawalSlice";
+} from "../../../redux/slices/withdrawalSlice";
 
 const Withdraw = () => {
   const dispatch = useDispatch();

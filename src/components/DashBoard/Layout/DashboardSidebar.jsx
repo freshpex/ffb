@@ -20,9 +20,9 @@ import {
   FaQuestionCircle,
   FaTachometerAlt
 } from 'react-icons/fa';
-import { toggleSidebar } from '../../redux/slices/layoutSlice';
-import { selectUserProfile, selectUserName, selectUserBalance, fetchUserProfile, selectUserLoading, selectUserEmail } from '../../redux/slices/userSlice';
-import { useAuth } from '../AuthPage/AuthContext';
+import { toggleSidebar } from '../../../redux/slices/layoutSlice';
+import { selectUserProfile, selectUserName, selectUserBalance, fetchUserProfile, selectUserLoading, selectUserEmail } from '../../../redux/slices/userSlice';
+import { useAuth } from '../../AuthPage/AuthContext';
 
 // Navigation item groups with nested routes
 const navigationGroups = [

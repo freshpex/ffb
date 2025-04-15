@@ -5,14 +5,13 @@ import { FaChartLine, FaArrowRight } from 'react-icons/fa';
 import { 
   selectAccountSummary,
   selectDashboardStatus
-} from '../../redux/slices/dashboardSlice';
-import CardLoader from '../common/CardLoader';
+} from '../../../redux/slices/dashboardSlice';
+import CardLoader from '../../common/CardLoader';
 
 const InvestmentSummary = () => {
   const navigate = useNavigate();
   const accountSummary = useSelector(selectAccountSummary);
   const status = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
-  console.log("InvestmentSummary", accountSummary);
   // Show loading state
   if (status === 'loading') {
     return <CardLoader title="Investment Summary" height="h-72" />;

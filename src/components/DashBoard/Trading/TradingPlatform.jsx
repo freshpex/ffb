@@ -24,12 +24,12 @@ import {
   cancelOrder,
   placeOrder,
   updateMarketPrices
-} from '../../redux/slices/tradingSlice';
-import DashboardLayout from './DashboardLayout';
-import Button from '../common/Button';
-import Alert from '../common/Alert';
+} from '../../../redux/slices/tradingSlice';
+import DashboardLayout from '../Layout/DashboardLayout';
+import Button from '../../common/Button';
+import Alert from '../../common/Alert';
 import TradingViewWidget from './TradingViewWidget';
-import LiveOrderbook from './LiveOrderbook';
+import LiveOrderbook from '../LiveOrderbook';
 import MarketDepthChart from './MarketDepthChart';
 
 const TradingPlatform = () => {

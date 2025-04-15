@@ -17,7 +17,7 @@ import {
   FaTag,
   FaRegClock 
 } from "react-icons/fa";
-import DashboardLayout from "./DashboardLayout";
+import DashboardLayout from "./Layout/DashboardLayout";
 import Button from "../common/Button";
 import { 
   fetchResources, 
