@@ -19,7 +19,6 @@ import {
 const WithdrawTransaction = () => {
   const dispatch = useDispatch();
   const withdrawals = useSelector(selectWithdrawalHistory);
-  console.log("Withdrawal", withdrawals);
   const pagination = useSelector(selectWithdrawalPagination);
   const status = useSelector(selectWithdrawalStatus);
   const error = useSelector(selectWithdrawalError);
@@ -45,18 +44,18 @@ const WithdrawTransaction = () => {
       sortBy,
       sortOrder
     };
-    
+
     dispatch(fetchWithdrawalHistory(params));
   }, [dispatch, currentPage, filterStatus, searchQuery, sortBy, sortOrder]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   };
 
   const handleStatusChange = (status) => {
     setFilterStatus(status);
-    setCurrentPage(1); // Reset to first page on filter change
+    setCurrentPage(1);
   };
 
   const handleSort = (field) => {
@@ -66,7 +65,7 @@ const WithdrawTransaction = () => {
       setSortBy(field);
       setSortOrder('desc');
     }
-    setCurrentPage(1); // Reset to first page on sort change
+    setCurrentPage(1);
   };
 
   const handleViewDetails = (withdrawal) => {
@@ -119,7 +118,7 @@ const WithdrawTransaction = () => {
     <DashboardLayout>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold text-white mb-6">Withdrawal History</h1>
-        
+
         {/* Filters */}
         <div className="bg-gray-800 p-4 rounded-lg mb-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -142,7 +141,7 @@ const WithdrawTransaction = () => {
                 </button>
               )}
             </form>
-            
+
             <div className="flex gap-2">
               <div className="relative inline-block">
                 <Button
@@ -154,7 +153,7 @@ const WithdrawTransaction = () => {
                   <span>Status: {filterStatus === 'all' ? 'All' : filterStatus}</span>
                   <FaChevronDown className="ml-2" />
                 </Button>
-                
+
                 <AnimatePresence>
                   {isFilterOpen && (
                     <motion.div
@@ -186,9 +185,9 @@ const WithdrawTransaction = () => {
             </div>
           </div>
         </div>
-        
-        {/* Withdrawals Table */}
-        <div className="bg-gray-800 rounded-lg overflow-hidden mb-6">
+
+        {/* Desktop View - Table */}
+        <div className="hidden md:block bg-gray-800 rounded-lg overflow-hidden mb-6">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-gray-900">
@@ -197,46 +196,31 @@ const WithdrawTransaction = () => {
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('date')}
                   >
-                    Date
-                    {sortBy === 'date' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Date {sortBy === 'date' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('reference')}
                   >
-                    Reference
-                    {sortBy === 'reference' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Reference {sortBy === 'reference' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('method')}
                   >
-                    Method
-                    {sortBy === 'method' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Method {sortBy === 'method' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('amount')}
                   >
-                    Amount
-                    {sortBy === 'amount' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Amount {sortBy === 'amount' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
-                    Status
-                    {sortBy === 'status' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Status {sortBy === 'status' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Actions
@@ -283,7 +267,46 @@ const WithdrawTransaction = () => {
             </table>
           </div>
         </div>
-        
+
+        {/* Mobile View - Card Layout */}
+        <div className="block md:hidden space-y-4 mb-6">
+          {withdrawals.length > 0 ? (
+            withdrawals.map((withdrawal) => (
+              <div
+                key={withdrawal.id}
+                className="bg-gray-800 rounded-lg p-4 shadow hover:shadow-lg transition-shadow"
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-white font-semibold">
+                    {formatDate(withdrawal.createdAt)}
+                  </h3>
+                  <TransactionStatusBadge status={withdrawal.status} />
+                </div>
+                <p className="text-gray-300">
+                  <span className="font-medium">Reference:</span> {withdrawal.reference || 'N/A'}
+                </p>
+                <p className="text-gray-300 capitalize">
+                  <span className="font-medium">Method:</span> {withdrawal.method}
+                </p>
+                <p className="text-gray-300">
+                  <span className="font-medium">Amount:</span>{' '}
+                  {formatCurrency(withdrawal.amount, withdrawal.currency)}
+                </p>
+                <button
+                  className="mt-3 text-primary-400 hover:text-primary-300 font-medium flex items-center"
+                  onClick={() => handleViewDetails(withdrawal)}
+                >
+                  <FaEye className="mr-1" /> View Details
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-gray-400 py-6">
+              No withdrawal records found.
+            </div>
+          )}
+        </div>
+
         {/* Pagination */}
         {pagination && pagination.total > 0 && (
           <div className="flex justify-center">
@@ -294,7 +317,7 @@ const WithdrawTransaction = () => {
             />
           </div>
         )}
-        
+
         {/* Transaction Details Modal */}
         <AnimatePresence>
           {showDetailsModal && selectedWithdrawal && (

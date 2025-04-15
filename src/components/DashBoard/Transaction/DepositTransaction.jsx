@@ -190,46 +190,31 @@ const DepositTransaction = () => {
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('date')}
                   >
-                    Date
-                    {sortBy === 'date' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Date {sortBy === 'date' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('reference')}
                   >
-                    Reference
-                    {sortBy === 'reference' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Reference {sortBy === 'reference' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('method')}
                   >
-                    Method
-                    {sortBy === 'method' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Method {sortBy === 'method' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('amount')}
                   >
-                    Amount
-                    {sortBy === 'amount' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Amount {sortBy === 'amount' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}
                   >
-                    Status
-                    {sortBy === 'status' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    Status {sortBy === 'status' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Actions
@@ -277,8 +262,8 @@ const DepositTransaction = () => {
           </div>
         </div>
         
-        Mobile View Cards
-        <div className="md:hidden space-y-4 mb-6">
+        {/* Mobile View Cards */}
+        <div className="block md:hidden space-y-4 mb-6">
           {transaction && transaction.length > 0 ? (
             transaction.map((deposit) => (
               <motion.div

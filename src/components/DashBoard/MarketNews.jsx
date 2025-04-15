@@ -46,7 +46,7 @@ const MarketNews = ({ maxItems = 3 }) => {
               </p>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-500">
-                  {formatDistanceToNow(new Date(news.date), { addSuffix: true })} · {news.source}
+                  {formatDistanceToNow(new Date(news?.publishedAt), { addSuffix: true })} · {news.source}
                 </span>
                 <a 
                   href={news.url} 

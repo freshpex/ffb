@@ -610,10 +610,10 @@ const getPriceAlerts = state => state.dashboard.priceAlerts;
 
 // Memoized selectors using createSelector to prevent unnecessary rerenders
 export const selectAccountSummary = createSelector(
-  [getAccountSummary],
+  [getInvestmentSummary],
   summary => {
     if (!summary) return null;
-    return summary.data;
+    return summary;
   }
 );
 
