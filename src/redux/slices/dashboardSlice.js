@@ -95,7 +95,6 @@ export const fetchRecentTransactions = createAsyncThunk(
       
       const data = await handleApiError(response);
       
-      console.log("Recent Transaction Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch recent transactions');
@@ -150,8 +149,6 @@ export const fetchMarketPulse = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
-      
-      console.log("Market pulse Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch market pulse data');
@@ -181,7 +178,6 @@ export const fetchPriceAlerts = createAsyncThunk(
   'dashboard/fetchPriceAlerts',
   async (params = {}, { rejectWithValue }) => {
     try {
-      console.log("Making the Price Alert Requests");
       const { page = 1, limit = 10, active } = params;
       
       const token = localStorage.getItem('ffb_auth_token');
@@ -204,7 +200,6 @@ export const fetchPriceAlerts = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
-      console.log("Price Alerts Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch price alerts');
@@ -312,6 +307,47 @@ const initialState = {
     accountNumber: '',
     accountType: ''
   },
+  accountActivity: {
+    trades: 0,
+    deposits: 0,
+    withdrawals: 0,
+    transactions: 0,
+    data: []
+  },
+  accountBalanceHistory: {
+    data: [],
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 10,
+      pages: 0
+    }
+  },
+  accountOverview: {
+    data: null,
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 10,
+      pages: 0
+    }
+  },
+  investmentSummary: {
+    totalInvestments: 0,
+    totalAssets: 0,
+    projectedEarnings: 0,
+    currency: 'USD',
+    investmentTypes: []
+  },
+  marketOverview: { 
+    data: null,
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 10,
+      pages: 0
+    }
+  },
   recentTransactions: [],
   financialHighlights: {
     monthToDateDeposits: 0,
@@ -359,7 +395,8 @@ const initialState = {
     financialHighlights: 'idle',
     marketPulse: 'idle',
     marketNews: 'idle',
-    priceAlerts: 'idle'
+    priceAlerts: 'idle',
+    investmentSummary: 'idle'
   },
   error: {
     dashboard: null,
@@ -368,7 +405,8 @@ const initialState = {
     financialHighlights: null,
     marketPulse: null,
     marketNews: null,
-    priceAlerts: null
+    priceAlerts: null,
+    investmentSummary: null
   },
   actionStatus: 'idle'
 };
@@ -389,7 +427,10 @@ const dashboardSlice = createSlice({
           financialHighlights: null,
           marketPulse: null,
           marketNews: null,
-          priceAlerts: null
+          priceAlerts: null,
+          investmentSummary: null,
+          accountActivity: null,
+          accountBalanceHistory: null
         };
       }
       state.actionStatus = 'idle';
@@ -403,11 +444,13 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardData.fulfilled, (state, action) => {
         state.status.dashboard = 'succeeded';
-        state.accountSummary = action.payload.accountSummary;
         state.recentTransactions = action.payload.recentTransactions;
+        state.investmentSummary = action.payload.investmentSummary;
+        state.accountActivity = action.payload.accountActivity;
+        state.accountBalanceHistory = action.payload.accountBalanceHistory;
         
         // Update market news if available
-        state.marketNews = action.payload.latestNews;
+        // state.marketNews = action.payload.latestNews;
         
         state.error.dashboard = null;
       })
@@ -556,6 +599,7 @@ export const { clearDashboardError } = dashboardSlice.actions;
 // Base selectors
 const getDashboardState = state => state.dashboard;
 const getAccountSummary = state => state.dashboard.accountSummary;
+const getInvestmentSummary = state => state.dashboard.investmentSummary;
 const getAccountActivity = state => state.dashboard.accountActivity;
 const getRecentTransactions = state => state.dashboard.recentTransactions;
 const getFinancialHighlights = state => state.dashboard.financialHighlights;
@@ -569,51 +613,56 @@ export const selectAccountSummary = createSelector(
   [getAccountSummary],
   summary => {
     if (!summary) return null;
-    if (summary.success && summary.data) {
-      return summary.data;
-    }
+    return summary.data;
+  }
+);
+
+export const selectInvestmentSummary = createSelector(
+  [getInvestmentSummary],
+  summary => {
+    if (!summary) return null;
     return summary;
   }
 );
 
 export const selectAccountActivity = createSelector(
   [getAccountActivity],
-  activity => activity?.data || []
+  activity => activity || []
 );
 
 export const selectAccountBalanceHistory = createSelector(
   [getDashboardState],
-  dashboard => dashboard.accountBalanceHistory?.data || []
+  dashboard => dashboard.accountBalanceHistory || []
 );
 
 export const selectAccountOverview = createSelector(
   [getDashboardState],
-  dashboard => dashboard.accountOverview?.data || null
+  dashboard => dashboard.accountOverview || null
 );
 
 export const selectRecentTransactions = createSelector(
   [getRecentTransactions],
-  transactions => transactions?.data || []
+  transactions => transactions || []
 );
 
 export const selectFinancialHighlights = createSelector(
   [getFinancialHighlights],
-  highlights => highlights?.data || null
+  highlights => highlights || null
 );
 
 export const selectMarketOverview = createSelector(
   [getMarketOverview],
-  overview => overview?.data || null
+  overview => overview || null
 );
 
 export const selectMarketPulse = createSelector(
   [getMarketPulse],
-  pulse => pulse?.data || null
+  pulse => pulse || null
 );
 
 export const selectMarketNews = createSelector(
   [getMarketNews],
-  news => news?.data || []
+  news => news || []
 );
 
 export const selectPriceAlerts = createSelector(

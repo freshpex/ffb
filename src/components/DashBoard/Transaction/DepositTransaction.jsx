@@ -18,10 +18,8 @@ import {
 
 const DepositTransaction = () => {
   const dispatch = useDispatch();
-  const deposits = useSelector(selectDepositHistory);
-  const transaction = deposits.deposits;
-  console.log("deposit", deposits);
-  console.log("transaction", transaction);
+  const depositsData = useSelector(selectDepositHistory);
+  const transaction = depositsData.deposits; 
   const pagination = useSelector(selectDepositPagination);
   const status = useSelector(selectDepositStatus);
   const error = useSelector(selectDepositError);
@@ -45,7 +43,6 @@ const DepositTransaction = () => {
       sortBy,
       sortOrder
     };
-    
     dispatch(fetchDepositHistory(params));
   }, [dispatch, currentPage, filterStatus, searchQuery, sortBy, sortOrder]);
 
@@ -54,8 +51,8 @@ const DepositTransaction = () => {
     setCurrentPage(1);
   };
 
-  const handleStatusChange = (status) => {
-    setFilterStatus(status);
+  const handleStatusChange = (statusValue) => {
+    setFilterStatus(statusValue);
     setCurrentPage(1);
   };
 
@@ -84,11 +81,11 @@ const DepositTransaction = () => {
   const formatCurrency = (amount, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency
+      currency
     }).format(amount);
   };
 
-  if (isLoading && !deposits.length) {
+  if (isLoading && (!transaction || transaction.length === 0)) {
     return (
       <DashboardLayout>
         <div className="container mx-auto p-4">
@@ -151,7 +148,6 @@ const DepositTransaction = () => {
                   <span>Status: {filterStatus === 'all' ? 'All' : filterStatus}</span>
                   <FaChevronDown className="ml-2" />
                 </Button>
-                
                 <AnimatePresence>
                   {isFilterOpen && (
                     <motion.div
@@ -161,18 +157,18 @@ const DepositTransaction = () => {
                       className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-10"
                     >
                       <div className="py-1">
-                        {['all', 'pending', 'completed', 'failed'].map((status) => (
+                        {['all', 'pending', 'completed', 'failed'].map((statusValue) => (
                           <button
-                            key={status}
+                            key={statusValue}
                             onClick={() => {
-                              handleStatusChange(status);
+                              handleStatusChange(statusValue);
                               setIsFilterOpen(false);
                             }}
                             className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors ${
-                              filterStatus === status ? 'bg-gray-700 text-white' : 'text-gray-300'
+                              filterStatus === statusValue ? 'bg-gray-700 text-white' : 'text-gray-300'
                             }`}
                           >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                            {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
                           </button>
                         ))}
                       </div>
@@ -184,8 +180,8 @@ const DepositTransaction = () => {
           </div>
         </div>
         
-        {/* Deposits Table */}
-        <div className="bg-gray-800 rounded-lg overflow-hidden mb-6">
+        {/* Desktop Table */}
+        <div className="hidden md:block bg-gray-800 rounded-lg overflow-hidden mb-6">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-700">
               <thead className="bg-gray-900">
@@ -241,9 +237,9 @@ const DepositTransaction = () => {
                 </tr>
               </thead>
               <tbody className="bg-gray-800 divide-y divide-gray-700">
-                {deposits.length > 0 ? (
+                {transaction && transaction.length > 0 ? (
                   transaction.map((deposit) => (
-                    <tr key={deposit.id} className="hover:bg-gray-750">
+                    <tr key={deposit._id} className="hover:bg-gray-750">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {formatDate(deposit.createdAt)}
                       </td>
@@ -279,6 +275,56 @@ const DepositTransaction = () => {
               </tbody>
             </table>
           </div>
+        </div>
+        
+        Mobile View Cards
+        <div className="md:hidden space-y-4 mb-6">
+          {transaction && transaction.length > 0 ? (
+            transaction.map((deposit) => (
+              <motion.div
+                key={deposit._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02 }}
+                className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-4 shadow-lg transition-all"
+              >
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-400">Date:</span>
+                  <span className="ml-2 text-sm text-gray-300">{formatDate(deposit.createdAt)}</span>
+                </div>
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-400">Reference:</span>
+                  <span className="ml-2 text-sm text-gray-300">{deposit.reference || 'N/A'}</span>
+                </div>
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-400">Method:</span>
+                  <span className="ml-2 text-sm text-gray-300 capitalize">{deposit.method}</span>
+                </div>
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-400">Amount:</span>
+                  <span className="ml-2 text-sm text-gray-300">{formatCurrency(deposit.amount, deposit.currency)}</span>
+                </div>
+                <div className="mb-2">
+                  <span className="text-sm font-medium text-gray-400">Status:</span>
+                  <span className="ml-2 text-sm">
+                    <TransactionStatusBadge status={deposit.status} />
+                  </span>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    className="text-primary-400 hover:text-primary-300 font-medium flex items-center"
+                    onClick={() => handleViewDetails(deposit)}
+                  >
+                    <FaEye className="mr-1" /> View
+                  </button>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <div className="px-6 py-10 text-center text-gray-400">
+              No deposit records found.
+            </div>
+          )}
         </div>
         
         {/* Pagination */}

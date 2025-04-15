@@ -17,6 +17,7 @@ const AccountSummary = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
   const accountSummary = useSelector(selectAccountSummary);
+  console.log("Account Summary:", accountSummary);
   const accountActivity = useSelector(selectAccountActivity);
   const balanceHistory = useSelector(selectAccountBalanceHistory);
   const accountOverview = useSelector(selectAccountOverview);
@@ -48,19 +49,19 @@ const AccountSummary = () => {
   }
   
   // Add proper null/undefined checks using optional chaining and default values
-  const accountNumber = userProfile?.accountNumber || accountSummary?.accountNumber || 'XXXX-XXXX-XXXX';
+  const accountNumber = userProfile?.accountNumber || 'XXXX-XXXX-XXXX';
   const userName = userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}`.trim() : 'User';
   const accountType = accountSummary?.accountType || 'Standard';
   
   // Get balance information with proper fallbacks
-  const availableBalance = accountSummary?.balance || 0;
-  const totalInvestments = accountSummary?.investmentTotal || 0;
+  const availableBalance = accountSummary?.availableBalance || 0;
+  const totalInvestments = accountSummary?.totalInvestments || 0;
   const totalAssets = accountSummary?.totalAssets || availableBalance + totalInvestments;
-  const pendingBalance = 0; // Add this if your API provides it
+  const pendingBalance = 0; // Will add this when API provides it
   
   // Get activity stats (with safe defaults)
-  const totalDeposits = accountSummary?.depositTotal || 0;
-  const totalWithdrawals = accountSummary?.withdrawalTotal || 0;
+  const totalDeposits = accountSummary?.totalDeposits || 0;
+  const totalWithdrawals = accountSummary?.totalWithdrawals || 0;
   const trades = accountActivity?.trades || 0;
   
   // Determine currency

@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 const MarketNews = ({ maxItems = 3 }) => {
   const navigate = useNavigate();
   const newsItems = useSelector(selectMarketNews);
+  console.log("Market News Items:", newsItems);
   const componentStatus = useSelector(state => 
     selectDashboardComponentStatus(state, 'marketNews')
   );

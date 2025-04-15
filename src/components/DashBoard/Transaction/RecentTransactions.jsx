@@ -60,12 +60,6 @@ const RecentTransactions = () => {
     <div className="bg-gray-800 rounded-lg p-4 shadow">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-100">Recent Transactions</h2>
-        <button 
-          onClick={() => navigate('/account/transactions')}
-          className="text-primary-500 text-sm flex items-center hover:text-primary-400"
-        >
-          View All <FaArrowRight className="ml-1" size={12} />
-        </button>
       </div>
       
       {processedTransactions && processedTransactions.length > 0 ? (

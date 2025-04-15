@@ -3,25 +3,27 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FaChartLine, FaArrowRight } from 'react-icons/fa';
 import { 
-  selectAccountSummary,
+  selectInvestmentSummary,
   selectDashboardStatus
 } from '../../../redux/slices/dashboardSlice';
 import CardLoader from '../../common/CardLoader';
 
 const InvestmentSummary = () => {
   const navigate = useNavigate();
-  const accountSummary = useSelector(selectAccountSummary);
+  const investmentSummary = useSelector(selectInvestmentSummary);
+  console.log("Investment Summary:", investmentSummary);
   const status = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
+
   // Show loading state
   if (status === 'loading') {
     return <CardLoader title="Investment Summary" height="h-72" />;
   }
   
   // Extract investment data from account summary
-  const totalInvested = accountSummary?.investmentTotal || 0;
-  const totalReturns = accountSummary?.projectedEarnings || 0;
-  const activeInvestments = accountSummary?.investmentCount || 0;
-  const completedInvestments = accountSummary?.completedInvestments || 0;
+  const totalInvested = investmentSummary?.totalInvestments || 0;
+  const totalReturns = investmentSummary?.projectedEarnings || 0;
+  const activeInvestments = investmentSummary?.investmentCount || 0;
+  const completedInvestments = investmentSummary?.completedInvestments || 0;
   
   // Calculate ROI if possible
   const averageROI = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : 0;

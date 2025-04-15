@@ -20,7 +20,6 @@ const PriceAlerts = () => {
   const dispatch = useDispatch();
   const alerts = useSelector(selectPriceAlerts);
   const [isLoading, setIsLoading] = useState(true);
-  console.log("Alerts", alerts);
   const componentStatus = useSelector(state => 
     selectDashboardComponentStatus(state, 'priceAlerts')
   );
