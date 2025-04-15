@@ -74,7 +74,7 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault }) => {
               
               {isCrypto && (
                 <span>
-                  {method.cryptocurrency} • {method.walletAddress.substring(0, 6)}...{method.walletAddress.substring(method.walletAddress.length - 4)}
+                  {method.walletType} • {method.walletAddress.substring(0, 6)}...{method.walletAddress.substring(method.walletAddress.length - 4)}
                   {method.network && method.network !== 'mainnet' && (
                     <span className="ml-2 text-xs bg-gray-700 px-1.5 py-0.5 rounded">
                       {method.network}
@@ -121,7 +121,7 @@ PaymentMethodCard.propTypes = {
     expiryYear: PropTypes.number,
     bankName: PropTypes.string,
     accountName: PropTypes.string,
-    cryptocurrency: PropTypes.string,
+    walletType: PropTypes.string,
     walletAddress: PropTypes.string,
     network: PropTypes.string
   }).isRequired,

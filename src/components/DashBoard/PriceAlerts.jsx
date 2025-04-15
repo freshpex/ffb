@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
   FaBell, 
@@ -32,6 +32,18 @@ const PriceAlerts = () => {
     price: ''
   });
   
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await dispatch(fetchPriceAlerts());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+      
+    loadData();
+  }, [dispatch]);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewAlert(prev => ({ ...prev, [name]: value }));
@@ -41,19 +53,6 @@ const PriceAlerts = () => {
     if (!newAlert.price || isNaN(newAlert.price) || parseFloat(newAlert.price) <= 0) {
       return;
     }
-
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     try {
-  //       await dispatch(fetchPriceAlerts());
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-      
-  //   loadData();
-  //   console.log("Price Alerts load data:", loadData());
-  //   }, [dispatch]);
     
     dispatch(addPriceAlert({
       id: `alert_${Date.now()}`,

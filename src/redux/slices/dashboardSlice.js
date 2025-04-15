@@ -181,6 +181,7 @@ export const fetchPriceAlerts = createAsyncThunk(
   'dashboard/fetchPriceAlerts',
   async (params = {}, { rejectWithValue }) => {
     try {
+      console.log("Making the Price Alert Requests");
       const { page = 1, limit = 10, active } = params;
       
       const token = localStorage.getItem('ffb_auth_token');
@@ -405,10 +406,7 @@ const dashboardSlice = createSlice({
         state.accountSummary = action.payload.accountSummary;
         state.recentTransactions = action.payload.recentTransactions;
         
-        // Update the priceAlerts array
-        state.priceAlerts.data = action.payload.priceAlerts || [];
-        
-        // Update market news
+        // Update market news if available
         state.marketNews = action.payload.latestNews;
         
         state.error.dashboard = null;
@@ -542,7 +540,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(deletePriceAlert.fulfilled, (state, action) => {
         state.actionStatus = 'succeeded';
-        state.priceAlerts.data = state.priceAlerts.data.filter(alert => alert._id !== action.payload);
+        state.priceAlerts = state.priceAlerts.filter(alert => alert._id !== action.payload);
         state.error.priceAlerts = null;
       })
       .addCase(deletePriceAlert.rejected, (state, action) => {
@@ -620,7 +618,7 @@ export const selectMarketNews = createSelector(
 
 export const selectPriceAlerts = createSelector(
   [getPriceAlerts],
-  alerts => alerts?.data || []
+  alerts => alerts || []
 );
 
 export const selectAccountBalance = createSelector(
