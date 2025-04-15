@@ -60,8 +60,6 @@ export const fetchAccountSummary = createAsyncThunk(
       });
       
       const data = await handleApiError(response);
-      
-      console.log("Account Summary Response:", data);
       return data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch account summary');
@@ -120,9 +118,7 @@ export const fetchFinancialHighlights = createAsyncThunk(
         }
       });
       
-      const data = await handleApiError(response);
-      
-      console.log("Financial Response:", data);
+      const data = await handleApiError(response);      
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to fetch financial highlights');
@@ -448,9 +444,7 @@ const dashboardSlice = createSlice({
         state.investmentSummary = action.payload.investmentSummary;
         state.accountActivity = action.payload.accountActivity;
         state.accountBalanceHistory = action.payload.accountBalanceHistory;
-        
-        // Update market news if available
-        // state.marketNews = action.payload.latestNews;
+        state.marketNews = action.payload.recentNews;
         
         state.error.dashboard = null;
       })
@@ -610,10 +604,10 @@ const getPriceAlerts = state => state.dashboard.priceAlerts;
 
 // Memoized selectors using createSelector to prevent unnecessary rerenders
 export const selectAccountSummary = createSelector(
-  [getInvestmentSummary],
+  [getAccountSummary],
   summary => {
     if (!summary) return null;
-    return summary;
+    return summary.data;
   }
 );
 

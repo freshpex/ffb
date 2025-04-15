@@ -17,7 +17,6 @@ const AccountSummary = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
   const accountSummary = useSelector(selectAccountSummary);
-  console.log("Account Summary:", accountSummary);
   const accountActivity = useSelector(selectAccountActivity);
   const balanceHistory = useSelector(selectAccountBalanceHistory);
   const accountOverview = useSelector(selectAccountOverview);

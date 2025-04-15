@@ -3,30 +3,31 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FaChartLine, FaArrowRight } from 'react-icons/fa';
 import { 
-  selectInvestmentSummary,
-  selectDashboardStatus
-} from '../../../redux/slices/dashboardSlice';
+  fetchInvestmentStatistics,
+  selectInvestmentStatistics
+} from '../../../redux/slices/investmentSlice';
 import CardLoader from '../../common/CardLoader';
 
 const InvestmentSummary = () => {
   const navigate = useNavigate();
-  const investmentSummary = useSelector(selectInvestmentSummary);
-  console.log("Investment Summary:", investmentSummary);
-  const status = useSelector(state => selectDashboardStatus(state, 'accountSummary'));
-
+  const dispatch = useDispatch();
+  const investmentStats = useSelector(selectInvestmentStatistics);
+  const status = useSelector(state => state.investment.status.statistics);
+  
+  useEffect(() => {
+    dispatch(fetchInvestmentStatistics());
+  }, [dispatch]);
+  
   // Show loading state
   if (status === 'loading') {
     return <CardLoader title="Investment Summary" height="h-72" />;
   }
   
-  // Extract investment data from account summary
-  const totalInvested = investmentSummary?.totalInvestments || 0;
-  const totalReturns = investmentSummary?.projectedEarnings || 0;
-  const activeInvestments = investmentSummary?.investmentCount || 0;
-  const completedInvestments = investmentSummary?.completedInvestments || 0;
-  
-  // Calculate ROI if possible
-  const averageROI = totalInvested > 0 ? ((totalReturns / totalInvested) * 100).toFixed(1) : 0;
+  const totalInvested = investmentStats?.totalInvested || 0;
+  const totalReturns = investmentStats?.totalReturns || 0;
+  const activeInvestments = investmentStats?.activeInvestments || 0;
+  const completedInvestments = investmentStats?.completedInvestments || 0;
+  const roi = investmentStats?.profitLossPercentage || 0;
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 shadow">
@@ -62,8 +63,8 @@ const InvestmentSummary = () => {
         </div>
         
         <div className="bg-gray-700/50 p-3 rounded-lg">
-          <p className="text-gray-400 text-xs">AVERAGE ROI</p>
-          <p className="text-primary-500 font-bold">{averageROI}%</p>
+          <p className="text-gray-400 text-xs">ROI</p>
+          <p className="text-primary-500 font-bold">{roi.toFixed(1)}%</p>
         </div>
         
         <div className="bg-gray-700/50 p-3 rounded-lg">
@@ -72,7 +73,7 @@ const InvestmentSummary = () => {
         </div>
         
         <div className="bg-gray-700/50 p-3 rounded-lg">
-          <p className="text-gray-400 text-xs">PROJECTED EARNINGS</p>
+          <p className="text-gray-400 text-xs">TOTAL RETURNS</p>
           <p className="text-green-500 font-bold">${totalReturns.toLocaleString()}</p>
         </div>
       </div>
