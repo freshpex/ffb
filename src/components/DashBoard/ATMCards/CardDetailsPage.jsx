@@ -20,7 +20,8 @@ import {
   FaDownload,
   FaSlidersH,
   FaPlus,
-  FaExchangeAlt
+  FaExchangeAlt,
+  FaWifi
 } from 'react-icons/fa';
 import { 
   fetchCardTransactions, 
@@ -42,7 +43,6 @@ import Alert from '../../common/Alert';
 import CardLimitsModal from './CardLimitsModal';
 import FundCardModal from './FundCardModal';
 import { format, subDays, startOfMonth, isAfter } from 'date-fns';
-import Modal from '../../common/Modal';
 
 // Card designs with gradients
 const cardDesigns = {
@@ -68,6 +68,7 @@ const CardDetailsPage = () => {
   const navigate = useNavigate();
   
   const card = useSelector(state => selectCardById(state, cardId));
+  console.log("Card", card);
   const transactions = useSelector(state => selectCardTransactions(state, cardId));
   const status = useSelector(selectATMCardsStatus);
   const transactionStatus = useSelector(selectTransactionStatus);
@@ -84,9 +85,10 @@ const CardDetailsPage = () => {
     amount: '',
     merchantName: '',
     category: 'shopping',
-    type: 'purchase',
+    type: 'transfer',
     description: ''
   });
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
   
   useEffect(() => {
     if (cardId) {
@@ -205,8 +207,8 @@ const CardDetailsPage = () => {
     );
   }
   
-  const handleFreezeCard = async () => {
-    await dispatch(freezeCard(card.id || card._id));
+  const handleFreezeCard = () => {
+    dispatch(freezeCard(card.id || card._id));
     setAlertMessage({
       type: 'success',
       message: 'Card frozen successfully. You can unfreeze it anytime.'
@@ -214,8 +216,8 @@ const CardDetailsPage = () => {
     setShowAlert(true);
   };
   
-  const handleUnfreezeCard = async () => {
-    await dispatch(unfreezeCard(card.id || card._id));
+  const handleUnfreezeCard = () => {
+    dispatch(unfreezeCard(card.id || card._id));
     setAlertMessage({
       type: 'success',
       message: 'Card unfrozen successfully. You can now use your card again.'
@@ -223,9 +225,9 @@ const CardDetailsPage = () => {
     setShowAlert(true);
   };
   
-  const handleCancelCard = async () => {
+  const handleCancelCard = () => {
     if (window.confirm('Are you sure you want to cancel this card? This action cannot be undone.')) {
-      await dispatch(cancelCardRequest(card.id || card._id));
+      dispatch(cancelCardRequest(card.id || card._id));
       setAlertMessage({
         type: 'success',
         message: 'Card canceled successfully.'
@@ -238,7 +240,6 @@ const CardDetailsPage = () => {
       }, 2000);
     }
   };
-  
   const handleLimitsUpdate = (message) => {
     setIsLimitsModalOpen(false);
     setAlertMessage({
@@ -317,30 +318,35 @@ const CardDetailsPage = () => {
     
     return true;
   }) || [];
+
+  // Function to toggle card flip
+  const toggleCardFlip = () => {
+    setIsCardFlipped(!isCardFlipped);
+  };
   
   return (
     <DashboardLayout>
       <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="outline" onClick={() => navigate('/login/cards')}>
-            <FaArrowLeft className="mr-2" /> Back to Cards
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
+          <Button variant="outline" onClick={() => navigate('/login/cards')} className="w-full sm:w-auto">
+            Back to Cards
           </Button>
           
-          <div className="flex space-x-3">
+          <div className="grid grid-cols-2 sm:flex sm:space-x-2 gap-2">
             <Button
               variant="primary"
               onClick={() => setIsFundCardModalOpen(true)}
               disabled={card.status !== 'active'}
-            >
-              <FaExchangeAlt className="mr-2" /> Fund Card
+              className="w-full sm:w-auto text-xs sm:text-sm"
+            >Fund
             </Button>
             
             <Button
               variant="primary"
               onClick={() => setIsTransactionModalOpen(true)}
               disabled={card.status !== 'active'}
-            >
-              <FaPlus className="mr-2" /> New Transaction
+              className="w-full sm:w-auto text-xs sm:text-sm"
+            >New Tx
             </Button>
             
             {card.status === 'active' ? (
@@ -348,32 +354,32 @@ const CardDetailsPage = () => {
                 variant="warning"
                 onClick={handleFreezeCard}
                 disabled={status === 'loading'}
-              >
-                <FaLock className="mr-2" /> Freeze Card
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >Freeze
               </Button>
             ) : card.status === 'frozen' ? (
               <Button
                 variant="success"
                 onClick={handleUnfreezeCard}
                 disabled={status === 'loading'}
-              >
-                <FaUnlock className="mr-2" /> Unfreeze Card
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >Unfreeze
               </Button>
             ) : null}
             
             <Button
               variant="outline"
               onClick={() => setIsLimitsModalOpen(true)}
-            >
-              <FaSlidersH className="mr-2" /> Limits
+              className="w-full sm:w-auto text-xs sm:text-sm"
+            >Limits
             </Button>
             
             <Button
               variant="danger"
               onClick={handleCancelCard}
               disabled={status === 'loading'}
-            >
-              <FaTimes className="mr-2" /> Cancel Card
+              className="w-full sm:w-auto text-xs sm:text-sm"
+            >Cancel
             </Button>
           </div>
         </div>
@@ -389,86 +395,150 @@ const CardDetailsPage = () => {
         )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Card Display */}
+          {/* Enhanced Card Display with Flip Animation */}
           <div className="col-span-1">
-            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-              <div className={`${cardDesigns[card.type] || 'bg-gradient-to-r from-gray-700 to-gray-900'} p-6 relative h-48`}>
-                {card.status === 'frozen' && (
-                  <div className="absolute top-3 right-3 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-medium border border-gray-600">
-                    <FaLock className="inline mr-1" size={10} /> Frozen
+            <div className="h-64 w-full perspective-1000">
+              <motion.div
+                className="relative w-full h-full cursor-pointer transform-style-3d"
+                animate={{ rotateY: isCardFlipped ? 180 : 0 }}
+                onClick={toggleCardFlip}
+                style={{ 
+                  transformStyle: "preserve-3d", 
+                  transition: "transform 0.5s" 
+                }}
+              >
+                {/* Front of card */}
+                <div 
+                  className="absolute w-full h-full rounded-xl overflow-hidden shadow-2xl" 
+                  style={{ 
+                    backfaceVisibility: "hidden"
+                  }}
+                >
+                  <div className={`${cardDesigns[card.type] || 'bg-gradient-to-r from-gray-700 to-gray-900'} p-6 relative h-full`}>
+                    {card.status === 'frozen' && (
+                      <div className="absolute top-3 right-3 bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-medium border border-gray-600 z-10">
+                        <FaLock className="inline mr-1" size={10} /> Frozen
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-white font-bold text-lg">Fidelity First Bank</h3>
+                        <p className="text-gray-100/80 text-xs">
+                          {card.type === 'virtual-debit' ? 'Virtual Card' : 
+                           card.type === 'standard-debit' ? 'Standard Card' : 'Premium Card'}
+                        </p>
+                      </div>
+                      <FaWifi className="text-white/70 rotate-90" size={24} />
+                    </div>
+                    
+                    {/* Chip image */}
+                    <div className="mt-4 mb-4">
+                      <div className="w-12 h-9 bg-yellow-600/90 rounded-md bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+                        <div className="w-10 h-7 border border-yellow-800/30 rounded-sm bg-gradient-to-bl from-yellow-500/80 to-yellow-600/80"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6">
+                    <>
+                      <span className="mr-3">{card.cardNumber.slice(0, 4)}</span>
+                      <span className="mr-3">{card.cardNumber.slice(4, 8)}</span>
+                      <span className="mr-3">{card.cardNumber.slice(8, 12)}</span>
+                      <span>{card.cardNumber.slice(12, 16)}</span>
+                    </>
+                    </div>
+                    
+                    <div className="mt-4 flex justify-between items-end">
+                      <div>
+                        <p className="text-gray-200/70 text-xs mb-1">Card Holder</p>
+                        <p className="text-white font-medium uppercase">{card.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-200/70 text-xs mb-1">Expires</p>
+                        <p className="text-white font-medium">{card.expiryDate}</p>
+                      </div>
+                    </div>
+
+                    {/* Card type logo */}
+                    <div className="absolute bottom-4 right-6">
+                      <FaCreditCard className="text-white/80" size={28} />
+                    </div>
                   </div>
-                )}
-                
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-white font-bold text-lg">Fidelity First Bank</h3>
-                    <p className="text-gray-300 text-xs">
-                      {card.type === 'virtual-debit' ? 'Virtual Card' : 
-                       card.type === 'standard-debit' ? 'Standard Card' : 'Premium Card'}
-                    </p>
-                  </div>
-                  <FaCreditCard className="text-white/50" size={24} />
                 </div>
                 
-                <div className="mt-6">
-                  <p className="text-gray-300 text-xs mb-1">Card Number</p>
-                  <p className="text-white font-mono font-medium text-lg tracking-wider">
-                    {card.cardNumber ? `**** **** **** ${card.cardNumber.slice(-4)}` : 'XXXX XXXX XXXX XXXX'}
-                  </p>
-                </div>
-                
-                <div className="mt-4 flex justify-between items-end">
-                  <div>
-                    <p className="text-gray-300 text-xs mb-1">Card Holder</p>
-                    <p className="text-white font-medium">{card.name}</p>
+                {/* Back of card */}
+                <div 
+                  className="absolute w-full h-full rounded-xl overflow-hidden shadow-2xl" 
+                  style={{ 
+                    backfaceVisibility: "hidden", 
+                    transform: "rotateY(180deg)" 
+                  }}
+                >
+                  <div className={`${cardDesigns[card.type] || 'bg-gradient-to-r from-gray-700 to-gray-900'} p-0 relative h-full`}>
+                    <div className="w-full h-12 bg-gray-900 mt-6"></div>
+                    
+                    {/* Signature strip */}
+                    <div className="p-6">
+                      <div className="mt-4 bg-white h-10 rounded-md flex justify-end items-center pr-3">
+                        <div className="bg-white px-2 py-1">
+                          <p className="text-gray-800 font-mono font-bold">CVV: {card.cvv}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6 text-xs text-gray-200/80">
+                        <p>This card is property of Fidelity First Bank. If found, please return to the nearest branch.</p>
+                        <p className="mt-2">For customer service, please call: 1-800-123-4567</p>
+                      </div>
+                      
+                      <div className="absolute bottom-6 right-6">
+                        <FaCreditCard className="text-white/80" size={28} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-300 text-xs mb-1">Expires</p>
-                    <p className="text-white font-medium">{card.expiryDate}</p>
-                  </div>
                 </div>
+              </motion.div>
+            </div>
+            
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 mt-4">
+              <div className="mb-4">
+                <p className="text-gray-400 text-sm mb-1">Card Balance</p>
+                <p className="text-white text-2xl font-semibold">
+                  ${(card.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
               
-              <div className="p-4">
-                <div className="mb-4">
-                  <p className="text-gray-400 text-sm mb-1">Card Balance</p>
-                  <p className="text-white text-2xl font-semibold">
-                    ${(card.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Limits display remains the same */}
+                <div className="bg-gray-700/50 p-3 rounded-lg">
+                  <p className="text-gray-400 text-xs mb-1">Daily Limit</p>
+                  <p className="text-white font-medium">
+                    ${(card.limits?.daily || 0).toLocaleString()}
+                  </p>
+                  <div className="mt-1 h-1 bg-gray-600 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-primary-400 h-full"
+                      style={{ width: `${card.limits?.daily ? ((card.limits?.dailyUsed || 0) / card.limits?.daily) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ${(card.limits?.dailyUsed || 0).toLocaleString()} used
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-700/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-xs mb-1">Daily Limit</p>
-                    <p className="text-white font-medium">
-                      ${(card.limits?.daily || 0).toLocaleString()}
-                    </p>
-                    <div className="mt-1 h-1 bg-gray-600 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-primary-400 h-full"
-                        style={{ width: `${card.limits?.daily ? ((card.limits?.dailyUsed || 0) / card.limits?.daily) * 100 : 0}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      ${(card.limits?.dailyUsed || 0).toLocaleString()} used
-                    </p>
+                <div className="bg-gray-700/50 p-3 rounded-lg">
+                  <p className="text-gray-400 text-xs mb-1">Monthly Limit</p>
+                  <p className="text-white font-medium">
+                    ${(card.limits?.monthly || 0).toLocaleString()}
+                  </p>
+                  <div className="mt-1 h-1 bg-gray-600 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-primary-400 h-full"
+                      style={{ width: `${card.limits?.monthly ? ((card.limits?.monthlyUsed || 0) / card.limits?.monthly) * 100 : 0}%` }}
+                    ></div>
                   </div>
-                  
-                  <div className="bg-gray-700/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-xs mb-1">Monthly Limit</p>
-                    <p className="text-white font-medium">
-                      ${(card.limits?.monthly || 0).toLocaleString()}
-                    </p>
-                    <div className="mt-1 h-1 bg-gray-600 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-primary-400 h-full"
-                        style={{ width: `${card.limits?.monthly ? ((card.limits?.monthlyUsed || 0) / card.limits?.monthly) * 100 : 0}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      ${(card.limits?.monthlyUsed || 0).toLocaleString()} used
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ${(card.limits?.monthlyUsed || 0).toLocaleString()} used
+                  </p>
                 </div>
               </div>
             </div>
@@ -548,10 +618,10 @@ const CardDetailsPage = () => {
         
         {/* Transactions List */}
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-gray-700 space-y-3 sm:space-y-0">
             <h3 className="text-white font-medium">Transaction History</h3>
             
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               {/* Category Filter */}
               <div className="relative">
                 <select
@@ -646,15 +716,6 @@ const CardDetailsPage = () => {
                   ? 'Try changing your filters to see more transactions.'
                   : 'Start using your card to see transactions here.'}
               </p>
-              {card.status === 'active' && (
-                <Button
-                  variant="primary"
-                  className="mt-4"
-                  onClick={() => setIsTransactionModalOpen(true)}
-                >
-                  <FaPlus className="mr-2" /> Create Transaction
-                </Button>
-              )}
             </div>
           )}
         </div>
@@ -675,131 +736,6 @@ const CardDetailsPage = () => {
         card={card}
         onSuccess={handleFundCardSuccess}
       />
-      
-      {/* Create Transaction Modal */}
-      <Modal
-        isOpen={isTransactionModalOpen}
-        onClose={() => setIsTransactionModalOpen(false)}
-        title="Create New Transaction"
-      >
-        <div className="p-5">
-          {transactionStatus === 'loading' ? (
-            <div className="flex justify-center py-8">
-              <Loader size="lg" />
-            </div>
-          ) : (
-            <form onSubmit={(e) => { e.preventDefault(); handleCreateTransaction(); }}>
-              <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">
-                  Amount
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">$</span>
-                  <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    value={transactionForm.amount}
-                    onChange={handleTransactionFormChange}
-                    placeholder="0.00"
-                    className="bg-gray-800 text-white pl-8 pr-3 py-2 rounded-lg w-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    min="0.01"
-                    step="0.01"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="merchantName" className="block text-sm font-medium text-gray-300 mb-1">
-                  Merchant Name
-                </label>
-                <input
-                  type="text"
-                  id="merchantName"
-                  name="merchantName"
-                  value={transactionForm.merchantName}
-                  onChange={handleTransactionFormChange}
-                  placeholder="Enter merchant name"
-                  className="bg-gray-800 text-white px-3 py-2 rounded-lg w-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-1">
-                  Category
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  value={transactionForm.category}
-                  onChange={handleTransactionFormChange}
-                  className="bg-gray-800 text-white px-3 py-2 rounded-lg w-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="shopping">Shopping</option>
-                  <option value="food">Food</option>
-                  <option value="transport">Transport</option>
-                  <option value="travel">Travel</option>
-                  <option value="atm">ATM</option>
-                  <option value="bills">Bills</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="type" className="block text-sm font-medium text-gray-300 mb-1">
-                  Transaction Type
-                </label>
-                <select
-                  id="type"
-                  name="type"
-                  value={transactionForm.type}
-                  onChange={handleTransactionFormChange}
-                  className="bg-gray-800 text-white px-3 py-2 rounded-lg w-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="purchase">Purchase</option>
-                  <option value="withdrawal">Withdrawal</option>
-                  <option value="refund">Refund</option>
-                  <option value="deposit">Deposit</option>
-                </select>
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-1">
-                  Description (Optional)
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={transactionForm.description}
-                  onChange={handleTransactionFormChange}
-                  placeholder="Enter transaction description"
-                  className="bg-gray-800 text-white px-3 py-2 rounded-lg w-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="flex justify-end space-x-3 mt-6">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setIsTransactionModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                
-                <Button
-                  variant="primary"
-                  type="submit"
-                >
-                  Create Transaction
-                </Button>
-              </div>
-            </form>
-          )}
-        </div>
-      </Modal>
     </DashboardLayout>
   );
 };
