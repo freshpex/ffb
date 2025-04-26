@@ -1,7 +1,5 @@
 import axios from 'axios';
 
-// Instead of directly exposing Binance API, this service will communicate with your backend
-// which will securely handle the API keys and signing process
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const secureApiService = {

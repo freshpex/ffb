@@ -1,109 +1,36 @@
-import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
-import {
-  mockMarketData,
-  getCandlestickData,
-  generateOrderHistory,
-  generatePortfolioData,
-  mockAssets
-} from '../../services/mockTradingService';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import tradingService from '../../services/tradingService';
 
-// Initial state
-const initialState = {
-  // Market data
-  selectedAsset: 'BTC/USD',
-  marketPrices: {},
-  orderBook: { asks: [], bids: [] },
-  recentTrades: [],
-  
-  // Chart data
-  candlesticks: [],
-  chartTimeframe: '1h',
-  chartIndicators: {
-    sma: true,
-    volume: true,
-  },
-  
-  // Trading form
-  tradingForm: {
-    orderType: 'market',
-    side: 'buy',
-    amount: '',
-    price: '',
-    stopPrice: '',
-    total: 0,
-    processing: false,
-  },
-  
-  // Order history
-  openOrders: [],
-  orderHistory: [],
-  positions: [],
-  
-  // User's portfolio
-  portfolio: {
-    balances: [],
-    openPositions: [],
-    tradingStats: {},
-  },
-  accountBalance: 25000,
-  marginAvailable: 20000,
-  
-  // Status indicators
-  status: {
-    marketData: 'idle',
-    chartData: 'idle',
-    orderSubmit: 'idle',
-    portfolio: 'idle',
-    orderHistory: 'idle',
-  },
-  errors: {
-    marketData: null,
-    chartData: null,
-    orderSubmit: null,
-    portfolio: null,
-    orderHistory: null,
-  },
-};
-
-// Async thunks
-export const fetchMarketData = createAsyncThunk(
-  'trading/fetchMarketData',
-  async (symbol = 'BTC/USD', { rejectWithValue }) => {
-    try {
-      const data = await mockMarketData(symbol);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchChartData = createAsyncThunk(
-  'trading/fetchChartData',
-  async ({ symbol, timeframe }, { rejectWithValue }) => {
-    try {
-      const data = await getCandlestickData(symbol, timeframe);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchOrders = createAsyncThunk(
-  'trading/fetchOrders',
+// Async thunks for trading operations
+export const fetchTradingPairs = createAsyncThunk(
+  'trading/fetchTradingPairs',
   async (_, { rejectWithValue }) => {
     try {
-      const userId = 'user123'; // Would come from auth state in real app
-      const orders = generateOrderHistory(userId);
-      
-      // Separate open orders from order history
-      const openOrders = orders.filter(order => order.status === 'open');
-      const orderHistory = orders.filter(order => order.status !== 'open');
-      
-      return { openOrders, orderHistory };
+      return await tradingService.getTradingPairs();
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const fetchMarketData = createAsyncThunk(
+  'trading/fetchMarketData',
+  async (symbol, { rejectWithValue }) => {
+    try {
+      return await tradingService.getMarketData(symbol);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const fetchOrderbook = createAsyncThunk(
+  'trading/fetchOrderbook',
+  async (symbol, { rejectWithValue }) => {
+    try {
+      return await tradingService.getOrderbook(symbol);
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -112,58 +39,33 @@ export const fetchPortfolio = createAsyncThunk(
   'trading/fetchPortfolio',
   async (_, { rejectWithValue }) => {
     try {
-      const userId = 'user123'; // Would come from auth state in real app
-      const portfolioData = generatePortfolioData(userId);
-      return portfolioData;
+      return await tradingService.getPortfolio();
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-export const submitOrder = createAsyncThunk(
-  'trading/submitOrder',
-  async (orderData, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk(
+  'trading/fetchOrders',
+  async (params, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Generate a new order
-      const newOrder = {
-        id: `order_${Date.now()}`,
-        userId: 'user123',
-        symbol: orderData.symbol,
-        type: orderData.orderType,
-        side: orderData.side,
-        price: orderData.orderType === 'market' ? null : orderData.price,
-        stopPrice: ['stop', 'stop_limit'].includes(orderData.orderType) ? orderData.stopPrice : null,
-        quantity: orderData.amount,
-        filled: 0,
-        status: 'open',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      return newOrder;
+      return await tradingService.getOrders(params);
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-export const cancelOrder = createAsyncThunk(
-  'trading/cancelOrder',
-  async (orderId, { rejectWithValue }) => {
+export const fetchTradingHistory = createAsyncThunk(
+  'trading/fetchTradingHistory',
+  async (params, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      return {
-        success: true,
-        orderId
-      };
+      const response = await tradingService.getTradingHistory(params);
+      console.log('Response', response);
+      return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -172,294 +74,523 @@ export const placeOrder = createAsyncThunk(
   'trading/placeOrder',
   async (orderData, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Generate a new order
-      const newOrderId = `order_${Date.now()}`;
-      
-      return {
-        success: true,
-        data: {
-          id: newOrderId,
-          status: 'open',
-          symbol: orderData.symbol,
-          type: orderData.type,
-          side: orderData.side,
-          amount: orderData.amount,
-          price: orderData.price,
-          stopPrice: orderData.stopPrice,
-          createdAt: new Date().toISOString()
-        }
-      };
+      return await tradingService.placeOrder(orderData);
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-export const fetchTradingHistory = createAsyncThunk(
-  'trading/fetchTradingHistory',
-  async (_, { rejectWithValue }) => {
+export const cancelOrder = createAsyncThunk(
+  'trading/cancelOrder',
+  async (orderId, { rejectWithValue }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Generate history for today
-      const history = Array.from({ length: 20 }, (_, i) => ({
-        id: `trade_${Date.now()}_${i}`,
-        symbol: ['BTC/USD', 'ETH/USD', 'XRP/USD'][Math.floor(Math.random() * 3)],
-        side: Math.random() > 0.5 ? 'buy' : 'sell',
-        price: 1000 + Math.random() * 50000,
-        amount: Math.random() * 10,
-        fee: Math.random() * 10,
-        total: 0, // Will be calculated
-        date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-      }));
-      
-      // Calculate totals
-      history.forEach(trade => {
-        trade.total = trade.price * trade.amount;
-      });
-      
-      return history;
+      return await tradingService.cancelOrder(orderId);
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-export const updateMarketPrices = createAsyncThunk(
-  'trading/updateMarketPrices',
-  async (data, { rejectWithValue }) => {
+export const fetchHistoricalData = createAsyncThunk(
+  'trading/fetchHistoricalData',
+  async (params, { rejectWithValue }) => {
     try {
-      return data;
+      return await tradingService.getHistoricalData(params);
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-export const setSelectedPair = createAsyncThunk(
-  'trading/setSelectedPair',
-  async (symbol, { dispatch }) => {
-    await dispatch(setSelectedAsset(symbol));
-    return symbol;
+export const fetchChartData = createAsyncThunk(
+  'trading/fetchChartData',
+  async ({ symbol, timeframe }, { rejectWithValue }) => {
+    try {
+      const response = await tradingService.getChartData(symbol, timeframe);
+      return { data: response, symbol, timeframe };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
   }
 );
 
-// Trading slice
+// Initial state
+const initialState = {
+  tradingPairs: [],
+  favoriteSymbols: [],
+  marketData: {},
+  orderbook: {
+    bids: [],
+    asks: []
+  },
+  portfolio: {
+    positions: [],
+    balances: {}
+  },
+  orders: {
+    open: [],
+    history: [],
+    pagination: {
+      page: 1,
+      limit: 50,
+      total: 0
+    }
+  },
+  historicalData: [],
+  candlesticks: [],
+  chartData: {
+    timeframe: '1h',
+    indicators: {
+      macd: false,
+      rsi: false,
+      bollingerBands: false,
+      movingAverages: true
+    },
+    loading: false,
+    error: null
+  },
+  selectedSymbol: 'BTC/USDT',
+  selectedAsset: 'BTC/USDT',
+  selectedTimeframe: '1d',
+  orderType: 'market', // 'market', 'limit'
+  orderSide: 'buy', // 'buy', 'sell'
+  orderAmount: '',
+  orderPrice: '',
+  orderForm: {
+    type: 'limit', // 'limit', 'market', 'stop'
+    side: 'buy', // 'buy', 'sell'
+    amount: '',
+    price: '',
+    stopPrice: '',
+    total: ''
+  },
+  activeTab: 'positions', // 'positions', 'orders', 'history'
+  marketSideTab: 'buy', // 'buy', 'sell'
+  error: {
+    tradingPairs: null,
+    marketData: null,
+    orderbook: null,
+    portfolio: null,
+    orders: null,
+    history: null,
+    placeOrder: null,
+    cancelOrder: null,
+    historicalData: null,
+    chartData: null,
+    orderFormError: ''
+  },
+  ui: {
+    dropdownOpen: false,
+    showSidebar: true,
+    showAlert: false,
+    alertMessage: { type: '', message: '' }
+  },
+  loading: {
+    tradingPairs: false,
+    marketData: false,
+    orderbook: false,
+    portfolio: false,
+    orders: false,
+    history: false,
+    placeOrder: false,
+    cancelOrder: false,
+    historicalData: false,
+    chartData: false
+  },
+  status: 'idle', // 'idle', 'loading', 'succeeded', 'failed'
+  lastSuccessfulOrder: null,
+  recentTrades: []
+};
+
 const tradingSlice = createSlice({
   name: 'trading',
   initialState,
   reducers: {
-    // Update trading form
-    updateTradingForm: (state, action) => {
-      state.tradingForm = {
-        ...state.tradingForm,
+    toggleFavoriteSymbol: (state, action) => {
+      const symbol = action.payload;
+      const idx = state.favoriteSymbols.indexOf(symbol);
+      if (idx >= 0) state.favoriteSymbols.splice(idx, 1);
+      else state.favoriteSymbols.push(symbol);
+    },
+    setSelectedSymbol: (state, action) => {
+      state.selectedSymbol = action.payload;
+    },
+    setSelectedTimeframe: (state, action) => {
+      state.selectedTimeframe = action.payload;
+    },
+    setOrderType: (state, action) => {
+      state.orderType = action.payload;
+    },
+    setOrderSide: (state, action) => {
+      state.orderSide = action.payload;
+    },
+    setOrderAmount: (state, action) => {
+      state.orderAmount = action.payload;
+    },
+    setOrderPrice: (state, action) => {
+      state.orderPrice = action.payload;
+    },
+    resetOrderForm: (state) => {
+      state.orderAmount = '';
+      state.orderPrice = '';
+    },
+    clearOrderError: (state) => {
+      state.error.placeOrder = null;
+    },
+    updateMarketPrice: (state, action) => {
+      const { symbol, price } = action.payload;
+      if (!state.marketData[symbol]) {
+        state.marketData[symbol] = {};
+      }
+      state.marketData[symbol].lastPrice = price;
+    },
+    // New actions for trading form state
+    updateOrderForm: (state, action) => {
+      state.orderForm = {
+        ...state.orderForm,
         ...action.payload
       };
+      
+      // Auto-calculate total for limit and stop orders
+      if (('amount' in action.payload || 'price' in action.payload) && 
+          (state.orderForm.type === 'limit' || state.orderForm.type === 'stop')) {
+        const amount = parseFloat(state.orderForm.amount) || 0;
+        const price = parseFloat(state.orderForm.price) || 0;
+        state.orderForm.total = (amount * price).toFixed(2);
+      }
     },
-    
-    // Set selected asset
+    setOrderFormType: (state, action) => {
+      state.orderForm.type = action.payload;
+    },
+    setOrderFormSide: (state, action) => {
+      state.orderForm.side = action.payload;
+    },
+    resetEntireOrderForm: (state) => {
+      state.orderForm = {
+        ...state.orderForm,
+        amount: '',
+        price: '',
+        stopPrice: '',
+        total: ''
+      };
+    },
+    setActiveTab: (state, action) => {
+      state.activeTab = action.payload;
+    },
+    setMarketSideTab: (state, action) => {
+      state.marketSideTab = action.payload;
+    },
+    setOrderFormError: (state, action) => {
+      state.error.orderFormError = action.payload;
+    },
+    clearOrderFormError: (state) => {
+      state.error.orderFormError = '';
+    },
+    toggleDropdown: (state) => {
+      state.ui.dropdownOpen = !state.ui.dropdownOpen;
+    },
+    setDropdownOpen: (state, action) => {
+      state.ui.dropdownOpen = action.payload;
+    },
+    setShowSidebar: (state, action) => {
+      state.ui.showSidebar = action.payload;
+    },
+    toggleSidebar: (state) => {
+      state.ui.showSidebar = !state.ui.showSidebar;
+    },
+    setShowAlert: (state, action) => {
+      state.ui.showAlert = action.payload;
+    },
+    setAlertMessage: (state, action) => {
+      state.ui.alertMessage = action.payload;
+      state.ui.showAlert = true;
+    },
+    clearAlert: (state) => {
+      state.ui.showAlert = false;
+      state.ui.alertMessage = { type: '', message: '' };
+    },
+    setChartTimeframe: (state, action) => {
+      state.chartData.timeframe = action.payload;
+    },
+    toggleChartIndicator: (state, action) => {
+      const indicator = action.payload;
+      state.chartData.indicators[indicator] = !state.chartData.indicators[indicator];
+    },
     setSelectedAsset: (state, action) => {
       state.selectedAsset = action.payload;
     },
-    
-    // Set chart timeframe
-    setChartTimeframe: (state, action) => {
-      state.chartTimeframe = action.payload;
-    },
-    
-    // Toggle chart indicator
-    toggleChartIndicator: (state, action) => {
-      const indicator = action.payload;
-      state.chartIndicators[indicator] = !state.chartIndicators[indicator];
-    },
-    
-    // Reset trading form
-    resetTradingForm: (state) => {
-      state.tradingForm = initialState.tradingForm;
-    },
-    
-    // Set account balance (for testing)
-    setAccountBalance: (state, action) => {
-      state.accountBalance = action.payload;
-    },
-    
-    // Reset trading state
-    resetTradingState: () => initialState
+    updateCandlesticks: (state, action) => {
+      state.candlesticks = action.payload;
+    }
   },
   extraReducers: (builder) => {
-    // Fetch market data
     builder
+      .addCase(fetchTradingPairs.pending, (state) => {
+        state.loading.tradingPairs = true;
+        state.error.tradingPairs = null;
+      })
+      .addCase(fetchTradingPairs.fulfilled, (state, action) => {
+        state.tradingPairs = action.payload;
+        state.loading.tradingPairs = false;
+      })
+      .addCase(fetchTradingPairs.rejected, (state, action) => {
+        state.loading.tradingPairs = false;
+        state.error.tradingPairs = action.payload;
+      })
+
+    // Handle fetchMarketData
       .addCase(fetchMarketData.pending, (state) => {
-        state.status.marketData = 'loading';
+        state.loading.marketData = true;
+        state.error.marketData = null;
       })
       .addCase(fetchMarketData.fulfilled, (state, action) => {
-        state.status.marketData = 'succeeded';
-        state.marketPrices = {
-          ...state.marketPrices,
-          ...action.payload.prices
-        };
-        state.orderBook = action.payload.orderBook;
-        state.recentTrades = action.payload.recentTrades;
+        if (action.payload) {
+          if (Array.isArray(action.payload)) {
+            action.payload.forEach(item => {
+              if (item && item.symbol) {
+                state.marketData[item.symbol] = item;
+              }
+            });
+          } else if (action.payload.symbol) {
+            state.marketData[action.payload.symbol] = action.payload;
+          }
+        }
+        state.loading.marketData = false;
       })
       .addCase(fetchMarketData.rejected, (state, action) => {
-        state.status.marketData = 'failed';
-        state.errors.marketData = action.payload;
+        state.loading.marketData = false;
+        state.error.marketData = action.payload;
       })
-      
-      // Fetch chart data
-      .addCase(fetchChartData.pending, (state) => {
-        state.status.chartData = 'loading';
+
+    // Handle fetchOrderbook
+      .addCase(fetchOrderbook.pending, (state) => {
+        state.loading.orderbook = true;
+        state.error.orderbook = null;
       })
-      .addCase(fetchChartData.fulfilled, (state, action) => {
-        state.status.chartData = 'succeeded';
-        state.candlesticks = action.payload.candles;
+      .addCase(fetchOrderbook.fulfilled, (state, action) => {
+        state.orderbook = action.payload;
+        state.loading.orderbook = false;
       })
-      .addCase(fetchChartData.rejected, (state, action) => {
-        state.status.chartData = 'failed';
-        state.errors.chartData = action.payload;
+      .addCase(fetchOrderbook.rejected, (state, action) => {
+        state.loading.orderbook = false;
+        state.error.orderbook = action.payload;
       })
-      
-      // Fetch orders
-      .addCase(fetchOrders.pending, (state) => {
-        state.status.orderHistory = 'loading';
-      })
-      .addCase(fetchOrders.fulfilled, (state, action) => {
-        state.status.orderHistory = 'succeeded';
-        state.openOrders = action.payload.openOrders;
-        state.orderHistory = action.payload.orderHistory;
-      })
-      .addCase(fetchOrders.rejected, (state, action) => {
-        state.status.orderHistory = 'failed';
-        state.errors.orderHistory = action.payload;
-      })
-      
-      // Fetch portfolio
+
+    // Handle fetchPortfolio
       .addCase(fetchPortfolio.pending, (state) => {
-        state.status.portfolio = 'loading';
+        state.loading.portfolio = true;
+        state.error.portfolio = null;
       })
       .addCase(fetchPortfolio.fulfilled, (state, action) => {
-        state.status.portfolio = 'succeeded';
         state.portfolio = action.payload;
-        
-        // Update positions from portfolio data
-        state.positions = action.payload.balances.map(balance => ({
-          symbol: balance.asset,
-          amount: balance.free,
-          locked: balance.locked
-        }));
+        state.loading.portfolio = false;
       })
       .addCase(fetchPortfolio.rejected, (state, action) => {
-        state.status.portfolio = 'failed';
-        state.errors.portfolio = action.payload;
+        state.loading.portfolio = false;
+        state.error.portfolio = action.payload;
       })
-      
-      // Submit order
-      .addCase(submitOrder.pending, (state) => {
-        state.status.orderSubmit = 'loading';
-        state.tradingForm.processing = true;
+
+    // Handle fetchOrders
+      .addCase(fetchOrders.pending, (state) => {
+        state.loading.orders = true;
+        state.error.orders = null;
       })
-      .addCase(submitOrder.fulfilled, (state, action) => {
-        state.status.orderSubmit = 'succeeded';
-        state.openOrders.unshift(action.payload);
-        state.tradingForm.processing = false;
+      .addCase(fetchOrders.fulfilled, (state, action) => {
+        state.orders.open = action.payload.orders;
+        state.orders.pagination = action.payload.pagination;
+        state.loading.orders = false;
       })
-      .addCase(submitOrder.rejected, (state, action) => {
-        state.status.orderSubmit = 'failed';
-        state.errors.orderSubmit = action.payload;
-        state.tradingForm.processing = false;
+      .addCase(fetchOrders.rejected, (state, action) => {
+        state.loading.orders = false;
+        state.error.orders = action.payload;
       })
-      
-      // Cancel order
-      .addCase(cancelOrder.pending, (state) => {
-        state.status.orderSubmit = 'loading';
+
+    // Handle fetchTradingHistory
+      .addCase(fetchTradingHistory.pending, (state) => {
+        state.loading.history = true;
+        state.error.history = null;
       })
-      .addCase(cancelOrder.fulfilled, (state, action) => {
-        state.status.orderSubmit = 'succeeded';
-        state.openOrders = state.openOrders.filter(order => order.id !== action.payload.orderId);
+      .addCase(fetchTradingHistory.fulfilled, (state, action) => {
+        state.orders.history = action.payload.trades;
+        state.loading.history = false;
       })
-      .addCase(cancelOrder.rejected, (state, action) => {
-        state.status.orderSubmit = 'failed';
-        state.errors.orderSubmit = action.payload;
+      .addCase(fetchTradingHistory.rejected, (state, action) => {
+        state.loading.history = false;
+        state.error.history = action.payload;
       })
-      
-      // Place order
+
+    // Handle placeOrder
       .addCase(placeOrder.pending, (state) => {
-        state.status.orderSubmit = 'loading';
+        state.loading.placeOrder = true;
+        state.error.placeOrder = null;
       })
       .addCase(placeOrder.fulfilled, (state, action) => {
-        state.status.orderSubmit = 'succeeded';
-        const newOrder = action.payload.data;
-        state.openOrders.unshift({
-          id: newOrder.id,
-          symbol: newOrder.symbol,
-          type: newOrder.type,
-          side: newOrder.side,
-          quantity: newOrder.amount,
-          price: newOrder.price,
-          stopPrice: newOrder.stopPrice,
-          status: 'open',
-          createdAt: newOrder.createdAt
-        });
+        state.loading.placeOrder = false;
+        state.lastSuccessfulOrder = action.payload.data;
+        
+        // Add the new order to open orders if it's not an immediate execution
+        if (action.payload.data.status === 'open') {
+          state.orders.open.unshift(action.payload.data);
+        } else {
+          // If it was executed immediately, update portfolio
+          // Note: In a real app, you might want to dispatch fetchPortfolio instead
+          if (state.portfolio.positions && action.payload.data.symbol) {
+            const symbol = action.payload.data.symbol;
+            const existingPosition = state.portfolio.positions.find(p => p.symbol === symbol);
+            
+            if (existingPosition) {
+              existingPosition.amount += action.payload.data.filledAmount || 0;
+              existingPosition.value += (action.payload.data.filledAmount * action.payload.data.price) || 0;
+            } else if (action.payload.data.filledAmount > 0) {
+              state.portfolio.positions.push({
+                symbol,
+                amount: action.payload.data.filledAmount,
+                value: action.payload.data.filledAmount * action.payload.data.price,
+                averagePrice: action.payload.data.price
+              });
+            }
+            
+            // Update balance
+            const cost = (action.payload.data.filledAmount * action.payload.data.price) || 0;
+            if (cost > 0) {
+              const [assetSymbol, quoteSymbol] = symbol.split('/');
+              if (state.portfolio.balances[quoteSymbol]) {
+                state.portfolio.balances[quoteSymbol] -= cost;
+              }
+              if (state.portfolio.balances[assetSymbol] === undefined) {
+                state.portfolio.balances[assetSymbol] = action.payload.data.filledAmount;
+              } else {
+                state.portfolio.balances[assetSymbol] += action.payload.data.filledAmount;
+              }
+            }
+          }
+        }
+        
+        // Reset order form
+        state.orderAmount = '';
+        state.orderPrice = '';
       })
       .addCase(placeOrder.rejected, (state, action) => {
-        state.status.orderSubmit = 'failed';
-        state.errors.orderSubmit = action.payload;
+        state.loading.placeOrder = false;
+        state.error.placeOrder = action.payload;
       })
-      
-      // Update market prices
-      .addCase(updateMarketPrices.fulfilled, (state, action) => {
-        const { symbol, price, priceChange } = action.payload;
-        if (state.marketPrices[symbol]) {
-          state.marketPrices[symbol].current = price;
-          state.marketPrices[symbol].change = priceChange;
-        }
+
+    // Handle cancelOrder
+      .addCase(cancelOrder.pending, (state) => {
+        state.loading.cancelOrder = true;
+        state.error.cancelOrder = null;
+      })
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        state.loading.cancelOrder = false;
+        // Remove the canceled order from open orders
+        state.orders.open = state.orders.open.filter(
+          order => order.id !== action.payload.data.id
+        );
+      })
+      .addCase(cancelOrder.rejected, (state, action) => {
+        state.loading.cancelOrder = false;
+        state.error.cancelOrder = action.payload;
+      })
+
+    // Handle fetchHistoricalData
+      .addCase(fetchHistoricalData.pending, (state) => {
+        state.loading.historicalData = true;
+        state.error.historicalData = null;
+      })
+      .addCase(fetchHistoricalData.fulfilled, (state, action) => {
+        state.historicalData = action.payload;
+        state.loading.historicalData = false;
+      })
+      .addCase(fetchHistoricalData.rejected, (state, action) => {
+        state.loading.historicalData = false;
+        state.error.historicalData = action.payload;
+      })
+
+    // Handle fetchChartData
+      .addCase(fetchChartData.pending, (state) => {
+        state.loading.chartData = true;
+        state.error.chartData = null;
+      })
+      .addCase(fetchChartData.fulfilled, (state, action) => {
+        state.chartData = {
+          ...state.chartData,
+          data: action.payload.data,
+          symbol: action.payload.symbol,
+          timeframe: action.payload.timeframe
+        };
+        state.loading.chartData = false;
+      })
+      .addCase(fetchChartData.rejected, (state, action) => {
+        state.loading.chartData = false;
+        state.error.chartData = action.payload;
       });
   }
 });
 
-// Actions
-export const {
-  updateTradingForm,
-  setSelectedAsset,
+export const { 
+  setSelectedSymbol, 
+  setSelectedTimeframe,
+  setOrderType,
+  setOrderSide,
+  setOrderAmount,
+  setOrderPrice,
+  resetOrderForm,
+  clearOrderError,
+  updateMarketPrice,
+  toggleFavoriteSymbol,
+  updateOrderForm,
+  setOrderFormType,
+  setOrderFormSide,
+  resetEntireOrderForm,
+  setActiveTab,
+  setMarketSideTab,
+  setOrderFormError,
+  clearOrderFormError,
+  toggleDropdown,
+  setDropdownOpen,
+  setShowSidebar,
+  toggleSidebar,
+  setShowAlert,
+  setAlertMessage,
+  clearAlert,
   setChartTimeframe,
   toggleChartIndicator,
-  resetTradingForm,
-  setAccountBalance,
-  resetTradingState
+  setSelectedAsset,
+  updateCandlesticks
 } = tradingSlice.actions;
 
-// Selectors
-export const selectSelectedAsset = (state) => state.trading.selectedAsset;
-export const selectMarketPrices = (state) => state.trading.marketPrices;
-export const selectOrderBook = (state) => state.trading.orderBook;
-export const selectRecentTrades = (state) => state.trading.recentTrades;
-export const selectCandlesticks = (state) => state.trading.candlesticks;
-export const selectChartTimeframe = (state) => state.trading.chartTimeframe;
-export const selectChartIndicators = (state) => state.trading.chartIndicators;
-export const selectTradingForm = (state) => state.trading.tradingForm;
-export const selectOpenOrders = (state) => state.trading.openOrders;
-export const selectOrderHistory = (state) => state.trading.orderHistory;
-export const selectPositions = (state) => state.trading.positions;
-export const selectPortfolio = (state) => state.trading.portfolio;
-export const selectAccountBalance = (state) => state.trading.accountBalance;
-export const selectMarginAvailable = (state) => state.trading.marginAvailable;
-export const selectTradingStatus = (state) => state.trading.status;
-export const selectTradingErrors = (state) => state.trading.errors;
-
-export const selectTradeHistory = createSelector(
-  [selectOrderHistory],
-  (orderHistory) => orderHistory.filter(order => order.status === 'filled')
-);
-
-export const selectTradingPairs = () => mockAssets;
-export const selectUserBalance = (state) => state.trading.accountBalance;
-export const selectTradingError = (state) => state.trading.errors;
-
-// Provide access to available assets
-export const selectAvailableAssets = () => mockAssets;
-
 export default tradingSlice.reducer;
+
+// Selector exports for components
+export const selectTradingPairs = state => state.trading.tradingPairs;
+export const selectMarketPrices = state => state.trading.marketData;
+export const selectFavoriteSymbols = state => state.trading.favoriteSymbols;
+export const selectSelectedSymbol = state => state.trading.selectedSymbol;
+export const selectSelectedTimeframe = state => state.trading.selectedTimeframe;
+export const selectHistoricalData = state => state.trading.historicalData;
+export const selectOrderType = state => state.trading.orderType;
+export const selectOrderSide = state => state.trading.orderSide;
+export const selectOrderAmount = state => state.trading.orderAmount;
+export const selectOrderPrice = state => state.trading.orderPrice;
+export const selectOrderBook = state => state.trading.orderbook;
+export const selectPortfolio = state => state.trading.portfolio;
+export const selectOpenOrders = state => state.trading.orders.open;
+export const selectOrderForm = state => state.trading.orderForm;
+export const selectActiveTab = state => state.trading.activeTab;
+export const selectMarketSideTab = state => state.trading.marketSideTab; 
+export const selectOrderFormError = state => state.trading.error.orderFormError;
+export const selectDropdownOpen = state => state.trading.ui.dropdownOpen;
+export const selectShowSidebar = state => state.trading.ui.showSidebar;
+export const selectShowAlert = state => state.trading.ui.showAlert;
+export const selectAlertMessage = state => state.trading.ui.alertMessage;
+export const selectRecentTrades = state => state.trading.recentTrades;
+export const selectTradingStatus = state => state.trading.status;
+export const selectTradeHistory = state => state.trading.orders.history;
+export const selectPositions = state => state.trading.portfolio.positions;
+export const selectOrderHistory = state => state.trading.orders.history;
+export const selectCandlesticks = state => state.trading.candlesticks;
+export const selectSelectedAsset = state => state.trading.selectedAsset;
+export const selectChartTimeframe = state => state.trading.chartData.timeframe;
+export const selectChartIndicators = state => state.trading.chartData.indicators;
+export const selectChartLoading = state => state.trading.loading.chartData;

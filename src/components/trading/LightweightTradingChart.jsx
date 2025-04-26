@@ -7,7 +7,7 @@ import {
   selectChartTimeframe,
   setChartTimeframe,
   fetchChartData
-} from '../../../redux/slices/tradingSlice';
+} from '../../redux/slices/tradingSlice';
 import { FaChartLine, FaChartBar, FaChartArea, FaSpinner } from 'react-icons/fa';
 
 const TIMEFRAMES = [

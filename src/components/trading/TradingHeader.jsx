@@ -9,25 +9,27 @@ import {
   FaArrowDown,
   FaBell
 } from 'react-icons/fa';
-import { 
-  selectAvailableAssets, 
-  selectSelectedAsset, 
-  setSelectedAsset, 
+import {
+  selectTradingPairs,
+  selectSelectedSymbol,
+  setSelectedSymbol,
   selectMarketPrices,
+  selectFavoriteSymbols,
+  toggleFavoriteSymbol,
   fetchMarketData
-} from '../../../redux/slices/tradingSlice';
+} from '../../redux/slices/tradingSlice';
 
 const TradingHeader = () => {
   const dispatch = useDispatch();
-  const allAssets = selectAvailableAssets();
-  const selectedAsset = useSelector(selectSelectedAsset);
+  const allAssets = useSelector(selectTradingPairs);
+  const selectedAsset = useSelector(selectSelectedSymbol);
   const marketPrices = useSelector(selectMarketPrices);
+  const favorites = useSelector(selectFavoriteSymbols);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showAssetSelector, setShowAssetSelector] = useState(false);
   const [filteredAssets, setFilteredAssets] = useState(allAssets);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [favorites, setFavorites] = useState(['BTC/USD', 'ETH/USD']);
   
   // Format price with appropriate decimal places
   const formatPrice = (price) => {
@@ -66,7 +68,7 @@ const TradingHeader = () => {
   
   // Handle asset selection
   const handleAssetSelect = (symbol) => {
-    dispatch(setSelectedAsset(symbol));
+    dispatch(setSelectedSymbol(symbol));
     setShowAssetSelector(false);
     dispatch(fetchMarketData(symbol));
   };
@@ -74,11 +76,7 @@ const TradingHeader = () => {
   // Toggle favorite
   const toggleFavorite = (symbol, e) => {
     e.stopPropagation();
-    if (favorites.includes(symbol)) {
-      setFavorites(favorites.filter(s => s !== symbol));
-    } else {
-      setFavorites([...favorites, symbol]);
-    }
+    dispatch(toggleFavoriteSymbol(symbol));
   };
   
   return (
@@ -166,11 +164,7 @@ const TradingHeader = () => {
                           onClick={(e) => toggleFavorite(asset.symbol, e)}
                           className="text-gray-400 hover:text-yellow-500 mr-2"
                         >
-                          {favorites.includes(asset.symbol) ? (
-                            <FaStar className="text-yellow-500" />
-                          ) : (
-                            <FaRegStar />
-                          )}
+                          {favorites.includes(asset.symbol) ? <FaStar className="text-yellow-500" /> : <FaRegStar />}  
                         </button>
                         <div>
                           <div className="text-white font-medium">{asset.name}</div>
@@ -183,7 +177,7 @@ const TradingHeader = () => {
                         {marketPrices[asset.symbol] && (
                           <div className={`text-xs ${marketPrices[asset.symbol].change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                             {marketPrices[asset.symbol].change >= 0 ? '+' : ''}
-                            {marketPrices[asset.symbol].change.toFixed(2)}%
+                            {marketPrices[asset.symbol].change?.toFixed(2)}%
                           </div>
                         )}
                       </div>

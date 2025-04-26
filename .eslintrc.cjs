@@ -26,7 +26,7 @@ module.exports = {
       'varsIgnorePattern': '^_' 
     }],
     'semi': ['error', 'always'],
-    'quotes': ['warn', 'single', { "allowTemplateLiterals": true }],
+    'quotes': ['warn', 'single', { 'allowTemplateLiterals': true }],
     'react/jsx-no-target-blank': 'warn'
   },
 };

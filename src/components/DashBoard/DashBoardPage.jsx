@@ -12,13 +12,13 @@ import DashboardLayout from './Layout/DashboardLayout';
 import AccountSummary from './AccountSummary';
 import RecentTransactions from './Transaction/RecentTransactions';
 import InvestmentSummary from './Investment/InvestmentSummary';
-import MarketOverview from './MarketOverview';
 import FinancialHighlights from './FinancialHighlights';
 import MarketPulse from './MarketPulse';
 import MarketNews from './MarketNews';
 import PriceAlerts from './PriceAlerts';
 import QuickActions from './QuickActions';
 import NotificationsPanel from './Layout/NotificationsPanel';
+import AssetCards from '../trading/AssetCards';
 
 const DashBoardPage = () => {
   const dispatch = useDispatch();
@@ -67,15 +67,15 @@ const DashBoardPage = () => {
           <div className="lg:col-span-2 space-y-4 lg:space-y-6">
             {/* Account Summary */}
             <AccountSummary />
+
+            {/* Asset Cards / Wallet */}
+            <AssetCards />
             
             {/* Financial Highlights */}
             <FinancialHighlights />
             
             {/* Quick Actions */}
             <QuickActions />
-            
-            {/* Market Overview */}
-            <MarketOverview />
             
             {/* Market Pulse - visible only on desktop */}
             <div className="hidden lg:block">
@@ -88,6 +88,7 @@ const DashBoardPage = () => {
           
           {/* Sidebar Column */}
           <div className="space-y-4 lg:space-y-6">
+                        
             {/* Investment Summary */}
             <InvestmentSummary />
             

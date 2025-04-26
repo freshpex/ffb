@@ -24,8 +24,8 @@ const EducationCenter = lazy(() => import("./components/DashBoard/EducationCente
 const ATMCardsPage = lazy(() => import("./components/DashBoard/ATMCards/ATMCardsPage"));
 const CardRequestsList = lazy(() => import("./components/DashBoard/ATMCards/CardRequestsList"));
 const CardDetailsPage = lazy(() => import("./components/DashBoard/ATMCards/CardDetailsPage"));
-const Tradingplatform = lazy(() => import("./components/DashBoard/Trading/TradingPlatform"));
-const TradingDashboard = lazy(() => import("./components/DashBoard/Trading/TradingDashboard"));
+const Tradingplatform = lazy(() => import("./components/trading/TradingPlatform"));
+const TradingDashboard = lazy(() => import("./components/trading/TradingDashboard"));
 
 // Legal pages
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  selectCandlesticks, 
-  selectSelectedAsset, 
-  selectChartTimeframe,
-  setChartTimeframe,
-  fetchChartData,
-} from '../../../redux/slices/tradingSlice';
+import {
+  selectHistoricalData,
+  selectSelectedSymbol,
+  selectSelectedTimeframe,
+  setSelectedTimeframe,
+  fetchHistoricalData,
+} from '../../redux/slices/tradingSlice';
 import { FaChartLine, FaChartBar, FaChartArea, FaSpinner } from 'react-icons/fa';
 
 const TIMEFRAMES = [
@@ -22,9 +22,9 @@ const TIMEFRAMES = [
 
 const SimpleTradingChart = () => {
   const dispatch = useDispatch();
-  const candlesticks = useSelector(selectCandlesticks);
-  const selectedAsset = useSelector(selectSelectedAsset);
-  const timeframe = useSelector(selectChartTimeframe);
+  const candlesticks = useSelector(selectHistoricalData);
+  const selectedAsset = useSelector(selectSelectedSymbol);
+  const timeframe = useSelector(selectSelectedTimeframe);
   
   const canvasRef = useRef(null);
   const [chartType, setChartType] = useState('candles');
@@ -39,7 +39,7 @@ const SimpleTradingChart = () => {
         setError(null);
         
         try {
-          await dispatch(fetchChartData({ symbol: selectedAsset, timeframe }));
+          await dispatch(fetchHistoricalData({ symbol: selectedAsset, timeframe }));
           setLoading(false);
         } catch (err) {
           setError('Failed to load chart data');
@@ -189,7 +189,7 @@ const SimpleTradingChart = () => {
 
   // Handle timeframe change
   const handleTimeframeChange = (newTimeframe) => {
-    dispatch(setChartTimeframe(newTimeframe));
+    dispatch(setSelectedTimeframe(newTimeframe));
   };
 
   return (

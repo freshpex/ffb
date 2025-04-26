@@ -11,7 +11,7 @@ import {
   fetchChartData,
   toggleChartIndicator,
   selectChartIndicators
-} from '../../../redux/slices/tradingSlice';
+} from '../../redux/slices/tradingSlice';
 import { FaCog, FaChartLine, FaChartBar, FaChartArea, FaSpinner } from 'react-icons/fa';
 
 const TIMEFRAMES = [

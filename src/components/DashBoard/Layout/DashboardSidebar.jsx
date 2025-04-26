@@ -281,7 +281,7 @@ const DashboardSidebar = ({ isMobile }) => {
             <span className="text-xs text-gray-400">Account Balance</span>
             <span className="text-xs text-gray-400">+3.5%</span>
           </div>
-          <div className="text-white font-bold">${userBalance}</div>
+          <div className="text-white font-bold">${`${userBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</div>
         </div>
       </div>
       
