@@ -1,293 +1,309 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { createSelector } from 'reselect';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSelector } from "reselect";
 
 // API base URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 // Helper function to handle API errors
 const handleApiError = async (response) => {
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'An error occurred');
+    throw new Error(errorData.message || "An error occurred");
   }
   return response.json();
 };
 
 // Fetch all dashboard data in a single request
 export const fetchDashboardData = createAsyncThunk(
-  'dashboard/fetchDashboardData',
+  "dashboard/fetchDashboardData",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const response = await fetch(`${API_URL}/dashboard`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       const data = await handleApiError(response);
-      
+
       console.log("Dashboard Response:", data);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch dashboard data');
+      return rejectWithValue(error.message || "Failed to fetch dashboard data");
     }
-  }
+  },
 );
 
 // Fetch account summary
 export const fetchAccountSummary = createAsyncThunk(
-  'dashboard/fetchAccountSummary',
+  "dashboard/fetchAccountSummary",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const response = await fetch(`${API_URL}/dashboard/account-summary`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       const data = await handleApiError(response);
       return data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch account summary');
+      return rejectWithValue(
+        error.message || "Failed to fetch account summary",
+      );
     }
-  }
+  },
 );
 
 // Fetch recent transactions
 export const fetchRecentTransactions = createAsyncThunk(
-  'dashboard/fetchRecentTransactions',
+  "dashboard/fetchRecentTransactions",
   async (params = {}, { rejectWithValue }) => {
     try {
       const { limit = 5 } = params;
-      
-      const token = localStorage.getItem('ffb_auth_token');
-      
+
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const queryParams = new URLSearchParams({
-        limit
+        limit,
       });
-      
-      const response = await fetch(`${API_URL}/dashboard/recent-transactions?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+
+      const response = await fetch(
+        `${API_URL}/dashboard/recent-transactions?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       const data = await handleApiError(response);
-      
+
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch recent transactions');
+      return rejectWithValue(
+        error.message || "Failed to fetch recent transactions",
+      );
     }
-  }
+  },
 );
 
 // Fetch financial highlights
 export const fetchFinancialHighlights = createAsyncThunk(
-  'dashboard/fetchFinancialHighlights',
+  "dashboard/fetchFinancialHighlights",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
-      const response = await fetch(`${API_URL}/dashboard/financial-highlights`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const data = await handleApiError(response);      
+
+      const response = await fetch(
+        `${API_URL}/dashboard/financial-highlights`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const data = await handleApiError(response);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch financial highlights');
+      return rejectWithValue(
+        error.message || "Failed to fetch financial highlights",
+      );
     }
-  }
+  },
 );
 
 // Fetch market pulse data
 export const fetchMarketPulse = createAsyncThunk(
-  'dashboard/fetchMarketPulse',
+  "dashboard/fetchMarketPulse",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const response = await fetch(`${API_URL}/dashboard/market-pulse`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       const data = await handleApiError(response);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch market pulse data');
+      return rejectWithValue(
+        error.message || "Failed to fetch market pulse data",
+      );
     }
-  }
+  },
 );
 
 // Fetch market news
 export const fetchMarketNews = createAsyncThunk(
-  'dashboard/fetchMarketNews',
+  "dashboard/fetchMarketNews",
   async (params = {}, { rejectWithValue }) => {
     try {
       const { limit = 5 } = params;
-      
-      const response = await fetch(`${API_URL}/market-news/latest?limit=${limit}`);
-      
+
+      const response = await fetch(
+        `${API_URL}/market-news/latest?limit=${limit}`,
+      );
+
       const data = await handleApiError(response);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch market news');
+      return rejectWithValue(error.message || "Failed to fetch market news");
     }
-  }
+  },
 );
 
 // Fetch user price alerts
 export const fetchPriceAlerts = createAsyncThunk(
-  'dashboard/fetchPriceAlerts',
+  "dashboard/fetchPriceAlerts",
   async (params = {}, { rejectWithValue }) => {
     try {
       const { page = 1, limit = 10, active } = params;
-      
-      const token = localStorage.getItem('ffb_auth_token');
-      
+
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const queryParams = new URLSearchParams({
         page,
         limit,
-        ...(active !== undefined && { active: active.toString() })
+        ...(active !== undefined && { active: active.toString() }),
       });
-      
+
       const response = await fetch(`${API_URL}/price-alerts?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       const data = await handleApiError(response);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch price alerts');
+      return rejectWithValue(error.message || "Failed to fetch price alerts");
     }
-  }
+  },
 );
 
 // Create price alert
 export const createPriceAlert = createAsyncThunk(
-  'dashboard/createPriceAlert',
+  "dashboard/createPriceAlert",
   async (alertData, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const response = await fetch(`${API_URL}/price-alerts`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(alertData)
+        body: JSON.stringify(alertData),
       });
-      
+
       const data = await handleApiError(response);
-      
+
       console.log("Create Alerts Response:", data);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to create price alert');
+      return rejectWithValue(error.message || "Failed to create price alert");
     }
-  }
+  },
 );
 
 export const addPriceAlert = createPriceAlert;
 
 // Update price alert
 export const updatePriceAlert = createAsyncThunk(
-  'dashboard/updatePriceAlert',
+  "dashboard/updatePriceAlert",
   async ({ id, ...updates }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const response = await fetch(`${API_URL}/price-alerts/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(updates)
+        body: JSON.stringify(updates),
       });
-      
+
       const data = await handleApiError(response);
       return data.data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to update price alert');
+      return rejectWithValue(error.message || "Failed to update price alert");
     }
-  }
+  },
 );
 
 // Delete price alert
 export const deletePriceAlert = createAsyncThunk(
-  'dashboard/deletePriceAlert',
+  "dashboard/deletePriceAlert",
   async (id, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('ffb_auth_token');
-      
+      const token = localStorage.getItem("ffb_auth_token");
+
       if (!token) {
-        return rejectWithValue('Authentication required');
+        return rejectWithValue("Authentication required");
       }
-      
+
       const response = await fetch(`${API_URL}/price-alerts/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       await handleApiError(response);
       return id;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to delete price alert');
+      return rejectWithValue(error.message || "Failed to delete price alert");
     }
-  }
+  },
 );
 
 export const removePriceAlert = deletePriceAlert;
@@ -299,16 +315,16 @@ const initialState = {
     totalInvestments: 0,
     totalAssets: 0,
     projectedEarnings: 0,
-    currency: 'USD',
-    accountNumber: '',
-    accountType: ''
+    currency: "USD",
+    accountNumber: "",
+    accountType: "",
   },
   accountActivity: {
     trades: 0,
     deposits: 0,
     withdrawals: 0,
     transactions: 0,
-    data: []
+    data: [],
   },
   accountBalanceHistory: {
     data: [],
@@ -316,8 +332,8 @@ const initialState = {
       total: 0,
       page: 1,
       limit: 10,
-      pages: 0
-    }
+      pages: 0,
+    },
   },
   accountOverview: {
     data: null,
@@ -325,24 +341,24 @@ const initialState = {
       total: 0,
       page: 1,
       limit: 10,
-      pages: 0
-    }
+      pages: 0,
+    },
   },
   investmentSummary: {
     totalInvestments: 0,
     totalAssets: 0,
     projectedEarnings: 0,
-    currency: 'USD',
-    investmentTypes: []
+    currency: "USD",
+    investmentTypes: [],
   },
-  marketOverview: { 
+  marketOverview: {
     data: null,
     pagination: {
       total: 0,
       page: 1,
       limit: 10,
-      pages: 0
-    }
+      pages: 0,
+    },
   },
   recentTransactions: [],
   financialHighlights: {
@@ -351,15 +367,15 @@ const initialState = {
     netFlow: 0,
     depositTrend: 0,
     withdrawalTrend: 0,
-    currency: 'USD',
-    periodLabel: ''
+    currency: "USD",
+    periodLabel: "",
   },
   marketPulse: {
     indices: [],
     trendingAssets: [],
     marketMovers: {
       gainers: [],
-      losers: []
+      losers: [],
     },
     marketSentiment: {
       fearGreedIndex: 0,
@@ -367,12 +383,12 @@ const initialState = {
       marketBreadth: {
         advancing: 0,
         declining: 0,
-        unchanged: 0
+        unchanged: 0,
       },
-      tradingVolume: '',
-      sentiment: ''
+      tradingVolume: "",
+      sentiment: "",
     },
-    lastUpdated: null
+    lastUpdated: null,
   },
   marketNews: [],
   priceAlerts: {
@@ -381,18 +397,18 @@ const initialState = {
       total: 0,
       page: 1,
       limit: 10,
-      pages: 0
-    }
+      pages: 0,
+    },
   },
   status: {
-    dashboard: 'idle',
-    accountSummary: 'idle',
-    recentTransactions: 'idle',
-    financialHighlights: 'idle',
-    marketPulse: 'idle',
-    marketNews: 'idle',
-    priceAlerts: 'idle',
-    investmentSummary: 'idle'
+    dashboard: "idle",
+    accountSummary: "idle",
+    recentTransactions: "idle",
+    financialHighlights: "idle",
+    marketPulse: "idle",
+    marketNews: "idle",
+    priceAlerts: "idle",
+    investmentSummary: "idle",
   },
   error: {
     dashboard: null,
@@ -402,13 +418,13 @@ const initialState = {
     marketPulse: null,
     marketNews: null,
     priceAlerts: null,
-    investmentSummary: null
+    investmentSummary: null,
   },
-  actionStatus: 'idle'
+  actionStatus: "idle",
 };
 
 const dashboardSlice = createSlice({
-  name: 'dashboard',
+  name: "dashboard",
   initialState,
   reducers: {
     clearDashboardError: (state, action) => {
@@ -426,123 +442,123 @@ const dashboardSlice = createSlice({
           priceAlerts: null,
           investmentSummary: null,
           accountActivity: null,
-          accountBalanceHistory: null
+          accountBalanceHistory: null,
         };
       }
-      state.actionStatus = 'idle';
-    }
+      state.actionStatus = "idle";
+    },
   },
   extraReducers: (builder) => {
     builder
       // Fetch dashboard data
       .addCase(fetchDashboardData.pending, (state) => {
-        state.status.dashboard = 'loading';
+        state.status.dashboard = "loading";
       })
       .addCase(fetchDashboardData.fulfilled, (state, action) => {
-        state.status.dashboard = 'succeeded';
+        state.status.dashboard = "succeeded";
         state.recentTransactions = action.payload.recentTransactions;
         state.investmentSummary = action.payload.investmentSummary;
         state.accountActivity = action.payload.accountActivity;
         state.accountBalanceHistory = action.payload.accountBalanceHistory;
         state.marketNews = action.payload.recentNews;
-        
+
         state.error.dashboard = null;
       })
       .addCase(fetchDashboardData.rejected, (state, action) => {
-        state.status.dashboard = 'failed';
+        state.status.dashboard = "failed";
         state.error.dashboard = action.payload;
       })
-      
+
       // Fetch account summary
       .addCase(fetchAccountSummary.pending, (state) => {
-        state.status.accountSummary = 'loading';
+        state.status.accountSummary = "loading";
       })
       .addCase(fetchAccountSummary.fulfilled, (state, action) => {
-        state.status.accountSummary = 'succeeded';
+        state.status.accountSummary = "succeeded";
         state.accountSummary = action.payload;
         state.error.accountSummary = null;
       })
       .addCase(fetchAccountSummary.rejected, (state, action) => {
-        state.status.accountSummary = 'failed';
+        state.status.accountSummary = "failed";
         state.error.accountSummary = action.payload;
       })
-      
+
       // Fetch recent transactions
       .addCase(fetchRecentTransactions.pending, (state) => {
-        state.status.recentTransactions = 'loading';
+        state.status.recentTransactions = "loading";
       })
       .addCase(fetchRecentTransactions.fulfilled, (state, action) => {
-        state.status.recentTransactions = 'succeeded';
+        state.status.recentTransactions = "succeeded";
         state.recentTransactions = action.payload;
         state.error.recentTransactions = null;
       })
       .addCase(fetchRecentTransactions.rejected, (state, action) => {
-        state.status.recentTransactions = 'failed';
+        state.status.recentTransactions = "failed";
         state.error.recentTransactions = action.payload;
       })
-      
+
       // Fetch financial highlights
       .addCase(fetchFinancialHighlights.pending, (state) => {
-        state.status.financialHighlights = 'loading';
+        state.status.financialHighlights = "loading";
       })
       .addCase(fetchFinancialHighlights.fulfilled, (state, action) => {
-        state.status.financialHighlights = 'succeeded';
+        state.status.financialHighlights = "succeeded";
         state.financialHighlights = action.payload;
         state.error.financialHighlights = null;
       })
       .addCase(fetchFinancialHighlights.rejected, (state, action) => {
-        state.status.financialHighlights = 'failed';
+        state.status.financialHighlights = "failed";
         state.error.financialHighlights = action.payload;
       })
-      
+
       // Fetch market pulse
       .addCase(fetchMarketPulse.pending, (state) => {
-        state.status.marketPulse = 'loading';
+        state.status.marketPulse = "loading";
       })
       .addCase(fetchMarketPulse.fulfilled, (state, action) => {
-        state.status.marketPulse = 'succeeded';
+        state.status.marketPulse = "succeeded";
         state.marketPulse = action.payload;
         state.error.marketPulse = null;
       })
       .addCase(fetchMarketPulse.rejected, (state, action) => {
-        state.status.marketPulse = 'failed';
+        state.status.marketPulse = "failed";
         state.error.marketPulse = action.payload;
       })
-      
+
       // Fetch market news
       .addCase(fetchMarketNews.pending, (state) => {
-        state.status.marketNews = 'loading';
+        state.status.marketNews = "loading";
       })
       .addCase(fetchMarketNews.fulfilled, (state, action) => {
-        state.status.marketNews = 'succeeded';
+        state.status.marketNews = "succeeded";
         state.marketNews = action.payload;
         state.error.marketNews = null;
       })
       .addCase(fetchMarketNews.rejected, (state, action) => {
-        state.status.marketNews = 'failed';
+        state.status.marketNews = "failed";
         state.error.marketNews = action.payload;
       })
-      
+
       // Fetch price alerts
       .addCase(fetchPriceAlerts.pending, (state) => {
-        state.status.priceAlerts = 'loading';
+        state.status.priceAlerts = "loading";
       })
       .addCase(fetchPriceAlerts.fulfilled, (state, action) => {
-        state.status.priceAlerts = 'succeeded';
+        state.status.priceAlerts = "succeeded";
         state.priceAlerts = action.payload;
         state.error.priceAlerts = null;
       })
       .addCase(fetchPriceAlerts.rejected, (state, action) => {
-        state.status.priceAlerts = 'failed';
+        state.status.priceAlerts = "failed";
         state.error.priceAlerts = action.payload;
       })
-      
+
       // Create price alert
       .addCase(createPriceAlert.pending, (state) => {
-        state.actionStatus = 'loading';
+        state.actionStatus = "loading";
       })
       .addCase(createPriceAlert.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
+        state.actionStatus = "succeeded";
         if (!state.priceAlerts.data) {
           state.priceAlerts.data = [];
         }
@@ -550,279 +566,283 @@ const dashboardSlice = createSlice({
         state.error.priceAlerts = null;
       })
       .addCase(createPriceAlert.rejected, (state, action) => {
-        state.actionStatus = 'failed';
+        state.actionStatus = "failed";
         state.error.priceAlerts = action.payload;
       })
-      
+
       // Update price alert
       .addCase(updatePriceAlert.pending, (state) => {
-        state.actionStatus = 'loading';
+        state.actionStatus = "loading";
       })
       .addCase(updatePriceAlert.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
-        const index = state.priceAlerts.data.findIndex(alert => alert._id === action.payload._id);
+        state.actionStatus = "succeeded";
+        const index = state.priceAlerts.data.findIndex(
+          (alert) => alert._id === action.payload._id,
+        );
         if (index !== -1) {
           state.priceAlerts.data[index] = action.payload;
         }
         state.error.priceAlerts = null;
       })
       .addCase(updatePriceAlert.rejected, (state, action) => {
-        state.actionStatus = 'failed';
+        state.actionStatus = "failed";
         state.error.priceAlerts = action.payload;
       })
-      
+
       // Delete price alert
       .addCase(deletePriceAlert.pending, (state) => {
-        state.actionStatus = 'loading';
+        state.actionStatus = "loading";
       })
       .addCase(deletePriceAlert.fulfilled, (state, action) => {
-        state.actionStatus = 'succeeded';
-        state.priceAlerts = state.priceAlerts.filter(alert => alert._id !== action.payload);
+        state.actionStatus = "succeeded";
+        state.priceAlerts = state.priceAlerts.filter(
+          (alert) => alert._id !== action.payload,
+        );
         state.error.priceAlerts = null;
       })
       .addCase(deletePriceAlert.rejected, (state, action) => {
-        state.actionStatus = 'failed';
+        state.actionStatus = "failed";
         state.error.priceAlerts = action.payload;
       });
-  }
+  },
 });
 
 // Export actions
 export const { clearDashboardError } = dashboardSlice.actions;
 
 // Base selectors
-const getDashboardState = state => state.dashboard;
-const getAccountSummary = state => state.dashboard.accountSummary;
-const getInvestmentSummary = state => state.dashboard.investmentSummary;
-const getAccountActivity = state => state.dashboard.accountActivity;
-const getRecentTransactions = state => state.dashboard.recentTransactions;
-const getFinancialHighlights = state => state.dashboard.financialHighlights;
-const getMarketOverview = state => state.dashboard.marketOverview;
-const getMarketPulse = state => state.dashboard.marketPulse;
-const getMarketNews = state => state.dashboard.marketNews;
-const getPriceAlerts = state => state.dashboard.priceAlerts;
+const getDashboardState = (state) => state.dashboard;
+const getAccountSummary = (state) => state.dashboard.accountSummary;
+const getInvestmentSummary = (state) => state.dashboard.investmentSummary;
+const getAccountActivity = (state) => state.dashboard.accountActivity;
+const getRecentTransactions = (state) => state.dashboard.recentTransactions;
+const getFinancialHighlights = (state) => state.dashboard.financialHighlights;
+const getMarketOverview = (state) => state.dashboard.marketOverview;
+const getMarketPulse = (state) => state.dashboard.marketPulse;
+const getMarketNews = (state) => state.dashboard.marketNews;
+const getPriceAlerts = (state) => state.dashboard.priceAlerts;
 
 // Memoized selectors using createSelector to prevent unnecessary rerenders
 export const selectAccountSummary = createSelector(
   [getAccountSummary],
-  summary => {
+  (summary) => {
     if (!summary) return null;
     return summary.data;
-  }
+  },
 );
 
 export const selectInvestmentSummary = createSelector(
   [getInvestmentSummary],
-  summary => {
+  (summary) => {
     if (!summary) return null;
     return summary;
-  }
+  },
 );
 
 export const selectAccountActivity = createSelector(
   [getAccountActivity],
-  activity => activity || []
+  (activity) => activity || [],
 );
 
 export const selectAccountBalanceHistory = createSelector(
   [getDashboardState],
-  dashboard => dashboard.accountBalanceHistory || []
+  (dashboard) => dashboard.accountBalanceHistory || [],
 );
 
 export const selectAccountOverview = createSelector(
   [getDashboardState],
-  dashboard => dashboard.accountOverview || null
+  (dashboard) => dashboard.accountOverview || null,
 );
 
 export const selectRecentTransactions = createSelector(
   [getRecentTransactions],
-  transactions => transactions || []
+  (transactions) => transactions || [],
 );
 
 export const selectFinancialHighlights = createSelector(
   [getFinancialHighlights],
-  highlights => highlights || null
+  (highlights) => highlights || null,
 );
 
 export const selectMarketOverview = createSelector(
   [getMarketOverview],
-  overview => overview || null
+  (overview) => overview || null,
 );
 
 export const selectMarketPulse = createSelector(
   [getMarketPulse],
-  pulse => pulse || null
+  (pulse) => pulse || null,
 );
 
 export const selectMarketNews = createSelector(
   [getMarketNews],
-  news => news || []
+  (news) => news || [],
 );
 
 export const selectPriceAlerts = createSelector(
   [getPriceAlerts],
-  alerts => alerts || []
+  (alerts) => alerts || [],
 );
 
 export const selectAccountBalance = createSelector(
   [getAccountSummary],
-  summary => {
+  (summary) => {
     if (!summary) return 0;
     if (summary.data) {
       return summary.data.balance || 0;
     }
     return summary.balance || 0;
-  }
+  },
 );
 
 export const selectDashboardComponentStatus = createSelector(
   [getDashboardState, (_, component) => component],
-  (dashboard, component) => dashboard.componentStatus?.[component] || 'idle'
+  (dashboard, component) => dashboard.componentStatus?.[component] || "idle",
 );
 
 export const selectTransactionCount = createSelector(
   [getRecentTransactions],
-  transactions => transactions?.meta?.total || 0
+  (transactions) => transactions?.meta?.total || 0,
 );
 
 export const selectTransactionsLoading = createSelector(
   [getDashboardState],
-  dashboard => dashboard.status?.recentTransactions === 'loading'
+  (dashboard) => dashboard.status?.recentTransactions === "loading",
 );
 
 export const selectTransactionsError = createSelector(
   [getDashboardState],
-  dashboard => dashboard.error?.recentTransactions
+  (dashboard) => dashboard.error?.recentTransactions,
 );
 
 export const selectDashboardLoading = createSelector(
   [getDashboardState, (_, section) => section],
-  (dashboard, section) => dashboard.status[section] === 'loading'
+  (dashboard, section) => dashboard.status[section] === "loading",
 );
 
 export const selectDashboardError = createSelector(
   [getDashboardState, (_, section) => section],
-  (dashboard, section) => dashboard.error[section]
+  (dashboard, section) => dashboard.error[section],
 );
 
 export const selectDashboardStatus = createSelector(
   [getDashboardState, (_, section) => section],
-  (dashboard, section) => dashboard.status[section]
+  (dashboard, section) => dashboard.status[section],
 );
 
 export const selectActionStatus = createSelector(
   [getDashboardState],
-  dashboard => dashboard.actionStatus
+  (dashboard) => dashboard.actionStatus,
 );
 
 export const selectMarketPrices = createSelector(
   [getMarketOverview],
-  overview => overview?.data?.prices || []
+  (overview) => overview?.data?.prices || [],
 );
 
 export const selectMarketIndices = createSelector(
   [getMarketOverview],
-  overview => overview?.data?.indices || []
+  (overview) => overview?.data?.indices || [],
 );
 
 export const selectMarketCurrencies = createSelector(
   [getMarketOverview],
-  overview => overview?.data?.currencies || []
+  (overview) => overview?.data?.currencies || [],
 );
 
 export const selectMarketCommodities = createSelector(
   [getMarketOverview],
-  overview => overview?.data?.commodities || []
+  (overview) => overview?.data?.commodities || [],
 );
 
 export const selectMarketSentiment = createSelector(
   [getMarketPulse],
-  pulse => pulse?.data?.sentiment || { overall: 'neutral', score: 50 }
+  (pulse) => pulse?.data?.sentiment || { overall: "neutral", score: 50 },
 );
 
 export const selectMarketTrends = createSelector(
   [getMarketPulse],
-  pulse => pulse?.data?.trends || []
+  (pulse) => pulse?.data?.trends || [],
 );
 
 export const selectMarketVolatility = createSelector(
   [getMarketPulse],
-  pulse => pulse?.data?.volatilityIndex || 0
+  (pulse) => pulse?.data?.volatilityIndex || 0,
 );
 
 export const selectMarketCapitalization = createSelector(
   [getMarketPulse],
-  pulse => pulse?.data?.marketCap || { total: 0, change: 0 }
+  (pulse) => pulse?.data?.marketCap || { total: 0, change: 0 },
 );
 
 export const selectLatestNews = createSelector(
   [getMarketNews],
-  news => news?.data?.slice(0, 3) || []
+  (news) => news?.data?.slice(0, 3) || [],
 );
 
 export const selectNewsCategories = createSelector(
   [getMarketNews],
-  news => news?.categories || []
+  (news) => news?.categories || [],
 );
 
 export const selectNewsSources = createSelector(
   [getMarketNews],
-  news => news?.sources || []
+  (news) => news?.sources || [],
 );
 
 export const selectDepositStats = createSelector(
   [getFinancialHighlights],
-  highlights => highlights?.data?.depositTotal || 0
+  (highlights) => highlights?.data?.depositTotal || 0,
 );
 
 export const selectWithdrawalStats = createSelector(
   [getFinancialHighlights],
-  highlights => highlights?.data?.withdrawalTotal || 0
+  (highlights) => highlights?.data?.withdrawalTotal || 0,
 );
 
 export const selectInvestmentStats = createSelector(
   [getFinancialHighlights],
-  highlights => highlights?.data?.investmentTotal || 0
+  (highlights) => highlights?.data?.investmentTotal || 0,
 );
 
 export const selectProfitLoss = createSelector(
   [getFinancialHighlights],
-  highlights => highlights?.data?.profitLoss || 0
+  (highlights) => highlights?.data?.profitLoss || 0,
 );
 
 export const selectProfitLossPercentage = createSelector(
   [getFinancialHighlights],
-  highlights => highlights?.data?.profitLossPercentage || 0
+  (highlights) => highlights?.data?.profitLossPercentage || 0,
 );
 
 export const selectPriceAlertById = createSelector(
   [getPriceAlerts, (_, id) => id],
-  (alerts, id) => alerts?.data?.find(alert => alert.id === id) || null
+  (alerts, id) => alerts?.data?.find((alert) => alert.id === id) || null,
 );
 
 export const selectPriceAlertsStatus = createSelector(
   [getDashboardState],
-  dashboard => dashboard.status.priceAlerts
+  (dashboard) => dashboard.status.priceAlerts,
 );
 
 export const selectAddPriceAlertStatus = createSelector(
   [getDashboardState],
-  dashboard => dashboard.status.addPriceAlert
+  (dashboard) => dashboard.status.addPriceAlert,
 );
 
 export const selectUpdatePriceAlertStatus = createSelector(
   [getDashboardState],
-  dashboard => dashboard.status.updatePriceAlert
+  (dashboard) => dashboard.status.updatePriceAlert,
 );
 
 export const selectDeletePriceAlertStatus = createSelector(
   [getDashboardState],
-  dashboard => dashboard.status.deletePriceAlert
+  (dashboard) => dashboard.status.deletePriceAlert,
 );
 
 export const selectPriceAlertsError = createSelector(
   [getDashboardState],
-  dashboard => dashboard.error.priceAlerts
+  (dashboard) => dashboard.error.priceAlerts,
 );
 
 export default dashboardSlice.reducer;

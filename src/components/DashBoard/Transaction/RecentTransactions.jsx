@@ -1,32 +1,34 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { 
-  FaArrowRight, 
-  FaArrowUp, 
-  FaArrowDown, 
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  FaArrowRight,
+  FaArrowUp,
+  FaArrowDown,
   FaExchangeAlt,
-  FaChartLine
-} from 'react-icons/fa';
-import { format } from 'date-fns';
-import { 
-  fetchRecentTransactions, 
+  FaChartLine,
+} from "react-icons/fa";
+import { format } from "date-fns";
+import {
+  fetchRecentTransactions,
   selectRecentTransactions,
   selectTransactionsLoading,
-  selectDashboardStatus
-} from '../../../redux/slices/dashboardSlice';
-import TransactionStatusBadge from '../../common/TransactionStatusBadge';
-import CardLoader from '../../common/CardLoader';
+  selectDashboardStatus,
+} from "../../../redux/slices/dashboardSlice";
+import TransactionStatusBadge from "../../common/TransactionStatusBadge";
+import CardLoader from "../../common/CardLoader";
 
 const RecentTransactions = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const transactions = useSelector(selectRecentTransactions);
-  const status = useSelector(state => selectDashboardStatus(state, 'recentTransactions'));
-  
+  const status = useSelector((state) =>
+    selectDashboardStatus(state, "recentTransactions"),
+  );
+
   useEffect(() => {
     // Fetch transactions if not already loaded
-    if (status !== 'succeeded') {
+    if (status !== "succeeded") {
       dispatch(fetchRecentTransactions({ limit: 5 }));
     }
   }, [dispatch, status]);
@@ -34,13 +36,13 @@ const RecentTransactions = () => {
   // Helper to get icon for transaction type
   const getTransactionIcon = (type) => {
     switch (type) {
-      case 'deposit':
+      case "deposit":
         return <FaArrowDown className="text-green-500" size={16} />;
-      case 'withdrawal':
+      case "withdrawal":
         return <FaArrowUp className="text-red-500" size={16} />;
-      case 'trade':
+      case "trade":
         return <FaExchangeAlt className="text-blue-500" size={16} />;
-      case 'investment':
+      case "investment":
         return <FaChartLine className="text-purple-500" size={16} />;
       default:
         return <FaExchangeAlt className="text-gray-500" size={16} />;
@@ -48,20 +50,23 @@ const RecentTransactions = () => {
   };
 
   // If the component is loading, show a skeleton loader
-  if (status === 'loading') {
+  if (status === "loading") {
     return <CardLoader title="Recent Transactions" height="h-72" />;
   }
 
   // Process transactions to handle different API formats
-  const processedTransactions = Array.isArray(transactions) ? 
-    transactions : (transactions?.data || []);
+  const processedTransactions = Array.isArray(transactions)
+    ? transactions
+    : transactions?.data || [];
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 shadow">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-100">Recent Transactions</h2>
+        <h2 className="text-lg font-semibold text-gray-100">
+          Recent Transactions
+        </h2>
       </div>
-      
+
       {processedTransactions && processedTransactions.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -81,19 +86,40 @@ const RecentTransactions = () => {
                       {getTransactionIcon(transaction.type)}
                     </div>
                     <div>
-                      <p className="text-gray-200 font-medium capitalize">{transaction.type}</p>
-                      <p className="text-gray-400 text-xs">{transaction.description || transaction.method || ''}</p>
+                      <p className="text-gray-200 font-medium capitalize">
+                        {transaction.type}
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        {transaction.description || transaction.method || ""}
+                      </p>
                     </div>
                   </td>
                   <td className="py-3">
-                    <span className={transaction.type === 'deposit' ? 'text-green-500' : 
-                      transaction.type === 'withdrawal' ? 'text-red-500' : 'text-gray-200'}>
-                      {transaction.type === 'deposit' ? '+' : transaction.type === 'withdrawal' ? '-' : ''}
-                      ${parseFloat(transaction.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                    <span
+                      className={
+                        transaction.type === "deposit"
+                          ? "text-green-500"
+                          : transaction.type === "withdrawal"
+                            ? "text-red-500"
+                            : "text-gray-200"
+                      }
+                    >
+                      {transaction.type === "deposit"
+                        ? "+"
+                        : transaction.type === "withdrawal"
+                          ? "-"
+                          : ""}
+                      $
+                      {parseFloat(transaction.amount).toLocaleString(
+                        undefined,
+                        { minimumFractionDigits: 2 },
+                      )}
                     </span>
                   </td>
                   <td className="py-3 hidden sm:table-cell text-gray-400">
-                    {transaction.createdAt ? format(new Date(transaction.createdAt), 'MMM dd, yyyy') : 'N/A'}
+                    {transaction.createdAt
+                      ? format(new Date(transaction.createdAt), "MMM dd, yyyy")
+                      : "N/A"}
                   </td>
                   <td className="py-3">
                     <TransactionStatusBadge status={transaction.status} />

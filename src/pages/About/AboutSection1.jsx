@@ -37,16 +37,18 @@ const AboutSection1 = () => {
                 darkMode ? "text-white" : "text-gray-900"
               }`}
             >
-              About <span className="text-primary-500">Fidelity First</span> Brokers
+              About <span className="text-primary-500">Fidelity First</span>{" "}
+              Brokers
             </h1>
             <p
               className={`text-lg mb-8 leading-relaxed ${
                 darkMode ? "text-gray-300" : "text-gray-700"
               }`}
             >
-              We are a leading global investment firm dedicated to helping our clients build wealth
-              and achieve their financial goals. With over a decade of experience, we combine
-              cutting-edge technology with financial expertise to deliver exceptional results.
+              We are a leading global investment firm dedicated to helping our
+              clients build wealth and achieve their financial goals. With over
+              a decade of experience, we combine cutting-edge technology with
+              financial expertise to deliver exceptional results.
             </p>
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
               <div
@@ -56,7 +58,9 @@ const AboutSection1 = () => {
                     : "bg-gray-200 border-gray-300 text-gray-700"
                 }`}
               >
-                <span className="text-primary-500 text-3xl font-bold mr-2">12+</span>
+                <span className="text-primary-500 text-3xl font-bold mr-2">
+                  12+
+                </span>
                 <span className="text-sm">Years of Experience</span>
               </div>
               <div
@@ -66,7 +70,9 @@ const AboutSection1 = () => {
                     : "bg-gray-200 border-gray-300 text-gray-700"
                 }`}
               >
-                <span className="text-primary-500 text-3xl font-bold mr-2">25k+</span>
+                <span className="text-primary-500 text-3xl font-bold mr-2">
+                  25k+
+                </span>
                 <span className="text-sm">Happy Clients</span>
               </div>
               <div
@@ -76,7 +82,9 @@ const AboutSection1 = () => {
                     : "bg-gray-200 border-gray-300 text-gray-700"
                 }`}
               >
-                <span className="text-primary-500 text-3xl font-bold mr-2">97%</span>
+                <span className="text-primary-500 text-3xl font-bold mr-2">
+                  97%
+                </span>
                 <span className="text-sm">Client Satisfaction</span>
               </div>
             </div>
@@ -118,7 +126,9 @@ const AboutSection1 = () => {
                 >
                   Building Trust Since 2011
                 </h3>
-                <p className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <p
+                  className={`${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                >
                   Empowering investors with confidence and knowledge.
                 </p>
               </div>

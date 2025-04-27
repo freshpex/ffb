@@ -1,121 +1,123 @@
-import React, { useState, useRef, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { FaSearch, FaFilter, FaTimes, FaCalendarAlt } from 'react-icons/fa';
+import React, { useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
+import { FaSearch, FaFilter, FaTimes, FaCalendarAlt } from "react-icons/fa";
 
-const SearchFilter = ({ 
-  onSearch, 
+const SearchFilter = ({
+  onSearch,
   onFilter,
   filterOptions = [],
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = "Search...",
   showDateFilter = false,
-  className = ''
+  className = "",
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({});
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+
   const filterMenuRef = useRef(null);
   const filterButtonRef = useRef(null);
-  
+
   // Handle outside click to close filter menu
   useEffect(() => {
     function handleClickOutside(event) {
       if (
-        filterMenuRef.current && 
+        filterMenuRef.current &&
         !filterMenuRef.current.contains(event.target) &&
         !filterButtonRef.current.contains(event.target)
       ) {
         setShowFilterMenu(false);
       }
     }
-    
-    document.addEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
   // Handle search input
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     // Trigger search with a small delay
     setTimeout(() => {
       onSearch(value);
     }, 300);
   };
-  
+
   // Handle filter selection
   const handleFilterChange = (category, value, checked) => {
-    setSelectedFilters(prev => {
+    setSelectedFilters((prev) => {
       const newFilters = { ...prev };
-      
+
       if (!newFilters[category]) {
         newFilters[category] = [];
       }
-      
+
       if (checked) {
         newFilters[category] = [...newFilters[category], value];
       } else {
-        newFilters[category] = newFilters[category].filter(item => item !== value);
+        newFilters[category] = newFilters[category].filter(
+          (item) => item !== value,
+        );
       }
-      
+
       // If category has no values, remove it
       if (newFilters[category].length === 0) {
         delete newFilters[category];
       }
-      
+
       return newFilters;
     });
   };
-  
+
   // Handle date range changes
   const handleDateChange = (field, value) => {
-    setDateRange(prev => ({
+    setDateRange((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
-  
+
   // Apply filters
   const applyFilters = () => {
     const filters = { ...selectedFilters };
-    
+
     // Add date range to filters if set
     if (showDateFilter && (dateRange.start || dateRange.end)) {
       filters.dateRange = dateRange;
     }
-    
+
     onFilter(filters);
     setShowFilterMenu(false);
   };
-  
+
   // Clear all filters
   const clearFilters = () => {
     setSelectedFilters({});
-    setDateRange({ start: '', end: '' });
+    setDateRange({ start: "", end: "" });
     onFilter({});
     setShowFilterMenu(false);
   };
-  
+
   // Count total active filters
   const countActiveFilters = () => {
     let count = 0;
-    
+
     // Count selected filter values
-    Object.values(selectedFilters).forEach(values => {
+    Object.values(selectedFilters).forEach((values) => {
       count += values.length;
     });
-    
+
     // Count date filters
     if (dateRange.start) count++;
     if (dateRange.end) count++;
-    
+
     return count;
   };
-  
+
   return (
     <div className={`flex flex-col sm:flex-row gap-3 ${className}`}>
       {/* Search Input */}
@@ -133,8 +135,8 @@ const SearchFilter = ({
         {searchTerm && (
           <button
             onClick={() => {
-              setSearchTerm('');
-              onSearch('');
+              setSearchTerm("");
+              onSearch("");
             }}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200"
           >
@@ -142,7 +144,7 @@ const SearchFilter = ({
           </button>
         )}
       </div>
-      
+
       {/* Filter Button */}
       <div className="relative">
         <button
@@ -150,8 +152,8 @@ const SearchFilter = ({
           onClick={() => setShowFilterMenu(!showFilterMenu)}
           className={`px-4 py-2 rounded-md border flex items-center gap-2 transition-colors ${
             countActiveFilters() > 0
-              ? 'bg-blue-600 border-blue-500 text-white'
-              : 'bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700'
+              ? "bg-blue-600 border-blue-500 text-white"
+              : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700"
           }`}
         >
           <FaFilter size={14} />
@@ -162,7 +164,7 @@ const SearchFilter = ({
             </span>
           )}
         </button>
-        
+
         {/* Filter Dropdown Menu */}
         {showFilterMenu && (
           <div
@@ -172,7 +174,7 @@ const SearchFilter = ({
             <div className="p-3 border-b border-gray-700">
               <h3 className="text-white font-medium">Filters</h3>
             </div>
-            
+
             <div className="max-h-96 overflow-y-auto">
               {/* Date Range Filters */}
               {showDateFilter && (
@@ -183,40 +185,61 @@ const SearchFilter = ({
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">Start Date</label>
+                      <label className="block text-gray-400 text-xs mb-1">
+                        Start Date
+                      </label>
                       <input
                         type="date"
                         value={dateRange.start}
-                        onChange={(e) => handleDateChange('start', e.target.value)}
+                        onChange={(e) =>
+                          handleDateChange("start", e.target.value)
+                        }
                         className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-gray-400 text-xs mb-1">End Date</label>
+                      <label className="block text-gray-400 text-xs mb-1">
+                        End Date
+                      </label>
                       <input
                         type="date"
                         value={dateRange.end}
-                        onChange={(e) => handleDateChange('end', e.target.value)}
+                        onChange={(e) =>
+                          handleDateChange("end", e.target.value)
+                        }
                         className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm"
                       />
                     </div>
                   </div>
                 </div>
               )}
-              
+
               {/* Filter Options */}
               {filterOptions.map((category) => (
-                <div key={category.name} className="p-3 border-b border-gray-700">
-                  <h4 className="text-white text-sm font-medium mb-2">{category.label}</h4>
+                <div
+                  key={category.name}
+                  className="p-3 border-b border-gray-700"
+                >
+                  <h4 className="text-white text-sm font-medium mb-2">
+                    {category.label}
+                  </h4>
                   <div className="space-y-1">
                     {category.options.map((option) => (
                       <div key={option.value} className="flex items-center">
                         <input
                           id={`filter-${category.name}-${option.value}`}
                           type="checkbox"
-                          checked={selectedFilters[category.name]?.includes(option.value) || false}
-                          onChange={(e) => 
-                            handleFilterChange(category.name, option.value, e.target.checked)
+                          checked={
+                            selectedFilters[category.name]?.includes(
+                              option.value,
+                            ) || false
+                          }
+                          onChange={(e) =>
+                            handleFilterChange(
+                              category.name,
+                              option.value,
+                              e.target.checked,
+                            )
                           }
                           className="h-4 w-4 rounded border-gray-600 text-blue-600 focus:ring-blue-500 bg-gray-700"
                         />
@@ -232,7 +255,7 @@ const SearchFilter = ({
                 </div>
               ))}
             </div>
-            
+
             {/* Filter Actions */}
             <div className="p-3 flex items-center justify-between">
               <button
@@ -265,14 +288,15 @@ SearchFilter.propTypes = {
       options: PropTypes.arrayOf(
         PropTypes.shape({
           label: PropTypes.string.isRequired,
-          value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired
-        })
-      ).isRequired
-    })
+          value: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+            .isRequired,
+        }),
+      ).isRequired,
+    }),
   ),
   searchPlaceholder: PropTypes.string,
   showDateFilter: PropTypes.bool,
-  className: PropTypes.string
+  className: PropTypes.string,
 };
 
 export default SearchFilter;

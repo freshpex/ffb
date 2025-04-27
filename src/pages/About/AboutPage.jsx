@@ -10,14 +10,16 @@ import { useDarkMode } from "../../context/DarkModeContext";
 
 const AboutPage = () => {
   const { darkMode } = useDarkMode();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = "About Us | Fidelity First Brokers";
   }, []);
 
   return (
-    <div className={`flex flex-col min-h-screen ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-white"}`}>
+    <div
+      className={`flex flex-col min-h-screen ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-white"}`}
+    >
       <Header />
       <main className="flex-grow">
         <AboutSection1 />

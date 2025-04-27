@@ -1,58 +1,60 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import {
   FaMoneyBillWave,
   FaArrowUp,
   FaArrowDown,
   FaChartLine,
   FaExchangeAlt,
-  FaUserFriends
-} from 'react-icons/fa';
+  FaUserFriends,
+} from "react-icons/fa";
 
 const QuickActions = () => {
   const navigate = useNavigate();
 
   const actions = [
     {
-      title: 'Deposit',
+      title: "Deposit",
       icon: <FaArrowDown className="text-green-500" />,
-      bgColor: 'bg-green-900/20',
-      borderColor: 'border-green-500/30',
-      path: '/login/deposit'
+      bgColor: "bg-green-900/20",
+      borderColor: "border-green-500/30",
+      path: "/login/deposit",
     },
     {
-      title: 'Withdraw',
+      title: "Withdraw",
       icon: <FaArrowUp className="text-red-500" />,
-      bgColor: 'bg-red-900/20',
-      borderColor: 'border-red-500/30',
-      path: '/login/withdraw'
+      bgColor: "bg-red-900/20",
+      borderColor: "border-red-500/30",
+      path: "/login/withdraw",
     },
     {
-      title: 'Trade',
+      title: "Trade",
       icon: <FaExchangeAlt className="text-blue-500" />,
-      bgColor: 'bg-blue-900/20',
-      borderColor: 'border-blue-500/30',
-      path: '/login/trading'
+      bgColor: "bg-blue-900/20",
+      borderColor: "border-blue-500/30",
+      path: "/login/trading",
     },
     {
-      title: 'Invest',
+      title: "Invest",
       icon: <FaChartLine className="text-purple-500" />,
-      bgColor: 'bg-purple-900/20',
-      borderColor: 'border-purple-500/30',
-      path: '/login/investmentplans'
+      bgColor: "bg-purple-900/20",
+      borderColor: "border-purple-500/30",
+      path: "/login/investmentplans",
     },
     {
-      title: 'Refer',
+      title: "Refer",
       icon: <FaUserFriends className="text-yellow-500" />,
-      bgColor: 'bg-yellow-900/20',
-      borderColor: 'border-yellow-500/30',
-      path: '/login/referral'
-    }
+      bgColor: "bg-yellow-900/20",
+      borderColor: "border-yellow-500/30",
+      path: "/login/referral",
+    },
   ];
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 shadow">
-      <h2 className="text-lg font-semibold text-gray-100 mb-4">Quick Actions</h2>
-      
+      <h2 className="text-lg font-semibold text-gray-100 mb-4">
+        Quick Actions
+      </h2>
+
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4">
         {actions.map((action, index) => (
           <button
@@ -61,7 +63,9 @@ const QuickActions = () => {
             className={`${action.bgColor} ${action.borderColor} border p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105`}
           >
             <div className="text-2xl mb-2">{action.icon}</div>
-            <span className="text-sm font-medium text-gray-200">{action.title}</span>
+            <span className="text-sm font-medium text-gray-200">
+              {action.title}
+            </span>
           </button>
         ))}
       </div>

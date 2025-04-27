@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -13,7 +13,7 @@ const secureApiService = {
       throw error;
     }
   },
-  
+
   // Account methods (authenticated)
   getAccountBalance: async () => {
     try {
@@ -21,22 +21,25 @@ const secureApiService = {
       const response = await axios.get(`${API_BASE_URL}/account/balance`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching account balance:', error);
+      console.error("Error fetching account balance:", error);
       throw error;
     }
   },
-  
+
   // Trading methods
   placeOrder: async (orderData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/trade/order`, orderData);
+      const response = await axios.post(
+        `${API_BASE_URL}/trade/order`,
+        orderData,
+      );
       return response.data;
     } catch (error) {
-      console.error('Error placing order:', error);
+      console.error("Error placing order:", error);
       throw error;
     }
   },
-  
+
   // For fallback client-side implementation
   getBinancePublicData: async (endpoint, params = {}) => {
     const url = `https://api.binance.com/api/v3/${endpoint}`;
@@ -47,7 +50,7 @@ const secureApiService = {
       console.error(`Error fetching from Binance API (${endpoint}):`, error);
       throw error;
     }
-  }
+  },
 };
 
 export default secureApiService;

@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronDown, FaSearch, FaTimes, FaEye } from 'react-icons/fa';
-import Button from '../../common/Button';
-import TransactionStatusBadge from '../../common/TransactionStatusBadge';
-import TransactionDetailsModal from '../../common/TransactionDetailsModal';
-import DashboardLayout from '../Layout/DashboardLayout';
-import ComponentLoader from '../../common/ComponentLoader';
-import Pagination from '../../common/Pagination';
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaChevronDown, FaSearch, FaTimes, FaEye } from "react-icons/fa";
+import Button from "../../common/Button";
+import TransactionStatusBadge from "../../common/TransactionStatusBadge";
+import TransactionDetailsModal from "../../common/TransactionDetailsModal";
+import DashboardLayout from "../Layout/DashboardLayout";
+import ComponentLoader from "../../common/ComponentLoader";
+import Pagination from "../../common/Pagination";
 import {
   fetchWithdrawalHistory,
   selectWithdrawalHistory,
   selectWithdrawalPagination,
   selectWithdrawalStatus,
-  selectWithdrawalError
-} from '../../../redux/slices/withdrawalSlice';
+  selectWithdrawalError,
+} from "../../../redux/slices/withdrawalSlice";
 
 const WithdrawTransaction = () => {
   const dispatch = useDispatch();
@@ -22,15 +22,15 @@ const WithdrawTransaction = () => {
   const pagination = useSelector(selectWithdrawalPagination);
   const status = useSelector(selectWithdrawalStatus);
   const error = useSelector(selectWithdrawalError);
-  const isLoading = status === 'loading';
+  const isLoading = status === "loading";
 
   // State for filters and pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -39,10 +39,10 @@ const WithdrawTransaction = () => {
     const params = {
       page: currentPage,
       limit: 10,
-      status: filterStatus !== 'all' ? filterStatus : undefined,
+      status: filterStatus !== "all" ? filterStatus : undefined,
       search: searchQuery || undefined,
       sortBy,
-      sortOrder
+      sortOrder,
     };
 
     dispatch(fetchWithdrawalHistory(params));
@@ -60,10 +60,10 @@ const WithdrawTransaction = () => {
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(field);
-      setSortOrder('desc');
+      setSortOrder("desc");
     }
     setCurrentPage(1);
   };
@@ -76,14 +76,14 @@ const WithdrawTransaction = () => {
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
   // Format currency
-  const formatCurrency = (amount, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency
+  const formatCurrency = (amount, currency = "USD") => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
     }).format(amount);
   };
 
@@ -91,7 +91,9 @@ const WithdrawTransaction = () => {
     return (
       <DashboardLayout>
         <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold text-white mb-6">Withdrawal History</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">
+            Withdrawal History
+          </h1>
           <ComponentLoader />
         </div>
       </DashboardLayout>
@@ -102,11 +104,14 @@ const WithdrawTransaction = () => {
     return (
       <DashboardLayout>
         <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold text-white mb-6">Withdrawal History</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">
+            Withdrawal History
+          </h1>
           <div className="bg-red-500/20 border border-red-500/50 text-white p-4 rounded-lg">
             <p>Error: {error}</p>
             <p className="mt-2">
-              Please make sure you're logged in. If the problem persists, contact support.
+              Please make sure you're logged in. If the problem persists,
+              contact support.
             </p>
           </div>
         </div>
@@ -117,7 +122,9 @@ const WithdrawTransaction = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-white mb-6">Withdrawal History</h1>
+        <h1 className="text-2xl font-bold text-white mb-6">
+          Withdrawal History
+        </h1>
 
         {/* Filters */}
         <div className="bg-gray-800 p-4 rounded-lg mb-6">
@@ -135,7 +142,7 @@ const WithdrawTransaction = () => {
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                 >
                   <FaTimes />
                 </button>
@@ -150,7 +157,9 @@ const WithdrawTransaction = () => {
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
                   className="flex items-center"
                 >
-                  <span>Status: {filterStatus === 'all' ? 'All' : filterStatus}</span>
+                  <span>
+                    Status: {filterStatus === "all" ? "All" : filterStatus}
+                  </span>
                   <FaChevronDown className="ml-2" />
                 </Button>
 
@@ -163,20 +172,24 @@ const WithdrawTransaction = () => {
                       className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-10"
                     >
                       <div className="py-1">
-                        {['all', 'pending', 'completed', 'failed'].map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => {
-                              handleStatusChange(status);
-                              setIsFilterOpen(false);
-                            }}
-                            className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors ${
-                              filterStatus === status ? 'bg-gray-700 text-white' : 'text-gray-300'
-                            }`}
-                          >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </button>
-                        ))}
+                        {["all", "pending", "completed", "failed"].map(
+                          (status) => (
+                            <button
+                              key={status}
+                              onClick={() => {
+                                handleStatusChange(status);
+                                setIsFilterOpen(false);
+                              }}
+                              className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors ${
+                                filterStatus === status
+                                  ? "bg-gray-700 text-white"
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </button>
+                          ),
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -194,33 +207,58 @@ const WithdrawTransaction = () => {
                 <tr>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('date')}
+                    onClick={() => handleSort("date")}
                   >
-                    Date {sortBy === 'date' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                    Date{" "}
+                    {sortBy === "date" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('reference')}
+                    onClick={() => handleSort("reference")}
                   >
-                    Reference {sortBy === 'reference' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                    Reference{" "}
+                    {sortBy === "reference" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('method')}
+                    onClick={() => handleSort("method")}
                   >
-                    Method {sortBy === 'method' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                    Method{" "}
+                    {sortBy === "method" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('amount')}
+                    onClick={() => handleSort("amount")}
                   >
-                    Amount {sortBy === 'amount' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                    Amount{" "}
+                    {sortBy === "amount" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('status')}
+                    onClick={() => handleSort("status")}
                   >
-                    Status {sortBy === 'status' && (<span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>)}
+                    Status{" "}
+                    {sortBy === "status" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Actions
@@ -235,7 +273,7 @@ const WithdrawTransaction = () => {
                         {formatDate(withdrawal.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        {withdrawal.reference || 'N/A'}
+                        {withdrawal.reference || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 capitalize">
                         {withdrawal.method}
@@ -258,7 +296,10 @@ const WithdrawTransaction = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-10 text-center text-gray-400">
+                    <td
+                      colSpan="6"
+                      className="px-6 py-10 text-center text-gray-400"
+                    >
                       No withdrawal records found.
                     </td>
                   </tr>
@@ -283,13 +324,15 @@ const WithdrawTransaction = () => {
                   <TransactionStatusBadge status={withdrawal.status} />
                 </div>
                 <p className="text-gray-300">
-                  <span className="font-medium">Reference:</span> {withdrawal.reference || 'N/A'}
+                  <span className="font-medium">Reference:</span>{" "}
+                  {withdrawal.reference || "N/A"}
                 </p>
                 <p className="text-gray-300 capitalize">
-                  <span className="font-medium">Method:</span> {withdrawal.method}
+                  <span className="font-medium">Method:</span>{" "}
+                  {withdrawal.method}
                 </p>
                 <p className="text-gray-300">
-                  <span className="font-medium">Amount:</span>{' '}
+                  <span className="font-medium">Amount:</span>{" "}
                   {formatCurrency(withdrawal.amount, withdrawal.currency)}
                 </p>
                 <button

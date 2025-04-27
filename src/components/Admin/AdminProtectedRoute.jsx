@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectIsAdminAuthenticated, checkAdminAuth, selectAdminStatus } from '../../redux/slices/adminAuthSlice';
-import Loader from '../Loader';
+import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectIsAdminAuthenticated,
+  checkAdminAuth,
+  selectAdminStatus,
+} from "../../redux/slices/adminAuthSlice";
+import Loader from "../Loader";
 
 const AdminProtectedRoute = ({ children }) => {
   const dispatch = useDispatch();
@@ -16,7 +20,7 @@ const AdminProtectedRoute = ({ children }) => {
         try {
           await dispatch(checkAdminAuth()).unwrap();
         } catch (error) {
-          console.error('Admin authentication check failed:', error);
+          console.error("Admin authentication check failed:", error);
         }
       }
       setIsChecking(false);
@@ -25,15 +29,15 @@ const AdminProtectedRoute = ({ children }) => {
     checkAuth();
   }, [dispatch, isAuthenticated]);
 
-  if (isChecking || status === 'loading') {
+  if (isChecking || status === "loading") {
     return <Loader />;
   }
-  
+
   if (!isAuthenticated) {
-    console.log('Admin not authenticated, redirecting to login');
+    console.log("Admin not authenticated, redirecting to login");
     return <Navigate to="/admin/login" replace />;
   }
-  
+
   return children;
 };
 

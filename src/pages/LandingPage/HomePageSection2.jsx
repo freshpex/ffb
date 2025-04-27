@@ -1,32 +1,37 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { FaChartLine, FaMoneyBillWave, FaChartPie, FaRegClock } from "react-icons/fa";
+import {
+  FaChartLine,
+  FaMoneyBillWave,
+  FaChartPie,
+  FaRegClock,
+} from "react-icons/fa";
 import { useDarkMode } from "../../context/DarkModeContext";
 
 const HomePageSection2 = () => {
   const { darkMode } = useDarkMode();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
-  
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
-  
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.5 }
-    }
+      transition: { duration: 0.5 },
+    },
   };
-  
+
   const investmentOptions = [
     {
       id: 1,
@@ -35,7 +40,7 @@ const HomePageSection2 = () => {
       return: "5-8%",
       duration: "7 days",
       icon: <FaMoneyBillWave />,
-      color: "from-blue-600 to-blue-400"
+      color: "from-blue-600 to-blue-400",
     },
     {
       id: 2,
@@ -45,7 +50,7 @@ const HomePageSection2 = () => {
       duration: "30 days",
       icon: <FaChartLine />,
       color: "from-green-600 to-green-400",
-      featured: true
+      featured: true,
     },
     {
       id: 3,
@@ -54,19 +59,21 @@ const HomePageSection2 = () => {
       return: "18-25%",
       duration: "90 days",
       icon: <FaChartPie />,
-      color: "from-purple-600 to-purple-400"
-    }
+      color: "from-purple-600 to-purple-400",
+    },
   ];
 
   return (
-    <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900/80' : 'bg-gray-100'} overflow-hidden`}>
+    <section
+      className={`py-20 px-4 ${darkMode ? "bg-gray-900/80" : "bg-gray-100"} overflow-hidden`}
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
-            className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
+            className={`text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-4`}
           >
             Investment Plans for Every Investor
           </motion.h2>
@@ -74,12 +81,13 @@ const HomePageSection2 = () => {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}
+            className={`${darkMode ? "text-gray-400" : "text-gray-600"} max-w-2xl mx-auto`}
           >
-            Choose from our diverse range of investment options designed to meet your financial goals and risk tolerance.
+            Choose from our diverse range of investment options designed to meet
+            your financial goals and risk tolerance.
           </motion.p>
         </div>
-        
+
         <motion.div
           ref={ref}
           variants={containerVariants}
@@ -93,8 +101,8 @@ const HomePageSection2 = () => {
               variants={itemVariants}
               className={`rounded-xl p-6 ${
                 plan.featured
-                  ? `bg-gradient-to-br ${darkMode ? 'from-gray-800 to-gray-900' : 'from-white to-gray-50'} border-2 border-primary-500 shadow-lg shadow-primary-500/20 transform -translate-y-4 md:translate-y-0 md:scale-110 z-10`
-                  : `${darkMode ? 'bg-gray-800/50 backdrop-blur-sm border border-gray-700' : 'bg-white backdrop-blur-sm border border-gray-200 shadow-lg'}`
+                  ? `bg-gradient-to-br ${darkMode ? "from-gray-800 to-gray-900" : "from-white to-gray-50"} border-2 border-primary-500 shadow-lg shadow-primary-500/20 transform -translate-y-4 md:translate-y-0 md:scale-110 z-10`
+                  : `${darkMode ? "bg-gray-800/50 backdrop-blur-sm border border-gray-700" : "bg-white backdrop-blur-sm border border-gray-200 shadow-lg"}`
               } transition-all duration-300 hover:shadow-lg relative`}
             >
               {plan.featured && (
@@ -104,40 +112,63 @@ const HomePageSection2 = () => {
                   </div>
                 </div>
               )}
-              
-              <div className={`w-16 h-16 rounded-full mb-6 bg-gradient-to-r ${plan.color} flex items-center justify-center text-white text-2xl`}>
+
+              <div
+                className={`w-16 h-16 rounded-full mb-6 bg-gradient-to-r ${plan.color} flex items-center justify-center text-white text-2xl`}
+              >
                 {plan.icon}
               </div>
-              
-              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>{plan.title}</h3>
-              
+
+              <h3
+                className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-4`}
+              >
+                {plan.title}
+              </h3>
+
               <div className="mb-6">
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2 flex justify-between`}>
+                <p
+                  className={`${darkMode ? "text-gray-400" : "text-gray-600"} mb-2 flex justify-between`}
+                >
                   <span>Minimum Investment:</span>
-                  <span className={darkMode ? 'text-white' : 'text-gray-900'} font-semibold>${plan.minInvestment}</span>
+                  <span
+                    className={darkMode ? "text-white" : "text-gray-900"}
+                    font-semibold
+                  >
+                    ${plan.minInvestment}
+                  </span>
                 </p>
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2 flex justify-between`}>
+                <p
+                  className={`${darkMode ? "text-gray-400" : "text-gray-600"} mb-2 flex justify-between`}
+                >
                   <span>Expected Return:</span>
-                  <span className="text-primary-500 font-semibold">{plan.return}</span>
+                  <span className="text-primary-500 font-semibold">
+                    {plan.return}
+                  </span>
                 </p>
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} flex justify-between`}>
+                <p
+                  className={`${darkMode ? "text-gray-400" : "text-gray-600"} flex justify-between`}
+                >
                   <span>Duration:</span>
-                  <span className={`${darkMode ? 'text-white' : 'text-gray-900'} font-semibold flex items-center`}>
+                  <span
+                    className={`${darkMode ? "text-white" : "text-gray-900"} font-semibold flex items-center`}
+                  >
                     <FaRegClock className="mr-1 text-primary-500" />
                     {plan.duration}
                   </span>
                 </p>
               </div>
-              
-              <button className={`w-full py-3 rounded-lg font-semibold transition-colors duration-300 ${
-                plan.featured
-                  ? darkMode
-                    ? "bg-primary-600 hover:bg-primary-700 text-white"
-                    : "bg-primary-500 hover:bg-primary-600 text-gray-900"
-                  : darkMode
-                    ? "bg-gray-700 hover:bg-gray-600 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-              }`}>
+
+              <button
+                className={`w-full py-3 rounded-lg font-semibold transition-colors duration-300 ${
+                  plan.featured
+                    ? darkMode
+                      ? "bg-primary-600 hover:bg-primary-700 text-white"
+                      : "bg-primary-500 hover:bg-primary-600 text-gray-900"
+                    : darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                }`}
+              >
                 Start Investing
               </button>
             </motion.div>

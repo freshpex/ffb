@@ -2,17 +2,17 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FaEnvelope, 
-  FaLock, 
-  FaEye, 
-  FaEyeSlash, 
-  FaHome, 
-  FaArrowRight, 
-  FaGoogle, 
-  FaShieldAlt, 
+import {
+  FaEnvelope,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaHome,
+  FaArrowRight,
+  FaGoogle,
+  FaShieldAlt,
   FaInfoCircle,
-  FaExclamationTriangle
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import Button from "../common/Button";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -33,7 +33,7 @@ const Login = () => {
   const [isMobileView, setIsMobileView] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const { logIn, signInWithGoogle, verifyTwoFactorCode } = useAuth();
 
   // Check if we were redirected here after successful signup
@@ -45,24 +45,24 @@ const Login = () => {
         setEmail(location.state.email);
       }
     }
-    
+
     // Check local storage for stored email if remember me was checked
-    const storedEmail = localStorage.getItem('ffb_remembered_email');
+    const storedEmail = localStorage.getItem("ffb_remembered_email");
     if (storedEmail) {
       setEmail(storedEmail);
       setRememberMe(true);
     }
-    
+
     // Check for mobile view
     const checkForMobile = () => {
       setIsMobileView(window.innerWidth < 768);
     };
-    
+
     checkForMobile();
-    window.addEventListener('resize', checkForMobile);
-    
+    window.addEventListener("resize", checkForMobile);
+
     return () => {
-      window.removeEventListener('resize', checkForMobile);
+      window.removeEventListener("resize", checkForMobile);
     };
   }, [location]);
 
@@ -74,16 +74,18 @@ const Login = () => {
     try {
       setError("");
       setLoading(true);
-      
+
       await signInWithGoogle();
-      
+
       setTimeout(() => {
-        const token = localStorage.getItem('ffb_auth_token');
-        
+        const token = localStorage.getItem("ffb_auth_token");
+
         if (token) {
           navigate("/login/dashboardpage");
         } else {
-          setError("Authentication successful but token could not be created. Please try again.");
+          setError(
+            "Authentication successful but token could not be created. Please try again.",
+          );
           setLoading(false);
         }
       }, 300);
@@ -92,7 +94,7 @@ const Login = () => {
       setError(
         err.message.includes("popup-closed-by-user")
           ? "Google login was cancelled. Please try again."
-          : "Failed to login with Google. Please try again later."
+          : "Failed to login with Google. Please try again later.",
       );
       setLoading(false);
     }
@@ -113,52 +115,55 @@ const Login = () => {
 
     try {
       const response = await logIn(email, password);
-      
+
       // Handle 2FA if needed
       if (response?.requiresTwoFactor) {
         setShowTwoFactorModal(true);
         setLoading(false);
         return;
       }
-      
+
       // Remember email if checkbox is checked
       if (rememberMe) {
-        localStorage.setItem('ffb_remembered_email', email);
+        localStorage.setItem("ffb_remembered_email", email);
       } else {
-        localStorage.removeItem('ffb_remembered_email');
+        localStorage.removeItem("ffb_remembered_email");
       }
-      
+
       // Reset login attempts on success
       setLoginAttempts(0);
-      
+
       // Wait a bit to ensure token is set
       setTimeout(() => {
-        const token = localStorage.getItem('ffb_auth_token');
-        
+        const token = localStorage.getItem("ffb_auth_token");
+
         if (token) {
           navigate("/login/dashboardpage");
         } else {
-          setError("Authentication successful but token could not be created. Please try again.");
+          setError(
+            "Authentication successful but token could not be created. Please try again.",
+          );
           setLoading(false);
         }
       }, 300);
     } catch (err) {
       console.error("Login error:", err);
-      setLoginAttempts(prev => prev + 1);
-      
+      setLoginAttempts((prev) => prev + 1);
+
       setError(
         err.message.includes("auth/user-not-found") ||
-        err.message.includes("auth/wrong-password")
+          err.message.includes("auth/wrong-password")
           ? "Invalid email or password. Please try again."
           : err.message.includes("auth/too-many-requests")
-          ? "Access temporarily disabled due to many failed login attempts. Try again later or reset your password."
-          : err.message.includes("timed out") 
-          ? "Login request timed out. Server may be busy. Please try again."
-          : err.message.includes("network-request-failed") || err.code === "ERR_NETWORK"
-          ? "Network connection error. Please check your internet connection."
-          : err.message.includes("Unable to synchronize")
-          ? "Backend synchronization failed. Please try again later."
-          : "Failed to login. Please check your credentials and try again."
+            ? "Access temporarily disabled due to many failed login attempts. Try again later or reset your password."
+            : err.message.includes("timed out")
+              ? "Login request timed out. Server may be busy. Please try again."
+              : err.message.includes("network-request-failed") ||
+                  err.code === "ERR_NETWORK"
+                ? "Network connection error. Please check your internet connection."
+                : err.message.includes("Unable to synchronize")
+                  ? "Backend synchronization failed. Please try again later."
+                  : "Failed to login. Please check your credentials and try again.",
       );
       setLoading(false);
     }
@@ -169,31 +174,33 @@ const Login = () => {
       setError("Please enter a valid verification code");
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       await verifyTwoFactorCode(email, twoFactorCode);
-      
+
       // Reset login attempts on success
       setLoginAttempts(0);
-      
+
       // Remember email if checkbox is checked
       if (rememberMe) {
-        localStorage.setItem('ffb_remembered_email', email);
+        localStorage.setItem("ffb_remembered_email", email);
       } else {
-        localStorage.removeItem('ffb_remembered_email');
+        localStorage.removeItem("ffb_remembered_email");
       }
-      
+
       setShowTwoFactorModal(false);
-      
+
       // Navigate to dashboard
       setTimeout(() => {
-        const token = localStorage.getItem('ffb_auth_token');
+        const token = localStorage.getItem("ffb_auth_token");
         if (token) {
           navigate("/login/dashboardpage");
         } else {
-          setError("Authentication successful but token could not be created. Please try again.");
+          setError(
+            "Authentication successful but token could not be created. Please try again.",
+          );
           setLoading(false);
         }
       }, 300);
@@ -206,14 +213,14 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-primary-900 flex flex-col items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="absolute top-4 left-4 z-10"
       >
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="flex items-center text-white bg-gray-800/50 hover:bg-gray-800/80 px-4 py-2 rounded-lg transition-colors"
         >
           <FaHome className="mr-2" /> Home
@@ -227,7 +234,7 @@ const Login = () => {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <motion.h1 
+          <motion.h1
             className="text-4xl font-bold text-white mb-2"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -235,7 +242,7 @@ const Login = () => {
           >
             Welcome Back
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-gray-300"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -249,9 +256,9 @@ const Login = () => {
           <div className="p-8">
             <AnimatePresence>
               {successMessage && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
+                  animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="bg-green-500/20 text-green-400 p-4 rounded-lg mb-6 text-sm"
                 >
@@ -262,9 +269,9 @@ const Login = () => {
 
             <AnimatePresence>
               {error && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
+                  animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="bg-red-500/20 text-red-400 p-4 rounded-lg mb-6 text-sm flex items-start"
                 >
@@ -279,7 +286,7 @@ const Login = () => {
               {(loginAttempts >= 2 || showSecurityTips) && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
+                  animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="bg-blue-500/20 text-blue-400 p-4 rounded-lg mb-6 text-sm"
                 >
@@ -288,7 +295,7 @@ const Login = () => {
                       <FaShieldAlt className="mr-2" />
                       <span className="font-medium">Security Tips</span>
                     </div>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowSecurityTips(!showSecurityTips)}
                       className="text-blue-400 hover:text-blue-300"
@@ -296,12 +303,19 @@ const Login = () => {
                       {showSecurityTips ? "Hide" : "Show more"}
                     </button>
                   </div>
-                  
+
                   {showSecurityTips && (
                     <ul className="ml-6 list-disc text-xs space-y-1 mt-2">
-                      <li>Ensure you're on the official Fidelity First Brokers website</li>
-                      <li>Use a strong, unique password for your trading account</li>
-                      <li>Enable two-factor authentication for enhanced security</li>
+                      <li>
+                        Ensure you're on the official Fidelity First Brokers
+                        website
+                      </li>
+                      <li>
+                        Use a strong, unique password for your trading account
+                      </li>
+                      <li>
+                        Enable two-factor authentication for enhanced security
+                      </li>
                       <li>Never share your login credentials with anyone</li>
                       <li>Be cautious of phishing attempts via email or SMS</li>
                     </ul>
@@ -312,7 +326,10 @@ const Login = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label htmlFor="email" className="block text-gray-400 text-sm font-medium mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-gray-400 text-sm font-medium mb-2"
+                >
                   Email Address
                 </label>
                 <div className="relative">
@@ -334,10 +351,16 @@ const Login = () => {
 
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label htmlFor="password" className="block text-gray-400 text-sm font-medium">
+                  <label
+                    htmlFor="password"
+                    className="block text-gray-400 text-sm font-medium"
+                  >
                     Password
                   </label>
-                  <Link to="/forgot-password" className="text-sm text-primary-400 hover:text-primary-300 transition-colors">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
+                  >
                     Forgot Password?
                   </Link>
                 </div>
@@ -359,7 +382,9 @@ const Login = () => {
                     type="button"
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
@@ -374,7 +399,10 @@ const Login = () => {
                   onChange={() => setRememberMe(!rememberMe)}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-600 rounded bg-gray-700"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-400"
+                >
                   Remember me
                 </label>
               </div>
@@ -400,13 +428,15 @@ const Login = () => {
               >
                 Log In <FaArrowRight className="ml-2" />
               </Button>
-              
+
               {/* Social Login Divider */}
               <div className="relative flex items-center justify-center mb-4">
                 <div className="border-t border-gray-700 w-full"></div>
-                <div className="bg-gray-800 px-2 text-sm text-gray-500 absolute">OR</div>
+                <div className="bg-gray-800 px-2 text-sm text-gray-500 absolute">
+                  OR
+                </div>
               </div>
-              
+
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
@@ -419,7 +449,10 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-gray-400">
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
+                <Link
+                  to="/signup"
+                  className="text-primary-400 hover:text-primary-300 font-medium transition-colors"
+                >
                   Sign Up
                 </Link>
               </p>
@@ -440,7 +473,7 @@ const Login = () => {
           </div>
         </div>
       </motion.div>
-      
+
       {/* 2FA Modal */}
       <AnimatePresence>
         {showTwoFactorModal && (
@@ -456,20 +489,27 @@ const Login = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-gray-800 rounded-xl p-6 w-full max-w-md"
             >
-              <h2 className="text-xl font-semibold text-white mb-4">Two-Factor Authentication</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">
+                Two-Factor Authentication
+              </h2>
               <p className="text-gray-300 mb-4">
                 Please enter the verification code from your authenticator app.
               </p>
-              
+
               <div className="mb-6">
-                <label htmlFor="twoFactorCode" className="block text-gray-400 text-sm font-medium mb-2">
+                <label
+                  htmlFor="twoFactorCode"
+                  className="block text-gray-400 text-sm font-medium mb-2"
+                >
                   Verification Code
                 </label>
                 <input
                   id="twoFactorCode"
                   type="text"
                   value={twoFactorCode}
-                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) =>
+                    setTwoFactorCode(e.target.value.replace(/[^0-9]/g, ""))
+                  }
                   maxLength={6}
                   className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-xl tracking-widest"
                   placeholder="000000"
@@ -477,7 +517,7 @@ const Login = () => {
                   required
                 />
               </div>
-              
+
               <div className="flex space-x-3">
                 <Button
                   type="button"
@@ -498,11 +538,18 @@ const Login = () => {
                   Verify
                 </Button>
               </div>
-              
+
               <div className="mt-4 text-xs text-gray-500 flex items-center">
                 <FaInfoCircle className="mr-2 flex-shrink-0" />
                 <span>
-                  Having trouble? Contact our <Link to="/support" className="text-primary-400 hover:underline">Support Team</Link> for assistance.
+                  Having trouble? Contact our{" "}
+                  <Link
+                    to="/support"
+                    className="text-primary-400 hover:underline"
+                  >
+                    Support Team
+                  </Link>{" "}
+                  for assistance.
                 </span>
               </div>
             </motion.div>

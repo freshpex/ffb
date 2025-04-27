@@ -3,7 +3,11 @@ import PropTypes from "prop-types";
 import { FaSpinner } from "react-icons/fa";
 import { useDarkMode } from "../../context/DarkModeContext";
 
-const ComponentLoader = ({ height = "200px", message = "Loading...", type = "default" }) => {
+const ComponentLoader = ({
+  height = "200px",
+  message = "Loading...",
+  type = "default",
+}) => {
   const { darkMode } = useDarkMode();
 
   // Different loader styles for different components
@@ -27,14 +31,14 @@ const ComponentLoader = ({ height = "200px", message = "Loading...", type = "def
       bg: darkMode ? "bg-gray-800/70" : "bg-gray-100/50",
       textColor: darkMode ? "text-gray-400" : "text-gray-500",
       spinner: "text-primary-400",
-    }
+    },
   };
 
   const style = loaderTypes[type];
 
   return (
     <motion.div
-      className={`w-full rounded-lg ${style.bg} ${darkMode ? 'shadow-none' : 'shadow-md'} flex flex-col items-center justify-center overflow-hidden`}
+      className={`w-full rounded-lg ${style.bg} ${darkMode ? "shadow-none" : "shadow-md"} flex flex-col items-center justify-center overflow-hidden`}
       style={{ height }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -55,7 +59,7 @@ const ComponentLoader = ({ height = "200px", message = "Loading...", type = "def
 ComponentLoader.propTypes = {
   height: PropTypes.string,
   message: PropTypes.string,
-  type: PropTypes.oneOf(["default", "card", "chart", "table"])
+  type: PropTypes.oneOf(["default", "card", "chart", "table"]),
 };
 
 export default ComponentLoader;

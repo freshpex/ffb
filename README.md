@@ -7,6 +7,7 @@ Fidelity First Brokers (FFB) is a comprehensive financial platform that provides
 ## Key Features
 
 ### Public-facing Pages
+
 - **Landing Page**: Modern, responsive design showcasing company services, statistics, and trust indicators
 - **About Page**: Company history, values, and mission statements
 - **Service Pages**: Detailed information about offered financial services
@@ -14,6 +15,7 @@ Fidelity First Brokers (FFB) is a comprehensive financial platform that provides
 - **Pricing Page**: Transparent pricing and fee structure
 
 ### Authentication
+
 - Firebase-based authentication system
 - Email/password login with validation
 - Google login integration
@@ -21,6 +23,7 @@ Fidelity First Brokers (FFB) is a comprehensive financial platform that provides
 - Registration flow with verification
 
 ### User Dashboard
+
 - **Dashboard Overview**: Account summary, financial highlights, and quick actions
 - **Deposit/Withdrawal System**: Multiple payment method support
 - **Transaction History**: Detailed transaction logs
@@ -32,6 +35,7 @@ Fidelity First Brokers (FFB) is a comprehensive financial platform that provides
 - **Account Settings**: Profile, security, and payment methods management
 
 ### Admin Dashboard
+
 - **Admin Analytics**: Comprehensive statistics and data visualizations
 - **User Management**: User account oversight and modification
 - **Transaction Management**: Processing and tracking of financial transactions
@@ -85,10 +89,12 @@ ffbFrontend/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - npm or yarn package manager
 
 ### Installation
+
 1. Clone the repository
 2. Install dependencies:
    ```
@@ -101,31 +107,38 @@ ffbFrontend/
    ```
 
 ### Building for Production
+
 ```
 npm run build
 ```
 
 ### Deployment
+
 The application is configured for deployment on Vercel and Firebase Hosting.
 
 ## Features In Detail
 
 ### Dark/Light Mode
+
 The application supports both dark and light themes, respecting user preferences while providing a comfortable viewing experience in any lighting condition.
 
 ### Responsive Design
+
 All components are fully responsive, providing an optimal experience on devices of all sizes from mobile to desktop.
 
 ### Real-time Data
+
 Integration with WebSockets and external API services provides real-time market data, transaction updates, and notifications.
 
 ### Security Features
+
 - JWT-based authentication flow
 - Protected routes for authenticated areas
 - User permission levels
 - Secure API communication
 
 ### Performance Optimization
+
 - Code splitting and lazy loading
 - Caching strategies
 - Optimized image loading
@@ -134,6 +147,7 @@ Integration with WebSockets and external API services provides real-time market 
 ## Backend Integration
 
 This frontend application communicates with a Node.js/Express backend server that provides:
+
 - RESTful API endpoints
 - Database connectivity
 - Business logic processing

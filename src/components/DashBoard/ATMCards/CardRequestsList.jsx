@@ -1,13 +1,19 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
-import { FaCreditCard, FaInfoCircle, FaCheck, FaTimes, FaClock } from 'react-icons/fa';
-import { selectCardsStatus } from '../../../redux/slices/atmCardsSlice';
-import Loader from '../../common/Loader';
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import PropTypes from "prop-types";
+import {
+  FaCreditCard,
+  FaInfoCircle,
+  FaCheck,
+  FaTimes,
+  FaClock,
+} from "react-icons/fa";
+import { selectCardsStatus } from "../../../redux/slices/atmCardsSlice";
+import Loader from "../../common/Loader";
 
 const CardRequestsList = ({ requests = [], onRequestAction }) => {
   const status = useSelector(selectCardsStatus);
-  
+
   // Local state for tracking expanded cards
   const [expandedCard, setExpandedCard] = useState(null);
 
@@ -18,25 +24,25 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
   // Function to render status badge with appropriate color and icon
   const renderStatusBadge = (status) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return (
           <div className="px-3 py-1 rounded-full bg-yellow-900/40 text-yellow-400 flex items-center text-sm">
             <FaClock className="mr-1" /> Pending
           </div>
         );
-      case 'approved':
+      case "approved":
         return (
           <div className="px-3 py-1 rounded-full bg-green-900/40 text-green-400 flex items-center text-sm">
             <FaCheck className="mr-1" /> Approved
           </div>
         );
-      case 'rejected':
+      case "rejected":
         return (
           <div className="px-3 py-1 rounded-full bg-red-900/40 text-red-400 flex items-center text-sm">
             <FaTimes className="mr-1" /> Rejected
           </div>
         );
-      case 'cancelled':
+      case "cancelled":
         return (
           <div className="px-3 py-1 rounded-full bg-gray-900/40 text-gray-400 flex items-center text-sm">
             <FaTimes className="mr-1" /> Cancelled
@@ -53,23 +59,27 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric'
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }).format(date);
   };
 
   const formatCardType = (type) => {
     switch (type) {
-      case 'virtual-debit': return 'Virtual Debit Card';
-      case 'standard-debit': return 'Standard Debit Card';
-      case 'premium-debit': return 'Premium Debit Card';
-      default: return type;
+      case "virtual-debit":
+        return "Virtual Debit Card";
+      case "standard-debit":
+        return "Standard Debit Card";
+      case "premium-debit":
+        return "Premium Debit Card";
+      default:
+        return type;
     }
   };
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="flex justify-center py-8">
         <Loader size="md" />
@@ -83,7 +93,9 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
         <div className="w-16 h-16 mx-auto bg-gray-700 rounded-full flex items-center justify-center mb-4">
           <FaCreditCard className="text-gray-500" size={24} />
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No Card Requests</h3>
+        <h3 className="text-lg font-medium text-white mb-2">
+          No Card Requests
+        </h3>
         <p className="text-gray-400">You haven't requested any cards yet.</p>
       </div>
     );
@@ -92,22 +104,24 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
   return (
     <div className="space-y-4">
       {requests.map((card) => (
-        <div 
-          key={card.id} 
+        <div
+          key={card.id}
           className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 transition-all duration-200"
         >
-          <div 
+          <div
             className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-700/50"
             onClick={() => toggleCardExpanded(card.id)}
           >
             <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
-                card.type === 'virtual-debit' 
-                  ? 'bg-gray-700 text-gray-400' 
-                  : card.type === 'standard-debit'
-                    ? 'bg-blue-900/40 text-blue-400'
-                    : 'bg-yellow-900/40 text-yellow-400'
-              }`}>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                  card.type === "virtual-debit"
+                    ? "bg-gray-700 text-gray-400"
+                    : card.type === "standard-debit"
+                      ? "bg-blue-900/40 text-blue-400"
+                      : "bg-yellow-900/40 text-yellow-400"
+                }`}
+              >
                 <FaCreditCard />
               </div>
               <div>
@@ -123,7 +137,7 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
               {renderStatusBadge(card.status)}
             </div>
           </div>
-          
+
           {expandedCard === card.id && (
             <div className="border-t border-gray-700 p-4 bg-gray-700/20">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -133,29 +147,37 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
                 </div>
                 <div>
                   <h4 className="text-sm text-gray-400 mb-1">Currency</h4>
-                  <p className="text-white">{card.currency || 'USD'}</p>
+                  <p className="text-white">{card.currency || "USD"}</p>
                 </div>
-                
+
                 {card.shippingAddress && (
                   <div className="col-span-1 md:col-span-2">
-                    <h4 className="text-sm text-gray-400 mb-1">Shipping Address</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Shipping Address
+                    </h4>
                     <p className="text-white">
-                      {card.shippingAddress.street}, {card.shippingAddress.city}, {card.shippingAddress.country}
+                      {card.shippingAddress.street}, {card.shippingAddress.city}
+                      , {card.shippingAddress.country}
                     </p>
                   </div>
                 )}
-                
-                {card.status === 'rejected' && card.rejectionReason && (
+
+                {card.status === "rejected" && card.rejectionReason && (
                   <div className="col-span-1 md:col-span-2">
-                    <h4 className="text-sm text-gray-400 mb-1">Rejection Reason</h4>
+                    <h4 className="text-sm text-gray-400 mb-1">
+                      Rejection Reason
+                    </h4>
                     <p className="text-red-400">{card.rejectionReason}</p>
                   </div>
                 )}
-                
-                {card.status === 'pending' && (
+
+                {card.status === "pending" && (
                   <div className="col-span-1 md:col-span-2 mt-2 text-sm text-gray-400 flex items-start">
                     <FaInfoCircle className="mr-2 mt-0.5 text-primary-400" />
-                    <p>Your request is being reviewed. This usually takes 1-2 business days.</p>
+                    <p>
+                      Your request is being reviewed. This usually takes 1-2
+                      business days.
+                    </p>
                   </div>
                 )}
               </div>
@@ -169,7 +191,7 @@ const CardRequestsList = ({ requests = [], onRequestAction }) => {
 
 CardRequestsList.propTypes = {
   requests: PropTypes.array,
-  onRequestAction: PropTypes.func
+  onRequestAction: PropTypes.func,
 };
 
 export default CardRequestsList;

@@ -1,22 +1,23 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   sidebarOpen: true,
-  theme: 'dark',
+  theme: "dark",
   previousPaths: [],
   notifications: [],
   unreadCount: 0,
   globalError: null,
-  currentTheme: 'dark',
-  isMobile: false
+  currentTheme: "dark",
+  isMobile: false,
 };
 
 const layoutSlice = createSlice({
-  name: 'layout',
+  name: "layout",
   initialState,
   reducers: {
     toggleSidebar: (state, action) => {
-      state.sidebarOpen = action.payload !== undefined ? action.payload : !state.sidebarOpen;
+      state.sidebarOpen =
+        action.payload !== undefined ? action.payload : !state.sidebarOpen;
     },
     setSidebarOpen: (state, action) => {
       state.sidebarOpen = action.payload;
@@ -26,28 +27,32 @@ const layoutSlice = createSlice({
         id: Date.now().toString(),
         read: false,
         ...action.payload,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       state.unreadCount += 1;
     },
     markNotificationAsRead: (state, action) => {
-      const notification = state.notifications.find(n => n.id === action.payload);
+      const notification = state.notifications.find(
+        (n) => n.id === action.payload,
+      );
       if (notification && !notification.read) {
         notification.read = true;
         state.unreadCount = Math.max(0, state.unreadCount - 1);
       }
     },
     markAllNotificationsAsRead: (state) => {
-      state.notifications.forEach(notification => {
+      state.notifications.forEach((notification) => {
         notification.read = true;
       });
       state.unreadCount = 0;
     },
     toggleTheme: (state) => {
-      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      state.theme = state.theme === "dark" ? "light" : "dark";
     },
     removeNotification: (state, action) => {
-      const index = state.notifications.findIndex(n => n.id === action.payload);
+      const index = state.notifications.findIndex(
+        (n) => n.id === action.payload,
+      );
       if (index !== -1) {
         const wasUnread = !state.notifications[index].read;
         state.notifications.splice(index, 1);
@@ -77,15 +82,15 @@ const layoutSlice = createSlice({
       if (state.previousPaths.length > 5) {
         state.previousPaths.shift();
       }
-    }
-  }
+    },
+  },
 });
 
 // Extract actions
-export const { 
-  toggleSidebar, 
-  setSidebarOpen, 
-  addNotification, 
+export const {
+  toggleSidebar,
+  setSidebarOpen,
+  addNotification,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   removeNotification,
@@ -94,8 +99,8 @@ export const {
   clearGlobalError,
   setTheme,
   setIsMobile,
-  toggleTheme, 
-  addPreviousPath
+  toggleTheme,
+  addPreviousPath,
 } = layoutSlice.actions;
 
 // Selectors

@@ -46,21 +46,25 @@ The application follows a modern React architecture with the following key chara
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone [repository-url]
    cd ffbFrontend
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Set up environment variables:
+
    - Create a `.env` file in the root directory based on `.env.example`
    - Fill in the required API keys and service configurations
 
 4. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -250,6 +254,7 @@ The project uses Tailwind CSS for styling with the following customizations:
 ### Dark Mode
 
 The application supports both light and dark themes:
+
 - Toggled via the DarkModeContext
 - Persisted in local storage
 - Respects user's system preferences
@@ -287,6 +292,7 @@ The application supports both light and dark themes:
 ### Commit Conventions
 
 We follow the Conventional Commits specification:
+
 - `feat`: New features
 - `fix`: Bug fixes
 - `docs`: Documentation changes
@@ -366,7 +372,8 @@ firebase deploy
 ### API Connection Issues
 
 **Problem**: API requests fail with network errors.
-**Solution**: 
+**Solution**:
+
 1. Verify the API base URL in the `.env` file
 2. Check if the backend server is running
 3. Verify CORS settings on the backend
@@ -374,7 +381,8 @@ firebase deploy
 ### Performance Issues
 
 **Problem**: Dashboard loads slowly on initial load.
-**Solution**: 
+**Solution**:
+
 1. Use the React DevTools profiler to identify slow components
 2. Implement memoization for expensive computations
 3. Consider implementing virtualization for long lists

@@ -1,17 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Card, Row, Col, InputGroup, Alert, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import tradingService from '../../services/tradingService';
-import api from '../../services/api';
-import { formatCurrency } from '../../utils/formatters';
+import React, { useState, useEffect } from "react";
+import {
+  Form,
+  Button,
+  Card,
+  Row,
+  Col,
+  InputGroup,
+  Alert,
+  Spinner,
+} from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import tradingService from "../../services/tradingService";
+import api from "../../services/api";
+import { formatCurrency } from "../../utils/formatters";
 
-const TradeForm = ({ symbol, initialSide = 'buy' }) => {
+const TradeForm = ({ symbol, initialSide = "buy" }) => {
   const navigate = useNavigate();
   const [side, setSide] = useState(initialSide);
-  const [orderType, setOrderType] = useState('market');
-  const [quantity, setQuantity] = useState('');
-  const [price, setPrice] = useState('');
-  const [stopPrice, setStopPrice] = useState('');
+  const [orderType, setOrderType] = useState("market");
+  const [quantity, setQuantity] = useState("");
+  const [price, setPrice] = useState("");
+  const [stopPrice, setStopPrice] = useState("");
   const [currentPrice, setCurrentPrice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [placing, setPlacing] = useState(false);
@@ -20,7 +29,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
   const [orderPreview, setOrderPreview] = useState({
     subtotal: 0,
     fees: 0,
-    total: 0
+    total: 0,
   });
   const [priceRefreshTimer, setPriceRefreshTimer] = useState(30);
 
@@ -28,19 +37,19 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
   useEffect(() => {
     const fetchPrice = async () => {
       if (!symbol) return;
-      
+
       try {
         setLoading(true);
         const { data } = await api.get(`/api/market/price`, {
-          params: { symbol }
+          params: { symbol },
         });
-        
+
         setCurrentPrice(data.price);
         setPrice(data.price);
         setError(null);
       } catch (err) {
-        console.error('Error fetching price:', err);
-        setError('Could not load price information.');
+        console.error("Error fetching price:", err);
+        setError("Could not load price information.");
       } finally {
         setLoading(false);
       }
@@ -48,10 +57,10 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
 
     const fetchBalance = async () => {
       try {
-        const { data } = await api.get('/api/users/profile');
+        const { data } = await api.get("/api/users/profile");
         setBalance(data.balance || 0);
       } catch (err) {
-        console.error('Error fetching balance:', err);
+        console.error("Error fetching balance:", err);
       }
     };
 
@@ -60,7 +69,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
 
     // Set up price refresh timer
     const timer = setInterval(() => {
-      setPriceRefreshTimer(prev => {
+      setPriceRefreshTimer((prev) => {
         if (prev <= 1) {
           fetchPrice();
           return 30;
@@ -81,7 +90,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
 
     const numericQuantity = parseFloat(quantity);
     const numericPrice = parseFloat(price);
-    
+
     if (isNaN(numericQuantity) || isNaN(numericPrice)) {
       setOrderPreview({ subtotal: 0, fees: 0, total: 0 });
       return;
@@ -89,7 +98,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
 
     const subtotal = numericQuantity * numericPrice;
     const fees = subtotal * 0.001; // Assuming 0.1% trading fee
-    const total = subtotal + (side === 'buy' ? fees : 0);
+    const total = subtotal + (side === "buy" ? fees : 0);
 
     setOrderPreview({ subtotal, fees, total });
   }, [quantity, price, side]);
@@ -97,19 +106,22 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
   // Handle order submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!quantity || parseFloat(quantity) <= 0) {
-      setError('Please enter a valid quantity.');
+      setError("Please enter a valid quantity.");
       return;
     }
 
-    if (orderType !== 'market' && (!price || parseFloat(price) <= 0)) {
-      setError('Please enter a valid price.');
+    if (orderType !== "market" && (!price || parseFloat(price) <= 0)) {
+      setError("Please enter a valid price.");
       return;
     }
 
-    if (['stop', 'stop_limit'].includes(orderType) && (!stopPrice || parseFloat(stopPrice) <= 0)) {
-      setError('Please enter a valid stop price.');
+    if (
+      ["stop", "stop_limit"].includes(orderType) &&
+      (!stopPrice || parseFloat(stopPrice) <= 0)
+    ) {
+      setError("Please enter a valid stop price.");
       return;
     }
 
@@ -117,29 +129,32 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
       symbol,
       side,
       type: orderType,
-      quantity: parseFloat(quantity)
+      quantity: parseFloat(quantity),
     };
 
-    if (orderType !== 'market') {
+    if (orderType !== "market") {
       orderData.price = parseFloat(price);
     }
 
-    if (['stop', 'stop_limit'].includes(orderType)) {
+    if (["stop", "stop_limit"].includes(orderType)) {
       orderData.stopPrice = parseFloat(stopPrice);
     }
 
     try {
       setPlacing(true);
       setError(null);
-      
+
       const response = await tradingService.placeOrder(orderData);
-      
+
       // Show success and redirect to orders page
       alert(`Order placed successfully! Order ID: ${response.order._id}`);
-      navigate('/trading/orders');
+      navigate("/trading/orders");
     } catch (error) {
-      console.error('Error placing order:', error);
-      setError(error.response?.data?.message || 'Failed to place order. Please try again.');
+      console.error("Error placing order:", error);
+      setError(
+        error.response?.data?.message ||
+          "Failed to place order. Please try again.",
+      );
     } finally {
       setPlacing(false);
     }
@@ -147,9 +162,9 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
 
   // Reset form on symbol change
   useEffect(() => {
-    setQuantity('');
-    setPrice('');
-    setStopPrice('');
+    setQuantity("");
+    setPrice("");
+    setStopPrice("");
     setOrderPreview({ subtotal: 0, fees: 0, total: 0 });
   }, [symbol]);
 
@@ -164,7 +179,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
   return (
     <Card>
       <Card.Header>
-        <h5 className="mb-0">Place {side === 'buy' ? 'Buy' : 'Sell'} Order</h5>
+        <h5 className="mb-0">Place {side === "buy" ? "Buy" : "Sell"} Order</h5>
       </Card.Header>
       <Card.Body>
         {error && (
@@ -179,8 +194,10 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
             <h5 className="mb-0">
               {loading ? (
                 <Spinner animation="border" size="sm" />
+              ) : currentPrice ? (
+                formatCurrency(currentPrice)
               ) : (
-                currentPrice ? formatCurrency(currentPrice) : '-'
+                "-"
               )}
               <small className="text-muted ms-2">
                 (Refreshes in {priceRefreshTimer}s)
@@ -198,17 +215,17 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
             <Col>
               <div className="d-flex border rounded">
                 <Button
-                  variant={side === 'buy' ? 'success' : 'outline-success'}
+                  variant={side === "buy" ? "success" : "outline-success"}
                   className="flex-grow-1 rounded-0 rounded-start"
-                  onClick={() => setSide('buy')}
+                  onClick={() => setSide("buy")}
                   type="button"
                 >
                   BUY
                 </Button>
                 <Button
-                  variant={side === 'sell' ? 'danger' : 'outline-danger'}
+                  variant={side === "sell" ? "danger" : "outline-danger"}
                   className="flex-grow-1 rounded-0 rounded-end"
-                  onClick={() => setSide('sell')}
+                  onClick={() => setSide("sell")}
                   type="button"
                 >
                   SELL
@@ -231,9 +248,11 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
             </Form.Select>
           </Form.Group>
 
-          {orderType !== 'market' && (
+          {orderType !== "market" && (
             <Form.Group className="mb-3">
-              <Form.Label>Price ({orderType === 'stop' ? 'Triggered at' : 'Limit'})</Form.Label>
+              <Form.Label>
+                Price ({orderType === "stop" ? "Triggered at" : "Limit"})
+              </Form.Label>
               <InputGroup>
                 <InputGroup.Text>$</InputGroup.Text>
                 <Form.Control
@@ -249,7 +268,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
             </Form.Group>
           )}
 
-          {['stop', 'stop_limit'].includes(orderType) && (
+          {["stop", "stop_limit"].includes(orderType) && (
             <Form.Group className="mb-3">
               <Form.Label>Stop Price</Form.Label>
               <InputGroup>
@@ -280,7 +299,7 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
             />
           </Form.Group>
 
-          {side === 'buy' && (
+          {side === "buy" && (
             <div className="order-preview mb-3 p-3 bg-light rounded">
               <h6>Order Preview</h6>
               <div className="d-flex justify-content-between">
@@ -294,7 +313,9 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
               <hr className="my-2" />
               <div className="d-flex justify-content-between fw-bold">
                 <span>Total:</span>
-                <span className={orderPreview.total > balance ? 'text-danger' : ''}>
+                <span
+                  className={orderPreview.total > balance ? "text-danger" : ""}
+                >
                   {formatCurrency(orderPreview.total)}
                 </span>
               </div>
@@ -308,14 +329,14 @@ const TradeForm = ({ symbol, initialSide = 'buy' }) => {
 
           <div className="d-grid gap-2">
             <Button
-              variant={side === 'buy' ? 'success' : 'danger'}
+              variant={side === "buy" ? "success" : "danger"}
               type="submit"
               disabled={
                 placing ||
                 !quantity ||
-                (orderType !== 'market' && !price) ||
-                (side === 'buy' && orderPreview.total > balance) ||
-                (['stop', 'stop_limit'].includes(orderType) && !stopPrice)
+                (orderType !== "market" && !price) ||
+                (side === "buy" && orderPreview.total > balance) ||
+                (["stop", "stop_limit"].includes(orderType) && !stopPrice)
               }
             >
               {placing ? (

@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
   const location = useLocation();
   const [showLoader, setShowLoader] = useState(true);
-  
+
   // console.log("Authentication state:", { token, loading, showLoader });
 
   if (loading) {

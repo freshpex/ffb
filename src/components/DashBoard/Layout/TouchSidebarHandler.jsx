@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleSidebar } from '../../../redux/slices/layoutSlice';
+import { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleSidebar } from "../../../redux/slices/layoutSlice";
 
 const TouchSidebarHandler = ({ children }) => {
   const dispatch = useDispatch();
@@ -22,7 +22,7 @@ const TouchSidebarHandler = ({ children }) => {
       const distance = touchEndX.current - touchStartX.current;
       const isLeftSwipe = distance < -minSwipeDistance;
       const isRightSwipe = distance > minSwipeDistance;
-      
+
       if (isRightSwipe && !sidebarOpen && touchStartX.current < 50) {
         dispatch(toggleSidebar());
       } else if (isLeftSwipe && sidebarOpen) {
@@ -30,14 +30,14 @@ const TouchSidebarHandler = ({ children }) => {
       }
     };
 
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener("touchstart", handleTouchStart);
+    document.addEventListener("touchmove", handleTouchMove);
+    document.addEventListener("touchend", handleTouchEnd);
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
     };
   }, [dispatch, sidebarOpen]);
 

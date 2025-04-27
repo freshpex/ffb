@@ -1,21 +1,21 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from "react";
 
 const DarkModeContext = createContext();
 
 export const DarkModeProvider = ({ children }) => {
   const getInitialMode = () => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const savedMode = window.localStorage.getItem('darkMode');
-      if (typeof savedMode === 'string') {
-        return savedMode === 'true';
+    if (typeof window !== "undefined" && window.localStorage) {
+      const savedMode = window.localStorage.getItem("darkMode");
+      if (typeof savedMode === "string") {
+        return savedMode === "true";
       }
-      
-      const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
+
+      const userMedia = window.matchMedia("(prefers-color-scheme: dark)");
       if (userMedia.matches) {
         return true;
       }
     }
-    
+
     return true;
   };
 
@@ -23,20 +23,20 @@ export const DarkModeProvider = ({ children }) => {
 
   // Toggle dark mode
   const toggleDarkMode = () => {
-    setDarkMode(prevMode => !prevMode);
+    setDarkMode((prevMode) => !prevMode);
   };
 
   // Update the class on the html element and localStorage when darkMode changes
   useEffect(() => {
     const root = window.document.documentElement;
-    
+
     if (darkMode) {
-      root.classList.add('dark');
+      root.classList.add("dark");
     } else {
-      root.classList.remove('dark');
+      root.classList.remove("dark");
     }
-    
-    localStorage.setItem('darkMode', darkMode);
+
+    localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
   return (
@@ -50,7 +50,7 @@ export const DarkModeProvider = ({ children }) => {
 export const useDarkMode = () => {
   const context = useContext(DarkModeContext);
   if (context === undefined) {
-    throw new Error('useDarkMode must be used within a DarkModeProvider');
+    throw new Error("useDarkMode must be used within a DarkModeProvider");
   }
   return context;
 };

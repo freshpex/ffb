@@ -14,28 +14,30 @@ const Home = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
-    const darkModeEnabled = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const darkModeEnabled = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     setIsDarkMode(darkModeEnabled);
   }, []);
 
   const pageVariants = {
     initial: {
-      opacity: 0
+      opacity: 0,
     },
     in: {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: "easeInOut"
-      }
+        ease: "easeInOut",
+      },
     },
     exit: {
       opacity: 0,
       transition: {
         duration: 0.6,
-        ease: "easeInOut"
-      }
-    }
+        ease: "easeInOut",
+      },
+    },
   };
 
   return (
@@ -54,7 +56,9 @@ const Home = () => {
         <HomePageSection4 theme={isDarkMode ? "dark" : "light"} />
         <HomeFooter />
       </div>
-      <Suspense fallback={<div className="chart-loading">Loading chart...</div>}>
+      <Suspense
+        fallback={<div className="chart-loading">Loading chart...</div>}
+      >
         <TradingViewChart />
       </Suspense>
     </motion.div>

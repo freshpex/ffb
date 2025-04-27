@@ -7,11 +7,11 @@
   .btn-primary {
     @apply bg-primary text-white py-2 px-4 rounded hover:bg-amber-600 transition-colors;
   }
-  
+
   .btn-secondary {
     @apply bg-background-secondary text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors;
   }
-  
+
   .card {
     @apply bg-white rounded-lg shadow-md p-4;
   }
@@ -24,11 +24,13 @@
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-none {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* Add extra small screen breakpoint */
 @layer screens {
-  xs { min-width: 475px; }
+  xs {
+    min-width: 475px;
+  }
 }

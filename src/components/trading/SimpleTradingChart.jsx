@@ -1,23 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useEffect, useRef, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   selectHistoricalData,
   selectSelectedSymbol,
   selectSelectedTimeframe,
   setSelectedTimeframe,
   fetchHistoricalData,
-} from '../../redux/slices/tradingSlice';
-import { FaChartLine, FaChartBar, FaChartArea, FaSpinner } from 'react-icons/fa';
+} from "../../redux/slices/tradingSlice";
+import {
+  FaChartLine,
+  FaChartBar,
+  FaChartArea,
+  FaSpinner,
+} from "react-icons/fa";
 
 const TIMEFRAMES = [
-  { value: '1m', label: '1m' },
-  { value: '5m', label: '5m' },
-  { value: '15m', label: '15m' },
-  { value: '30m', label: '30m' },
-  { value: '1h', label: '1h' },
-  { value: '4h', label: '4h' },
-  { value: '1d', label: '1D' },
-  { value: '1w', label: '1W' },
+  { value: "1m", label: "1m" },
+  { value: "5m", label: "5m" },
+  { value: "15m", label: "15m" },
+  { value: "30m", label: "30m" },
+  { value: "1h", label: "1h" },
+  { value: "4h", label: "4h" },
+  { value: "1d", label: "1D" },
+  { value: "1w", label: "1W" },
 ];
 
 const SimpleTradingChart = () => {
@@ -25,9 +30,9 @@ const SimpleTradingChart = () => {
   const candlesticks = useSelector(selectHistoricalData);
   const selectedAsset = useSelector(selectSelectedSymbol);
   const timeframe = useSelector(selectSelectedTimeframe);
-  
+
   const canvasRef = useRef(null);
-  const [chartType, setChartType] = useState('candles');
+  const [chartType, setChartType] = useState("candles");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -37,40 +42,47 @@ const SimpleTradingChart = () => {
       if (selectedAsset && timeframe) {
         setLoading(true);
         setError(null);
-        
+
         try {
-          await dispatch(fetchHistoricalData({ symbol: selectedAsset, timeframe }));
+          await dispatch(
+            fetchHistoricalData({ symbol: selectedAsset, timeframe }),
+          );
           setLoading(false);
         } catch (err) {
-          setError('Failed to load chart data');
+          setError("Failed to load chart data");
           setLoading(false);
         }
       }
     };
-    
+
     fetchData();
   }, [dispatch, selectedAsset, timeframe]);
 
   // Draw a simple chart visualization on canvas
   useEffect(() => {
-    if (!canvasRef.current || !candlesticks || candlesticks.length === 0 || loading) {
+    if (
+      !canvasRef.current ||
+      !candlesticks ||
+      candlesticks.length === 0 ||
+      loading
+    ) {
       return;
     }
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     const width = canvas.width;
     const height = canvas.height;
 
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#1A202C';
+    ctx.fillStyle = "#1A202C";
     ctx.fillRect(0, 0, width, height);
 
     // Draw grid
-    ctx.strokeStyle = '#2D3748';
+    ctx.strokeStyle = "#2D3748";
     ctx.lineWidth = 0.5;
-    
+
     // Horizontal grid lines
     for (let i = 0; i < 5; i++) {
       const y = (height / 5) * i;
@@ -79,7 +91,7 @@ const SimpleTradingChart = () => {
       ctx.lineTo(width, y);
       ctx.stroke();
     }
-    
+
     // Vertical grid lines
     for (let i = 0; i < 10; i++) {
       const x = (width / 10) * i;
@@ -90,10 +102,10 @@ const SimpleTradingChart = () => {
     }
 
     // Find min and max prices for scaling
-    let minPrice = Math.min(...candlesticks.map(c => c.low));
-    let maxPrice = Math.max(...candlesticks.map(c => c.high));
+    let minPrice = Math.min(...candlesticks.map((c) => c.low));
+    let maxPrice = Math.max(...candlesticks.map((c) => c.high));
     const priceRange = maxPrice - minPrice;
-    
+
     // Add some padding
     minPrice -= priceRange * 0.05;
     maxPrice += priceRange * 0.05;
@@ -101,23 +113,27 @@ const SimpleTradingChart = () => {
     // Draw candles or chart based on chart type
     const barWidth = width / (candlesticks.length + 1);
     const spacing = 2;
-    
-    if (chartType === 'candles' || chartType === 'bars') {
+
+    if (chartType === "candles" || chartType === "bars") {
       // Draw candlestick chart
       for (let i = 0; i < candlesticks.length; i++) {
         const candle = candlesticks[i];
         const x = i * barWidth + spacing;
 
         // Scale prices to canvas height
-        const open = height - ((candle.open - minPrice) / (maxPrice - minPrice)) * height;
-        const close = height - ((candle.close - minPrice) / (maxPrice - minPrice)) * height;
-        const high = height - ((candle.high - minPrice) / (maxPrice - minPrice)) * height;
-        const low = height - ((candle.low - minPrice) / (maxPrice - minPrice)) * height;
+        const open =
+          height - ((candle.open - minPrice) / (maxPrice - minPrice)) * height;
+        const close =
+          height - ((candle.close - minPrice) / (maxPrice - minPrice)) * height;
+        const high =
+          height - ((candle.high - minPrice) / (maxPrice - minPrice)) * height;
+        const low =
+          height - ((candle.low - minPrice) / (maxPrice - minPrice)) * height;
 
         // Determine color based on price movement
         const isGreen = candle.close >= candle.open;
-        ctx.fillStyle = isGreen ? '#48BB78' : '#F56565';
-        ctx.strokeStyle = isGreen ? '#48BB78' : '#F56565';
+        ctx.fillStyle = isGreen ? "#48BB78" : "#F56565";
+        ctx.strokeStyle = isGreen ? "#48BB78" : "#F56565";
 
         // Draw wick
         ctx.beginPath();
@@ -132,56 +148,60 @@ const SimpleTradingChart = () => {
           ctx.fillRect(x, open, barWidth - spacing * 2, close - open);
         }
       }
-    } else if (chartType === 'line') {
+    } else if (chartType === "line") {
       // Draw line chart
       ctx.beginPath();
-      ctx.strokeStyle = '#4299E1';
+      ctx.strokeStyle = "#4299E1";
       ctx.lineWidth = 2;
-      
+
       for (let i = 0; i < candlesticks.length; i++) {
         const candle = candlesticks[i];
         const x = i * barWidth + barWidth / 2;
-        const y = height - ((candle.close - minPrice) / (maxPrice - minPrice)) * height;
-        
+        const y =
+          height - ((candle.close - minPrice) / (maxPrice - minPrice)) * height;
+
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
       }
-      
+
       ctx.stroke();
-    } else if (chartType === 'area') {
+    } else if (chartType === "area") {
       // Draw area chart
       ctx.beginPath();
-      ctx.strokeStyle = '#4299E1';
+      ctx.strokeStyle = "#4299E1";
       ctx.lineWidth = 2;
-      
+
       // Starting point (bottom left)
       ctx.moveTo(barWidth / 2, height);
-      
+
       // First price point
       const firstCandle = candlesticks[0];
-      const firstY = height - ((firstCandle.close - minPrice) / (maxPrice - minPrice)) * height;
+      const firstY =
+        height -
+        ((firstCandle.close - minPrice) / (maxPrice - minPrice)) * height;
       ctx.lineTo(barWidth / 2, firstY);
-      
+
       // Draw all price points
       for (let i = 1; i < candlesticks.length; i++) {
         const candle = candlesticks[i];
         const x = i * barWidth + barWidth / 2;
-        const y = height - ((candle.close - minPrice) / (maxPrice - minPrice)) * height;
+        const y =
+          height - ((candle.close - minPrice) / (maxPrice - minPrice)) * height;
         ctx.lineTo(x, y);
       }
-      
+
       // Close the path at the bottom right
       const lastX = (candlesticks.length - 1) * barWidth + barWidth / 2;
       ctx.lineTo(lastX, height);
       ctx.lineTo(barWidth / 2, height);
-      
+
       // Fill gradient
       const gradient = ctx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, 'rgba(66, 153, 225, 0.6)');
-      gradient.addColorStop(1, 'rgba(66, 153, 225, 0.1)');
+      gradient.addColorStop(0, "rgba(66, 153, 225, 0.6)");
+      gradient.addColorStop(1, "rgba(66, 153, 225, 0.1)");
       ctx.fillStyle = gradient;
       ctx.fill();
     }
@@ -199,28 +219,28 @@ const SimpleTradingChart = () => {
         {/* Chart type selection */}
         <div className="flex items-center space-x-2">
           <button
-            className={`p-2 rounded ${chartType === 'candles' ? 'bg-gray-700 text-primary-500' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setChartType('candles')}
+            className={`p-2 rounded ${chartType === "candles" ? "bg-gray-700 text-primary-500" : "text-gray-400 hover:text-white"}`}
+            onClick={() => setChartType("candles")}
             title="Candlestick"
           >
             <FaChartBar />
           </button>
           <button
-            className={`p-2 rounded ${chartType === 'line' ? 'bg-gray-700 text-primary-500' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setChartType('line')}
+            className={`p-2 rounded ${chartType === "line" ? "bg-gray-700 text-primary-500" : "text-gray-400 hover:text-white"}`}
+            onClick={() => setChartType("line")}
             title="Line"
           >
             <FaChartLine />
           </button>
           <button
-            className={`p-2 rounded ${chartType === 'area' ? 'bg-gray-700 text-primary-500' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setChartType('area')}
+            className={`p-2 rounded ${chartType === "area" ? "bg-gray-700 text-primary-500" : "text-gray-400 hover:text-white"}`}
+            onClick={() => setChartType("area")}
             title="Area"
           >
             <FaChartArea />
           </button>
         </div>
-        
+
         {/* Timeframe selection */}
         <div className="flex">
           {TIMEFRAMES.map((tf) => (
@@ -228,8 +248,8 @@ const SimpleTradingChart = () => {
               key={tf.value}
               className={`px-2 py-1 text-xs font-medium rounded ${
                 timeframe === tf.value
-                  ? 'bg-primary-500 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  ? "bg-primary-500 text-white"
+                  : "text-gray-400 hover:text-white"
               }`}
               onClick={() => handleTimeframeChange(tf.value)}
             >
@@ -238,7 +258,7 @@ const SimpleTradingChart = () => {
           ))}
         </div>
       </div>
-      
+
       {/* Chart container */}
       <div className="flex-grow relative">
         {loading && (
@@ -246,7 +266,7 @@ const SimpleTradingChart = () => {
             <FaSpinner className="animate-spin text-primary-500" size={30} />
           </div>
         )}
-        
+
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 z-10">
             <div className="bg-red-900/80 text-white px-4 py-2 rounded">
@@ -254,9 +274,9 @@ const SimpleTradingChart = () => {
             </div>
           </div>
         )}
-        
-        <canvas 
-          ref={canvasRef} 
+
+        <canvas
+          ref={canvasRef}
           className="w-full h-full"
           width={800}
           height={400}

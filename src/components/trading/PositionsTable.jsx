@@ -1,41 +1,51 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
-import { FaChevronUp, FaChevronDown, FaEllipsisV, FaSpinner } from 'react-icons/fa';
+import React, { useEffect, useState, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import PropTypes from "prop-types";
+import {
+  FaChevronUp,
+  FaChevronDown,
+  FaEllipsisV,
+  FaSpinner,
+} from "react-icons/fa";
 import {
   fetchPortfolio,
   selectPositions,
-  selectTradingStatus
-} from '../../redux/slices/tradingSlice';
+  selectTradingStatus,
+} from "../../redux/slices/tradingSlice";
 
 /**
  * Reusable component for displaying user positions/holdings
  */
-const PositionsTable = ({ 
-  variant = 'standard', // 'standard', 'compact', 'advanced'
+const PositionsTable = ({
+  variant = "standard", // 'standard', 'compact', 'advanced'
   showHeader = true,
   showActions = true,
   maxItems = null,
-  className = '',
-  onPositionClick = () => {}
+  className = "",
+  onPositionClick = () => {},
 }) => {
   const dispatch = useDispatch();
   const positions = useSelector(selectPositions);
   const status = useSelector(selectTradingStatus);
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2;
+
   // Load positions on mount
   useEffect(() => {
-    if (status.portfolio !== 'loading') {
+    if (status.portfolio !== "loading") {
       dispatch(fetchPortfolio());
     }
   }, [dispatch, status.portfolio]);
-  
+
   // Format price with correct precision based on value
   const formatPrice = (price) => {
-    if (typeof price !== 'number') return '0.00';
-    
+    if (typeof price !== "number") return "0.00";
+
     if (price >= 1000) {
-      return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return price.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     } else if (price >= 1) {
       return price.toFixed(2);
     } else if (price >= 0.01) {
@@ -44,19 +54,26 @@ const PositionsTable = ({
       return price.toFixed(8);
     }
   };
-  
+
   // Format percentage value
   const formatPercentage = (percentage) => {
-    if (typeof percentage !== 'number') return '0.00%';
-    return `${percentage >= 0 ? '+' : ''}${percentage.toFixed(2)}%`;
+    if (typeof percentage !== "number") return "0.00%";
+    return `${percentage >= 0 ? "+" : ""}${percentage.toFixed(2)}%`;
   };
-  
+
   // Get positions to display (apply maxItems limit if set)
   const displayPositions = maxItems ? positions.slice(0, maxItems) : positions;
-  
+
+  // Apply pagination
+  const totalPages = Math.ceil(positions.length / itemsPerPage);
+  const paginatedPositions = positions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
   // Check if positions are loading
-  const isLoading = status.portfolio === 'loading';
-  
+  const isLoading = status.portfolio === "loading";
+
   // Handle empty state
   if (!isLoading && (!positions || positions.length === 0)) {
     return (
@@ -67,15 +84,39 @@ const PositionsTable = ({
         <div className="flex flex-col items-center justify-center py-6 text-center">
           <div className="text-gray-400 mb-2">No positions found</div>
           <div className="text-sm text-gray-500 max-w-md">
-            When you buy assets, your positions will appear here. Start trading to build your portfolio.
+            When you buy assets, your positions will appear here. Start trading
+            to build your portfolio.
           </div>
         </div>
       </div>
     );
   }
-  
+
+  // Pagination controls
+  const Pagination = () => (
+    <div className="flex justify-center items-center mt-4 space-x-2">
+      <button
+        className="px-3 py-1 text-sm bg-gray-700 text-white rounded disabled:opacity-50"
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+      >
+        Previous
+      </button>
+      <span className="text-sm text-gray-400">
+        Page {currentPage} of {totalPages}
+      </span>
+      <button
+        className="px-3 py-1 text-sm bg-gray-700 text-white rounded disabled:opacity-50"
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+      >
+        Next
+      </button>
+    </div>
+  );
+
   // Compact variant (for dashboards, sidebars)
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
       <div className={`bg-gray-800 rounded-lg ${className}`}>
         {showHeader && (
@@ -86,23 +127,34 @@ const PositionsTable = ({
             )}
           </div>
         )}
-        
+
         {isLoading && positions.length === 0 ? (
           <div className="p-4 text-center">
-            <FaSpinner className="animate-spin text-gray-400 mx-auto" size={20} />
+            <FaSpinner
+              className="animate-spin text-gray-400 mx-auto"
+              size={20}
+            />
             <p className="text-sm text-gray-400 mt-2">Loading positions...</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-700">
-            {displayPositions.map((position) => (
-              <div 
-                key={position.symbol} 
+            {paginatedPositions.map((position) => (
+              <div
+                key={position.symbol}
                 className="p-3 hover:bg-gray-700/50 transition-colors cursor-pointer"
                 onClick={() => onPositionClick(position)}
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium text-white">{position.symbol}</span>
-                  <span className={position.pnlPercentage >= 0 ? 'text-green-400' : 'text-red-400'}>
+                  <span className="font-medium text-white">
+                    {position.symbol}
+                  </span>
+                  <span
+                    className={
+                      position.pnlPercentage >= 0
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }
+                  >
                     {formatPercentage(position.pnlPercentage)}
                   </span>
                 </div>
@@ -121,7 +173,7 @@ const PositionsTable = ({
       </div>
     );
   }
-  
+
   // Loading state
   if (isLoading && positions.length === 0) {
     return (
@@ -151,7 +203,7 @@ const PositionsTable = ({
           )}
         </div>
       )}
-      
+
       {/* Desktop view - Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-700">
@@ -183,8 +235,8 @@ const PositionsTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
-            {displayPositions.map((position) => (
-              <tr 
+            {paginatedPositions.map((position) => (
+              <tr
                 key={position.symbol}
                 className="hover:bg-gray-700/30 transition-colors cursor-pointer"
                 onClick={() => onPositionClick(position)}
@@ -192,7 +244,9 @@ const PositionsTable = ({
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="ml-2">
-                      <div className="text-sm font-medium text-white">{position.symbol}</div>
+                      <div className="text-sm font-medium text-white">
+                        {position.symbol}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -210,10 +264,16 @@ const PositionsTable = ({
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-right">
                   <div className="flex flex-col items-end">
-                    <span className={position.pnl >= 0 ? 'text-green-400' : 'text-red-400'}>
+                    <span
+                      className={
+                        position.pnl >= 0 ? "text-green-400" : "text-red-400"
+                      }
+                    >
                       ${formatPrice(Math.abs(position.pnl))}
                     </span>
-                    <span className={`text-xs ${position.pnlPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <span
+                      className={`text-xs ${position.pnlPercentage >= 0 ? "text-green-400" : "text-red-400"}`}
+                    >
                       {position.pnlPercentage >= 0 ? (
                         <FaChevronUp className="inline mr-1" size={8} />
                       ) : (
@@ -228,7 +288,7 @@ const PositionsTable = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onPositionClick(position, 'menu');
+                        onPositionClick(position, "menu");
                       }}
                       className="text-gray-400 hover:text-white p-1 focus:outline-none"
                     >
@@ -240,23 +300,28 @@ const PositionsTable = ({
             ))}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        <Pagination />
       </div>
-      
+
       {/* Mobile view - Card layout */}
       <div className="md:hidden divide-y divide-gray-700">
-        {displayPositions.map((position) => (
-          <div 
-            key={position.symbol} 
+        {paginatedPositions.map((position) => (
+          <div
+            key={position.symbol}
             className="p-4 hover:bg-gray-700/30 transition-colors cursor-pointer"
             onClick={() => onPositionClick(position)}
           >
             <div className="flex justify-between items-center mb-2">
-              <span className="font-medium text-white text-base">{position.symbol}</span>
+              <span className="font-medium text-white text-base">
+                {position.symbol}
+              </span>
               {showActions && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onPositionClick(position, 'menu');
+                    onPositionClick(position, "menu");
                   }}
                   className="text-gray-400 hover:text-white p-1 focus:outline-none"
                 >
@@ -264,36 +329,42 @@ const PositionsTable = ({
                 </button>
               )}
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2 text-sm mb-2">
               <div className="text-gray-400">Amount</div>
               <div className="text-right text-gray-300">
                 {formatPrice(position.amount)}
               </div>
-              
+
               <div className="text-gray-400">Avg Price</div>
               <div className="text-right text-gray-300">
                 ${formatPrice(position.avgPrice)}
               </div>
-              
+
               <div className="text-gray-400">Current Price</div>
               <div className="text-right text-gray-300">
                 ${formatPrice(position.currentPrice)}
               </div>
-              
+
               <div className="text-gray-400">Value</div>
               <div className="text-right font-medium text-white">
                 ${formatPrice(position.value)}
               </div>
             </div>
-            
+
             <div className="flex justify-between items-center pt-1 border-t border-gray-700/50">
               <div className="text-gray-400 text-sm">P&L</div>
               <div className="flex flex-col items-end">
-                <span className={position.pnl >= 0 ? 'text-green-400' : 'text-red-400'}>
+                <span
+                  className={
+                    position.pnl >= 0 ? "text-green-400" : "text-red-400"
+                  }
+                >
                   ${formatPrice(Math.abs(position.pnl))}
                 </span>
-                <span className={`text-xs ${position.pnlPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <span
+                  className={`text-xs ${position.pnlPercentage >= 0 ? "text-green-400" : "text-red-400"}`}
+                >
                   {position.pnlPercentage >= 0 ? (
                     <FaChevronUp className="inline mr-1" size={8} />
                   ) : (
@@ -305,18 +376,20 @@ const PositionsTable = ({
             </div>
           </div>
         ))}
+        {/* Pagination */}
+        <Pagination />
       </div>
     </div>
   );
 };
 
 PositionsTable.propTypes = {
-  variant: PropTypes.oneOf(['standard', 'compact', 'advanced']),
+  variant: PropTypes.oneOf(["standard", "compact", "advanced"]),
   showHeader: PropTypes.bool,
   showActions: PropTypes.bool,
   maxItems: PropTypes.number,
   className: PropTypes.string,
-  onPositionClick: PropTypes.func
+  onPositionClick: PropTypes.func,
 };
 
 export default PositionsTable;

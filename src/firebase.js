@@ -1,15 +1,15 @@
 // Firebase configuration for authentication
 import { initializeApp } from "firebase/app";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  updateProfile
+  updateProfile,
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -19,7 +19,7 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -38,7 +38,7 @@ auth.onAuthStateChanged(
   },
   (error) => {
     console.error("Firebase auth error:", error);
-  }
+  },
 );
 
 // Handle auth errors globally
@@ -50,7 +50,11 @@ auth.onError = (error) => {
 // Authentication functions
 export const registerWithEmailAndPassword = async (email, password) => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
     return userCredential.user;
   } catch (error) {
     console.error("Error during registration:", error);
@@ -60,7 +64,11 @@ export const registerWithEmailAndPassword = async (email, password) => {
 
 export const loginWithEmailAndPassword = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
     return userCredential.user;
   } catch (error) {
     console.error("Error during login:", error);
@@ -93,7 +101,7 @@ export const updateUserProfile = async (displayName, photoURL = null) => {
     if (user) {
       await updateProfile(user, {
         displayName,
-        photoURL
+        photoURL,
       });
       return user;
     }

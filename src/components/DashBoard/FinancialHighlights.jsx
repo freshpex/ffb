@@ -1,24 +1,24 @@
-import { useSelector } from 'react-redux';
-import { 
-  FaRegCalendarAlt, 
-  FaArrowUp, 
-  FaArrowDown, 
+import { useSelector } from "react-redux";
+import {
+  FaRegCalendarAlt,
+  FaArrowUp,
+  FaArrowDown,
   FaDollarSign,
-  FaChartLine 
-} from 'react-icons/fa';
-import { 
+  FaChartLine,
+} from "react-icons/fa";
+import {
   selectFinancialHighlights,
-  selectDashboardComponentStatus 
-} from '../../redux/slices/dashboardSlice';
-import CardLoader from '../common/CardLoader';
+  selectDashboardComponentStatus,
+} from "../../redux/slices/dashboardSlice";
+import CardLoader from "../common/CardLoader";
 
 const FinancialHighlights = () => {
   const financialData = useSelector(selectFinancialHighlights);
   const componentStatus = useSelector((state) =>
-    selectDashboardComponentStatus(state, 'financialHighlights')
+    selectDashboardComponentStatus(state, "financialHighlights"),
   );
 
-  if (componentStatus === 'loading') {
+  if (componentStatus === "loading") {
     return <CardLoader title="Financial Highlights" height="h-64" />;
   }
 
@@ -29,13 +29,15 @@ const FinancialHighlights = () => {
   return (
     <div className="bg-gray-800 rounded-lg p-6 shadow">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-100">Financial Highlights</h2>
+        <h2 className="text-xl font-semibold text-gray-100">
+          Financial Highlights
+        </h2>
         <span className="text-sm text-gray-400 flex items-center">
           <FaRegCalendarAlt className="inline mr-2" />
-          {financialData?.period || 'This Month'}
+          {financialData?.period || "This Month"}
         </span>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Transaction Totals */}
         <div className="bg-gray-700 p-4 rounded-lg">
@@ -86,17 +88,25 @@ const FinancialHighlights = () => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Profit/Loss</span>
-              <span className={`font-medium ${
-                  financialData?.profitLoss >= 0 ? 'text-green-500' : 'text-red-500'
-                }`}>
+              <span
+                className={`font-medium ${
+                  financialData?.profitLoss >= 0
+                    ? "text-green-500"
+                    : "text-red-500"
+                }`}
+              >
                 {formatCurrency(financialData?.profitLoss || 0)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Profit Percentage</span>
-              <span className={`font-medium flex items-center ${
-                  financialData?.profitPercentage >= 0 ? 'text-green-500' : 'text-red-500'
-                }`}>
+              <span
+                className={`font-medium flex items-center ${
+                  financialData?.profitPercentage >= 0
+                    ? "text-green-500"
+                    : "text-red-500"
+                }`}
+              >
                 {financialData?.profitPercentage >= 0 ? (
                   <FaArrowUp className="mr-1" />
                 ) : (

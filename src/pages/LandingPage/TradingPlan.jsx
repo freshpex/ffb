@@ -8,12 +8,13 @@ const TradingPlan = () => {
   const { darkMode } = useDarkMode();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, amount: 0.3 });
-  
+
   const plans = [
     {
       id: "basic",
       name: "Basic Plan",
-      description: "Perfect for beginners looking to start their investment journey",
+      description:
+        "Perfect for beginners looking to start their investment journey",
       price: "$0",
       period: "Free forever",
       features: [
@@ -21,20 +22,21 @@ const TradingPlan = () => {
         "Standard trading platform",
         "Email support",
         "Market news & updates",
-        "Up to 5 simultaneous trades"
+        "Up to 5 simultaneous trades",
       ],
       limitations: [
         "Limited portfolio diversification",
         "No advanced analytics",
-        "No personal advisor"
+        "No personal advisor",
       ],
       buttonText: "Get Started Free",
-      popular: false
+      popular: false,
     },
     {
       id: "standard",
       name: "Standard Plan",
-      description: "Ideal for active traders seeking enhanced tools and features",
+      description:
+        "Ideal for active traders seeking enhanced tools and features",
       price: "$29",
       period: "per month",
       features: [
@@ -44,16 +46,17 @@ const TradingPlan = () => {
         "Real-time market alerts",
         "Up to 20 simultaneous trades",
         "Portfolio optimization tools",
-        "Trading signals"
+        "Trading signals",
       ],
       limitations: [],
       buttonText: "Choose Standard",
-      popular: true
+      popular: true,
     },
     {
       id: "premium",
       name: "Premium Plan",
-      description: "Comprehensive solution for serious investors and professionals",
+      description:
+        "Comprehensive solution for serious investors and professionals",
       price: "$99",
       period: "per month",
       features: [
@@ -64,23 +67,26 @@ const TradingPlan = () => {
         "Unlimited simultaneous trades",
         "Advanced risk management",
         "Exclusive investment opportunities",
-        "Priority execution"
+        "Priority execution",
       ],
       limitations: [],
       buttonText: "Choose Premium",
-      popular: false
-    }
+      popular: false,
+    },
   ];
 
   return (
-    <section className={`py-20 px-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`} ref={ref}>
+    <section
+      className={`py-20 px-4 ${darkMode ? "bg-gray-900" : "bg-white"}`}
+      ref={ref}
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
-            className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}
+            className={`text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-4`}
           >
             Trading Plans & Pricing
           </motion.h2>
@@ -88,12 +94,13 @@ const TradingPlan = () => {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}
+            className={`${darkMode ? "text-gray-400" : "text-gray-600"} max-w-2xl mx-auto`}
           >
-            Choose the right plan for your investment needs with our transparent pricing and feature-rich offerings.
+            Choose the right plan for your investment needs with our transparent
+            pricing and feature-rich offerings.
           </motion.p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
             <motion.div
@@ -105,10 +112,10 @@ const TradingPlan = () => {
                 plan.popular
                   ? `border-2 border-primary-500 shadow-lg ${
                       darkMode
-                        ? 'shadow-primary-500/10 relative z-10 bg-gray-800'
-                        : 'bg-gray-100 hover:bg-gray-100 text-gray-700'
+                        ? "shadow-primary-500/10 relative z-10 bg-gray-800"
+                        : "bg-gray-100 hover:bg-gray-100 text-gray-700"
                     }`
-                  : `border ${darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white'}`
+                  : `border ${darkMode ? "border-gray-700 bg-gray-800/50" : "border-gray-200 bg-white"}`
               } transition-all duration-300 overflow-hidden`}
             >
               {plan.popular && (
@@ -116,44 +123,64 @@ const TradingPlan = () => {
                   Most Popular
                 </div>
               )}
-              
+
               <div className="p-6">
-                <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                <h3
+                  className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-2`}
+                >
                   {plan.name}
                 </h3>
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 h-12`}>
+                <p
+                  className={`${darkMode ? "text-gray-400" : "text-gray-600"} mb-4 h-12`}
+                >
                   {plan.description}
                 </p>
-                
+
                 <div className="mb-6">
-                  <span className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span
+                    className={`text-3xl font-bold ${darkMode ? "text-white" : "text-gray-900"}`}
+                  >
                     {plan.price}
                   </span>
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} ml-1`}>
+                  <span
+                    className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} ml-1`}
+                  >
                     {plan.period}
                   </span>
                 </div>
-                
+
                 <div className="space-y-4 mb-8">
-                  <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Includes:</p>
+                  <p
+                    className={`text-sm font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}
+                  >
+                    Includes:
+                  </p>
                   <ul className="space-y-2">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start">
                         <FaCheck className="text-green-500 mt-1 mr-2 flex-shrink-0" />
-                        <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <span
+                          className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+                        >
                           {feature}
                         </span>
                       </li>
                     ))}
                   </ul>
-                  
+
                   {plan.limitations.length > 0 && (
                     <div className="pt-2">
-                      <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Not included:</p>
+                      <p
+                        className={`text-sm font-semibold ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+                      >
+                        Not included:
+                      </p>
                       <ul className="space-y-2 mt-2">
                         {plan.limitations.map((limitation, i) => (
                           <li key={i} className="flex items-start">
-                            <span className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            <span
+                              className={`text-sm ${darkMode ? "text-gray-500" : "text-gray-500"}`}
+                            >
                               {limitation}
                             </span>
                           </li>
@@ -162,7 +189,7 @@ const TradingPlan = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <Link
                   to="/signup"
                   className={`block w-full py-3 rounded-lg text-center font-semibold transition-colors duration-300 ${
@@ -170,8 +197,8 @@ const TradingPlan = () => {
                       ? darkMode
                         ? "bg-primary-800 hover:bg-primary-700 text-white"
                         : "bg-gray-100 hover:bg-gray-100 text-gray-700"
-                      : darkMode 
-                        ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                      : darkMode
+                        ? "bg-gray-700 hover:bg-gray-600 text-white"
                         : "bg-gray-100 hover:bg-gray-200 text-gray-800"
                   }`}
                 >
@@ -181,11 +208,17 @@ const TradingPlan = () => {
             </motion.div>
           ))}
         </div>
-        
-        <div className={`mt-12 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+
+        <div
+          className={`mt-12 text-center ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+        >
           <p>
-            All plans include our core trading platform and educational resources. 
-            <Link to="/pricing" className="text-primary-500 hover:text-primary-600 ml-1">
+            All plans include our core trading platform and educational
+            resources.
+            <Link
+              to="/pricing"
+              className="text-primary-500 hover:text-primary-600 ml-1"
+            >
               View full plan comparison
             </Link>
           </p>

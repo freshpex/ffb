@@ -1,16 +1,16 @@
-import { useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
+import { useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 
 // A simple wrapper around the TradingView Advanced Chart widget
 const TradingViewWidget = ({ symbol }) => {
   const container = useRef();
-  
-  const safeSymbol = symbol || 'BTC/USD';
+
+  const safeSymbol = symbol || "BTC/USD";
 
   useEffect(() => {
     // Clear previous widget if it exists
     if (container.current) {
-      container.current.innerHTML = '';
+      container.current.innerHTML = "";
     }
 
     // Create the script element for TradingView widget
@@ -18,9 +18,9 @@ const TradingViewWidget = ({ symbol }) => {
     script.src = "https://s3.tradingview.com/tv.js";
     script.async = true;
     script.onload = () => {
-      if (typeof TradingView !== 'undefined' && container.current) {
-        const formattedSymbol = safeSymbol.replace('/', '');
-        
+      if (typeof TradingView !== "undefined" && container.current) {
+        const formattedSymbol = safeSymbol.replace("/", "");
+
         // eslint-disable-next-line no-new
         new window.TradingView.widget({
           autosize: true,
@@ -46,16 +46,16 @@ const TradingViewWidget = ({ symbol }) => {
     return () => {
       // Cleanup
       if (container.current) {
-        container.current.innerHTML = '';
+        container.current.innerHTML = "";
       }
     };
   }, [safeSymbol]);
 
   return (
     <div className="w-full h-full bg-gray-800">
-      <div 
-        id={`tradingview_widget_${Math.floor(Math.random() * 1000000)}`} 
-        ref={container} 
+      <div
+        id={`tradingview_widget_${Math.floor(Math.random() * 1000000)}`}
+        ref={container}
         className="h-full"
       />
     </div>
@@ -63,7 +63,7 @@ const TradingViewWidget = ({ symbol }) => {
 };
 
 TradingViewWidget.propTypes = {
-  symbol: PropTypes.string.isRequired
+  symbol: PropTypes.string.isRequired,
 };
 
 export default TradingViewWidget;

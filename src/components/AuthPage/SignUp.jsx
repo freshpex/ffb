@@ -19,7 +19,7 @@ import {
   FaIdCard,
   FaBirthdayCake,
   FaUserTie,
-  FaAddressBook
+  FaAddressBook,
 } from "react-icons/fa";
 import Button from "../common/Button";
 import PasswordStrengthMeter from "../common/PasswordStrengthMeter";
@@ -42,7 +42,7 @@ const SignUp = () => {
     postalCode: "",
     taxId: "",
     howDidYouHearAboutUs: "",
-    experienceLevel: "beginner"
+    experienceLevel: "beginner",
   });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -58,21 +58,21 @@ const SignUp = () => {
 
   const countries = countryList.getData().map((country) => ({
     value: country.code,
-    label: country.name
+    label: country.name,
   }));
 
   const accountTypes = [
     { value: "individual", label: "Individual Investor" },
     { value: "corporate", label: "Corporate Entity" },
     { value: "joint", label: "Joint Account" },
-    { value: "retirement", label: "Retirement Account" }
+    { value: "retirement", label: "Retirement Account" },
   ];
 
   const experienceLevels = [
     { value: "beginner", label: "Beginner - New to investing" },
     { value: "intermediate", label: "Intermediate - Some experience" },
     { value: "advanced", label: "Advanced - Experienced investor" },
-    { value: "professional", label: "Professional - Industry professional" }
+    { value: "professional", label: "Professional - Industry professional" },
   ];
 
   const referralSources = [
@@ -81,7 +81,7 @@ const SignUp = () => {
     { value: "friend", label: "Friend or Family" },
     { value: "advertisement", label: "Advertisement" },
     { value: "news", label: "News Article" },
-    { value: "other", label: "Other" }
+    { value: "other", label: "Other" },
   ];
 
   const handleChange = (e) => {
@@ -114,7 +114,11 @@ const SignUp = () => {
       return;
     }
 
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
+    if (
+      !formData.firstName.trim() ||
+      !formData.lastName.trim() ||
+      !formData.email.trim()
+    ) {
       setError("First name, last name, and email are required");
       return;
     }
@@ -130,7 +134,7 @@ const SignUp = () => {
         postalCode: formData.postalCode,
         taxId: formData.taxId,
         howDidYouHearAboutUs: formData.howDidYouHearAboutUs,
-        experienceLevel: formData.experienceLevel
+        experienceLevel: formData.experienceLevel,
       };
 
       await createUser(
@@ -142,18 +146,22 @@ const SignUp = () => {
         formData.accountType,
         formData.country,
         formData.referralCode,
-        additionalInfo
+        additionalInfo,
       );
 
-      setSuccessMessage("Account created successfully! Redirecting to dashboard...");
-      
+      setSuccessMessage(
+        "Account created successfully! Redirecting to dashboard...",
+      );
+
       // Wait for token and user data to be set
       setTimeout(() => {
-        const token = localStorage.getItem('ffb_auth_token');
+        const token = localStorage.getItem("ffb_auth_token");
         if (token) {
           navigate("/login/dashboardpage");
         } else {
-          setError("Registration successful but token could not be created. Please try logging in.");
+          setError(
+            "Registration successful but token could not be created. Please try logging in.",
+          );
           setTimeout(() => navigate("/login"), 2000);
         }
       }, 1000);
@@ -162,11 +170,13 @@ const SignUp = () => {
       setError(
         err.message.includes("auth/email-already-in-use")
           ? "This email is already registered. Please use a different email or try logging in."
-          : err.message.includes("Failed to register with backend") || err.message.includes("synchronize")
-          ? "Backend registration failed. Please try again later or contact support."
-          : err.message.includes("network-request-failed") || err.code === "ERR_NETWORK"
-          ? "Network connection error. Please check your internet connection."
-          : "Failed to create account. Please try again later."
+          : err.message.includes("Failed to register with backend") ||
+              err.message.includes("synchronize")
+            ? "Backend registration failed. Please try again later or contact support."
+            : err.message.includes("network-request-failed") ||
+                err.code === "ERR_NETWORK"
+              ? "Network connection error. Please check your internet connection."
+              : "Failed to create account. Please try again later.",
       );
     } finally {
       setLoading(false);
@@ -237,11 +247,16 @@ const SignUp = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <h3 className="text-white text-lg font-medium mb-4 pb-2 border-b border-gray-700">Personal Information</h3>
-              
+              <h3 className="text-white text-lg font-medium mb-4 pb-2 border-b border-gray-700">
+                Personal Information
+              </h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label htmlFor="firstName" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -260,7 +275,10 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="lastName"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -279,7 +297,10 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Email Address <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -298,7 +319,10 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="phoneNumber" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Phone Number
                   </label>
                   <div className="relative">
@@ -316,7 +340,10 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="dateOfBirth" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="dateOfBirth"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Date of Birth
                   </label>
                   <div className="relative">
@@ -330,11 +357,16 @@ const SignUp = () => {
                       className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Must be at least 18 years old</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Must be at least 18 years old
+                  </p>
                 </div>
 
                 <div>
-                  <label htmlFor="occupation" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="occupation"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Occupation
                   </label>
                   <div className="relative">
@@ -352,11 +384,16 @@ const SignUp = () => {
                 </div>
               </div>
 
-              <h3 className="text-white text-lg font-medium mt-8 mb-4 pb-2 border-b border-gray-700">Location & Account Details</h3>
+              <h3 className="text-white text-lg font-medium mt-8 mb-4 pb-2 border-b border-gray-700">
+                Location & Account Details
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label htmlFor="country" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="country"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Country
                   </label>
                   <Select
@@ -364,44 +401,52 @@ const SignUp = () => {
                     name="country"
                     options={countries}
                     onChange={(selected) =>
-                      setFormData((prev) => ({ ...prev, country: selected.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        country: selected.value,
+                      }))
                     }
                     className="text-gray-900"
                     placeholder="Select your country"
                     styles={{
                       control: (base) => ({
                         ...base,
-                        backgroundColor: '#374151',
-                        borderColor: '#4B5563',
-                        color: '#F9FAFB'
+                        backgroundColor: "#374151",
+                        borderColor: "#4B5563",
+                        color: "#F9FAFB",
                       }),
                       menu: (base) => ({
                         ...base,
-                        backgroundColor: '#374151'
+                        backgroundColor: "#374151",
                       }),
                       option: (base, state) => ({
                         ...base,
-                        backgroundColor: state.isFocused ? '#4B5563' : '#374151',
-                        color: '#F9FAFB'
+                        backgroundColor: state.isFocused
+                          ? "#4B5563"
+                          : "#374151",
+                        color: "#F9FAFB",
                       }),
                       singleValue: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       input: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       placeholder: (base) => ({
                         ...base,
-                        color: '#9CA3AF'
-                      })
+                        color: "#9CA3AF",
+                      }),
                     }}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="accountType" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="accountType"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Account Type
                   </label>
                   <Select
@@ -409,44 +454,52 @@ const SignUp = () => {
                     name="accountType"
                     options={accountTypes}
                     onChange={(selected) =>
-                      setFormData((prev) => ({ ...prev, accountType: selected.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        accountType: selected.value,
+                      }))
                     }
                     className="text-gray-900"
                     placeholder="Select account type"
                     styles={{
                       control: (base) => ({
                         ...base,
-                        backgroundColor: '#374151',
-                        borderColor: '#4B5563',
-                        color: '#F9FAFB'
+                        backgroundColor: "#374151",
+                        borderColor: "#4B5563",
+                        color: "#F9FAFB",
                       }),
                       menu: (base) => ({
                         ...base,
-                        backgroundColor: '#374151'
+                        backgroundColor: "#374151",
                       }),
                       option: (base, state) => ({
                         ...base,
-                        backgroundColor: state.isFocused ? '#4B5563' : '#374151',
-                        color: '#F9FAFB'
+                        backgroundColor: state.isFocused
+                          ? "#4B5563"
+                          : "#374151",
+                        color: "#F9FAFB",
                       }),
                       singleValue: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       input: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       placeholder: (base) => ({
                         ...base,
-                        color: '#9CA3AF'
-                      })
+                        color: "#9CA3AF",
+                      }),
                     }}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="address"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Address
                   </label>
                   <div className="relative">
@@ -465,7 +518,10 @@ const SignUp = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="city" className="block text-gray-400 text-sm font-medium mb-2">
+                    <label
+                      htmlFor="city"
+                      className="block text-gray-400 text-sm font-medium mb-2"
+                    >
                       City
                     </label>
                     <input
@@ -479,7 +535,10 @@ const SignUp = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="postalCode" className="block text-gray-400 text-sm font-medium mb-2">
+                    <label
+                      htmlFor="postalCode"
+                      className="block text-gray-400 text-sm font-medium mb-2"
+                    >
                       Postal Code
                     </label>
                     <input
@@ -495,7 +554,10 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="taxId" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="taxId"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Tax ID (Optional)
                   </label>
                   <div className="relative">
@@ -510,11 +572,16 @@ const SignUp = () => {
                       placeholder="SSN or Tax ID Number"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">For tax reporting purposes (optional)</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    For tax reporting purposes (optional)
+                  </p>
                 </div>
 
                 <div>
-                  <label htmlFor="experienceLevel" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="experienceLevel"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Trading Experience
                   </label>
                   <Select
@@ -523,33 +590,38 @@ const SignUp = () => {
                     options={experienceLevels}
                     defaultValue={experienceLevels[0]}
                     onChange={(selected) =>
-                      setFormData((prev) => ({ ...prev, experienceLevel: selected.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        experienceLevel: selected.value,
+                      }))
                     }
                     className="text-gray-900"
                     styles={{
                       control: (base) => ({
                         ...base,
-                        backgroundColor: '#374151',
-                        borderColor: '#4B5563',
-                        color: '#F9FAFB'
+                        backgroundColor: "#374151",
+                        borderColor: "#4B5563",
+                        color: "#F9FAFB",
                       }),
                       menu: (base) => ({
                         ...base,
-                        backgroundColor: '#374151'
+                        backgroundColor: "#374151",
                       }),
                       option: (base, state) => ({
                         ...base,
-                        backgroundColor: state.isFocused ? '#4B5563' : '#374151',
-                        color: '#F9FAFB'
+                        backgroundColor: state.isFocused
+                          ? "#4B5563"
+                          : "#374151",
+                        color: "#F9FAFB",
                       }),
                       singleValue: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       input: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
-                      })
+                        color: "#F9FAFB",
+                      }),
                     }}
                   />
                 </div>
@@ -557,7 +629,10 @@ const SignUp = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
                 <div>
-                  <label htmlFor="howDidYouHearAboutUs" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="howDidYouHearAboutUs"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     How did you hear about us?
                   </label>
                   <Select
@@ -565,44 +640,52 @@ const SignUp = () => {
                     name="howDidYouHearAboutUs"
                     options={referralSources}
                     onChange={(selected) =>
-                      setFormData((prev) => ({ ...prev, howDidYouHearAboutUs: selected.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        howDidYouHearAboutUs: selected.value,
+                      }))
                     }
                     className="text-gray-900"
                     placeholder="Select an option"
                     styles={{
                       control: (base) => ({
                         ...base,
-                        backgroundColor: '#374151',
-                        borderColor: '#4B5563',
-                        color: '#F9FAFB'
+                        backgroundColor: "#374151",
+                        borderColor: "#4B5563",
+                        color: "#F9FAFB",
                       }),
                       menu: (base) => ({
                         ...base,
-                        backgroundColor: '#374151'
+                        backgroundColor: "#374151",
                       }),
                       option: (base, state) => ({
                         ...base,
-                        backgroundColor: state.isFocused ? '#4B5563' : '#374151',
-                        color: '#F9FAFB'
+                        backgroundColor: state.isFocused
+                          ? "#4B5563"
+                          : "#374151",
+                        color: "#F9FAFB",
                       }),
                       singleValue: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       input: (base) => ({
                         ...base,
-                        color: '#F9FAFB'
+                        color: "#F9FAFB",
                       }),
                       placeholder: (base) => ({
                         ...base,
-                        color: '#9CA3AF'
-                      })
+                        color: "#9CA3AF",
+                      }),
                     }}
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="referralCode" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="referralCode"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Referral Code (Optional)
                   </label>
                   <input
@@ -617,11 +700,16 @@ const SignUp = () => {
                 </div>
               </div>
 
-              <h3 className="text-white text-lg font-medium mt-8 mb-4 pb-2 border-b border-gray-700">Security</h3>
+              <h3 className="text-white text-lg font-medium mt-8 mb-4 pb-2 border-b border-gray-700">
+                Security
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label htmlFor="password" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -651,7 +739,10 @@ const SignUp = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-gray-400 text-sm font-medium mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-gray-400 text-sm font-medium mb-2"
+                  >
                     Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -669,7 +760,9 @@ const SignUp = () => {
                     <button
                       type="button"
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                     >
                       {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
@@ -687,11 +780,21 @@ const SignUp = () => {
                     onChange={() => setAgreeToTerms(!agreeToTerms)}
                     required
                   />
-                  <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
-                    I agree to the <Link to="/terms" className="text-primary-400 hover:underline">Terms and Conditions</Link> <span className="text-red-500">*</span>
+                  <label
+                    htmlFor="terms"
+                    className="ml-2 block text-sm text-gray-400"
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/terms"
+                      className="text-primary-400 hover:underline"
+                    >
+                      Terms and Conditions
+                    </Link>{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     id="dataPolicy"
@@ -701,15 +804,26 @@ const SignUp = () => {
                     onChange={() => setAgreeToDataPolicy(!agreeToDataPolicy)}
                     required
                   />
-                  <label htmlFor="dataPolicy" className="ml-2 block text-sm text-gray-400">
-                    I agree to the <Link to="/privacy" className="text-primary-400 hover:underline">Data Protection Policy</Link> <span className="text-red-500">*</span>
+                  <label
+                    htmlFor="dataPolicy"
+                    className="ml-2 block text-sm text-gray-400"
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/privacy"
+                      className="text-primary-400 hover:underline"
+                    >
+                      Data Protection Policy
+                    </Link>{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                 </div>
               </div>
 
               <div className="bg-gray-700/30 p-4 rounded-lg mt-6">
                 <p className="text-sm text-gray-400">
-                  <span className="text-red-500">*</span> Indicates required fields
+                  <span className="text-red-500">*</span> Indicates required
+                  fields
                 </p>
               </div>
 
@@ -725,8 +839,11 @@ const SignUp = () => {
 
             <div className="mt-8 text-center">
               <p className="text-gray-400">
-                Already have an account? {" "}
-                <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="text-primary-400 hover:text-primary-300 font-medium transition-colors"
+                >
                   Log In
                 </Link>
               </p>
@@ -735,11 +852,11 @@ const SignUp = () => {
 
           <div className="px-8 py-4 bg-gray-900 text-center">
             <p className="text-xs text-gray-500">
-              By signing up, you agree to our {" "}
+              By signing up, you agree to our{" "}
               <Link to="/terms" className="text-primary-400 hover:underline">
                 Terms of Service
               </Link>{" "}
-              and {" "}
+              and{" "}
               <Link to="/privacy" className="text-primary-400 hover:underline">
                 Privacy Policy
               </Link>

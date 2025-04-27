@@ -9,7 +9,7 @@ import { useDarkMode } from "../../context/DarkModeContext";
 
 const PricingPage = () => {
   const { darkMode } = useDarkMode();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = "Pricing & Plans | Fidelity First Brokers";
@@ -20,8 +20,8 @@ const PricingPage = () => {
       <div className={darkMode ? "bg-gray-900" : "bg-white"}>
         <Header />
         <PricingSection1 />
-        <h1 
-          className={`text-center text-4xl md:text-5xl font-bold mt-12 mb-10 ${darkMode ? 'text-white' : 'text-gray-900'}`}
+        <h1
+          className={`text-center text-4xl md:text-5xl font-bold mt-12 mb-10 ${darkMode ? "text-white" : "text-gray-900"}`}
           data-aos="fade-up"
         >
           AFFORDABLE PACKAGES

@@ -1,49 +1,50 @@
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import {
   FaGlobeAmericas,
   FaChartLine,
   FaRegSmile,
   FaRegMeh,
-  FaRegFrown
-} from 'react-icons/fa';
+  FaRegFrown,
+} from "react-icons/fa";
 import {
   selectMarketPulse,
-  selectDashboardComponentStatus
-} from '../../redux/slices/dashboardSlice';
-import CardLoader from '../common/CardLoader';
+  selectDashboardComponentStatus,
+} from "../../redux/slices/dashboardSlice";
+import CardLoader from "../common/CardLoader";
 
 const MarketPulse = () => {
   const marketPulse = useSelector(selectMarketPulse);
-  const componentStatus = useSelector(state =>
-    selectDashboardComponentStatus(state, 'marketPulse')
+  const componentStatus = useSelector((state) =>
+    selectDashboardComponentStatus(state, "marketPulse"),
   );
 
-  if (componentStatus === 'loading') {
+  if (componentStatus === "loading") {
     return <CardLoader title="Market Pulse" height="h-48" />;
   }
 
   // Helper to get icon and color for numeric sentiment scores
   const getSentimentDisplay = (score) => {
     const sentimentValue = parseFloat(score);
-    if (isNaN(sentimentValue)) return { icon: <FaRegMeh />, color: 'text-gray-400' };
+    if (isNaN(sentimentValue))
+      return { icon: <FaRegMeh />, color: "text-gray-400" };
     if (sentimentValue >= 70) {
-      return { icon: <FaRegSmile />, color: 'text-green-500' };
+      return { icon: <FaRegSmile />, color: "text-green-500" };
     } else if (sentimentValue <= 30) {
-      return { icon: <FaRegFrown />, color: 'text-red-500' };
+      return { icon: <FaRegFrown />, color: "text-red-500" };
     } else {
-      return { icon: <FaRegMeh />, color: 'text-yellow-500' };
+      return { icon: <FaRegMeh />, color: "text-yellow-500" };
     }
   };
 
   // Helper for trend sentiment display
   const getTrendDisplay = (sentiment) => {
-    if (!sentiment) return { icon: <FaRegMeh />, color: 'text-gray-400' };
-    if (sentiment.toLowerCase() === 'bullish') {
-      return { icon: <FaRegSmile />, color: 'text-green-500' };
-    } else if (sentiment.toLowerCase() === 'bearish') {
-      return { icon: <FaRegFrown />, color: 'text-red-500' };
+    if (!sentiment) return { icon: <FaRegMeh />, color: "text-gray-400" };
+    if (sentiment.toLowerCase() === "bullish") {
+      return { icon: <FaRegSmile />, color: "text-green-500" };
+    } else if (sentiment.toLowerCase() === "bearish") {
+      return { icon: <FaRegFrown />, color: "text-red-500" };
     } else {
-      return { icon: <FaRegMeh />, color: 'text-yellow-500' };
+      return { icon: <FaRegMeh />, color: "text-yellow-500" };
     }
   };
 
@@ -65,8 +66,10 @@ const MarketPulse = () => {
             <p className="text-2xl font-semibold text-gray-100">
               {marketPulse.marketCap.total}B
             </p>
-            <p className={`mt-1 text-sm ${marketPulse.marketCap.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {marketPulse.marketCap.change >= 0 ? '+' : ''}
+            <p
+              className={`mt-1 text-sm ${marketPulse.marketCap.change >= 0 ? "text-green-500" : "text-red-500"}`}
+            >
+              {marketPulse.marketCap.change >= 0 ? "+" : ""}
               {marketPulse.marketCap.change}%
             </p>
           </div>
@@ -94,7 +97,9 @@ const MarketPulse = () => {
             </h3>
             <div className="flex items-center justify-center">
               {(() => {
-                const { icon, color } = getSentimentDisplay(marketPulse.sentiment.score);
+                const { icon, color } = getSentimentDisplay(
+                  marketPulse.sentiment.score,
+                );
                 return <div className={`text-3xl ${color}`}>{icon}</div>;
               })()}
             </div>
@@ -118,9 +123,7 @@ const MarketPulse = () => {
                 <div key={index} className="bg-gray-800 rounded-lg p-3">
                   <p className="text-gray-300 font-medium">{trend.sector}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <div className={`text-xl ${color}`}>
-                      {icon}
-                    </div>
+                    <div className={`text-xl ${color}`}>{icon}</div>
                     <p className="text-sm text-gray-100 font-medium">
                       Strength: {trend.strength}%
                     </p>

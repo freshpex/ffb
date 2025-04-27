@@ -1,16 +1,16 @@
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
-const FormInput = ({ 
-  label, 
-  type = 'text', 
-  value = '', 
-  onChange, 
-  placeholder = '', 
+const FormInput = ({
+  label,
+  type = "text",
+  value = "",
+  onChange,
+  placeholder = "",
   disabled = false,
   required = false,
   hint,
-  className = '',
-  name
+  className = "",
+  name,
 }) => {
   return (
     <div className="mb-6">
@@ -29,7 +29,7 @@ const FormInput = ({
         disabled={disabled}
         required={required}
         className={`w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100 ${
-          disabled ? 'opacity-60 cursor-not-allowed' : ''
+          disabled ? "opacity-60 cursor-not-allowed" : ""
         } ${className}`}
       />
       {hint && <p className="mt-1 text-xs text-gray-400">{hint}</p>}
@@ -47,7 +47,7 @@ FormInput.propTypes = {
   required: PropTypes.bool,
   hint: PropTypes.string,
   className: PropTypes.string,
-  name: PropTypes.string
+  name: PropTypes.string,
 };
 
 export default FormInput;

@@ -2,15 +2,15 @@ import {
   FETCH_MARKET_DATA_REQUEST,
   FETCH_MARKET_DATA_SUCCESS,
   FETCH_MARKET_DATA_FAILURE,
-  SET_CURRENT_PAIR
-} from '../actions/marketActions';
+  SET_CURRENT_PAIR,
+} from "../actions/marketActions";
 
 const initialState = {
   marketData: [],
-  currentPair: 'BTC/USDT',
+  currentPair: "BTC/USDT",
   isLoading: false,
   error: null,
-  lastUpdated: null
+  lastUpdated: null,
 };
 
 const marketReducer = (state = initialState, action) => {
@@ -19,30 +19,30 @@ const marketReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: true,
-        error: null
+        error: null,
       };
-      
+
     case FETCH_MARKET_DATA_SUCCESS:
       return {
         ...state,
         marketData: action.payload.pairs,
         isLoading: false,
-        lastUpdated: action.payload.timestamp
+        lastUpdated: action.payload.timestamp,
       };
-      
+
     case FETCH_MARKET_DATA_FAILURE:
       return {
         ...state,
         isLoading: false,
-        error: action.payload
+        error: action.payload,
       };
-      
+
     case SET_CURRENT_PAIR:
       return {
         ...state,
-        currentPair: action.payload
+        currentPair: action.payload,
       };
-      
+
     default:
       return state;
   }

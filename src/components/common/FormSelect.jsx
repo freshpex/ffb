@@ -1,16 +1,16 @@
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
-const FormSelect = ({ 
-  label, 
-  value = '', 
-  onChange, 
-  options = [], 
-  placeholder = 'Select an option',
+const FormSelect = ({
+  label,
+  value = "",
+  onChange,
+  options = [],
+  placeholder = "Select an option",
   disabled = false,
   required = false,
   hint,
-  className = '',
-  name
+  className = "",
+  name,
 }) => {
   return (
     <div className="mb-6">
@@ -27,7 +27,7 @@ const FormSelect = ({
         required={required}
         name={name}
         className={`w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100 ${
-          disabled ? 'opacity-60 cursor-not-allowed' : ''
+          disabled ? "opacity-60 cursor-not-allowed" : ""
         } ${className}`}
       >
         <option value="">{placeholder}</option>
@@ -49,15 +49,15 @@ FormSelect.propTypes = {
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired
-    })
+      label: PropTypes.string.isRequired,
+    }),
   ),
   placeholder: PropTypes.string,
   disabled: PropTypes.bool,
   required: PropTypes.bool,
   hint: PropTypes.string,
   className: PropTypes.string,
-  name: PropTypes.string
+  name: PropTypes.string,
 };
 
 export default FormSelect;

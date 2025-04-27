@@ -1,22 +1,22 @@
-import PropTypes from 'prop-types';
-import { motion } from 'framer-motion';
-import { FaCheck, FaExclamationCircle, FaInfoCircle } from 'react-icons/fa';
+import PropTypes from "prop-types";
+import { motion } from "framer-motion";
+import { FaCheck, FaExclamationCircle, FaInfoCircle } from "react-icons/fa";
 
-const Alert = ({ type = 'info', message, onDismiss }) => {
+const Alert = ({ type = "info", message, onDismiss }) => {
   if (!message) return null;
 
   const alertClasses = {
-    success: 'bg-green-900/30 text-green-400 border-green-500',
-    error: 'bg-red-900/30 text-red-400 border-red-500',
-    info: 'bg-blue-900/30 text-blue-400 border-blue-500',
-    warning: 'bg-yellow-900/30 text-yellow-400 border-yellow-500'
+    success: "bg-green-900/30 text-green-400 border-green-500",
+    error: "bg-red-900/30 text-red-400 border-red-500",
+    info: "bg-blue-900/30 text-blue-400 border-blue-500",
+    warning: "bg-yellow-900/30 text-yellow-400 border-yellow-500",
   };
 
   const icons = {
     success: <FaCheck />,
     error: <FaExclamationCircle />,
     info: <FaInfoCircle />,
-    warning: <FaExclamationCircle />
+    warning: <FaExclamationCircle />,
   };
 
   return (
@@ -42,9 +42,9 @@ const Alert = ({ type = 'info', message, onDismiss }) => {
 };
 
 Alert.propTypes = {
-  type: PropTypes.oneOf(['success', 'error', 'info', 'warning']),
+  type: PropTypes.oneOf(["success", "error", "info", "warning"]),
   message: PropTypes.string,
-  onDismiss: PropTypes.func
+  onDismiss: PropTypes.func,
 };
 
 export default Alert;

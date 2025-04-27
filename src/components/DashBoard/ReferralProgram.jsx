@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaUserPlus,
   FaUsers,
@@ -24,11 +24,11 @@ import {
   FaChevronDown,
   FaPercent,
   FaRegClock,
-  FaFileDownload
-} from 'react-icons/fa';
-import DashboardLayout from './Layout/DashboardLayout';
-import Button from '../common/Button';
-import Alert from '../common/Alert';
+  FaFileDownload,
+} from "react-icons/fa";
+import DashboardLayout from "./Layout/DashboardLayout";
+import Button from "../common/Button";
+import Alert from "../common/Alert";
 import {
   fetchReferrals,
   fetchCommissionHistory,
@@ -39,8 +39,8 @@ import {
   selectReferralCode,
   selectReferralStatistics,
   selectReferralStatus,
-  selectReferralError
-} from '../../redux/slices/referralSlice';
+  selectReferralError,
+} from "../../redux/slices/referralSlice";
 
 const ReferralProgram = () => {
   const dispatch = useDispatch();
@@ -51,23 +51,23 @@ const ReferralProgram = () => {
   const statistics = useSelector(selectReferralStatistics);
   const status = useSelector(selectReferralStatus);
   const error = useSelector(selectReferralError);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'referrals', 'commissions'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview', 'referrals', 'commissions'
   const [showStats, setShowStats] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState({ type: '', message: '' });
-  const [emailInput, setEmailInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [alertMessage, setAlertMessage] = useState({ type: "", message: "" });
+  const [emailInput, setEmailInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState("all");
   const [shareDropdown, setShareDropdown] = useState(false);
-  
+
   // Fetch data on component mount
   useEffect(() => {
     dispatch(fetchReferrals());
     dispatch(fetchCommissionHistory());
   }, [dispatch]);
-  
+
   // Hide alert after 5 seconds
   useEffect(() => {
     if (showAlert) {
@@ -77,7 +77,7 @@ const ReferralProgram = () => {
       return () => clearTimeout(timer);
     }
   }, [showAlert]);
-  
+
   // Reset copied state after 2 seconds
   useEffect(() => {
     if (copied) {
@@ -87,106 +87,106 @@ const ReferralProgram = () => {
       return () => clearTimeout(timer);
     }
   }, [copied]);
-  
+
   // Filter referrals based on search query and status filter
-  const filteredReferrals = referrals.filter(referral => {
+  const filteredReferrals = referrals.filter((referral) => {
     const matchesQuery = searchQuery
       ? referral.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         referral.email.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
-      
-    const matchesStatus = statusFilter !== 'all'
-      ? referral.status === statusFilter
-      : true;
-      
+
+    const matchesStatus =
+      statusFilter !== "all" ? referral.status === statusFilter : true;
+
     return matchesQuery && matchesStatus;
   });
-  
+
   const handleCopyReferralLink = () => {
-    navigator.clipboard.writeText(referralLink)
+    navigator.clipboard
+      .writeText(referralLink)
       .then(() => {
         setCopied(true);
       })
       .catch((err) => {
         setAlertMessage({
-          type: 'error',
-          message: 'Failed to copy link: ' + err.message
+          type: "error",
+          message: "Failed to copy link: " + err.message,
         });
         setShowAlert(true);
       });
   };
-  
+
   const handleGenerateNewLink = () => {
     dispatch(generateNewReferralLink());
     setAlertMessage({
-      type: 'success',
-      message: 'New referral link generated successfully!'
+      type: "success",
+      message: "New referral link generated successfully!",
     });
     setShowAlert(true);
   };
-  
+
   const handleSendInvite = (e) => {
     e.preventDefault();
-    
-    if (!emailInput || !emailInput.includes('@')) {
+
+    if (!emailInput || !emailInput.includes("@")) {
       setAlertMessage({
-        type: 'error',
-        message: 'Please enter a valid email address.'
+        type: "error",
+        message: "Please enter a valid email address.",
       });
       setShowAlert(true);
       return;
     }
-    
+
     // In a real app, this would make an API call to send an invitation
     // For now, just show a success message
     setAlertMessage({
-      type: 'success',
-      message: `Invitation sent to ${emailInput}`
+      type: "success",
+      message: `Invitation sent to ${emailInput}`,
     });
     setShowAlert(true);
-    setEmailInput('');
+    setEmailInput("");
   };
-  
+
   const handleShare = (platform) => {
     let shareUrl;
-    
+
     switch (platform) {
-      case 'facebook':
+      case "facebook":
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
         break;
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join me on Fidelity First Brokers and get exclusive trading benefits!')}`;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join me on Fidelity First Brokers and get exclusive trading benefits!")}`;
         break;
-      case 'whatsapp':
+      case "whatsapp":
         shareUrl = `https://wa.me/?text=${encodeURIComponent(`Join me on Fidelity First Brokers: ${referralLink}`)}`;
         break;
-      case 'linkedin':
+      case "linkedin":
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}`;
         break;
-      case 'telegram':
-        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join me on Fidelity First Brokers and get exclusive trading benefits!')}`;
+      case "telegram":
+        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join me on Fidelity First Brokers and get exclusive trading benefits!")}`;
         break;
       default:
         return;
     }
-    
-    window.open(shareUrl, '_blank', 'width=600,height=400');
+
+    window.open(shareUrl, "_blank", "width=600,height=400");
     setShareDropdown(false);
   };
-  
+
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   };
-  
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
   };
-  
+
   // Render statistics cards
   const renderStatisticsCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -198,12 +198,17 @@ const ReferralProgram = () => {
             <FaUsers size={18} />
           </div>
         </div>
-        <div className="text-2xl font-bold text-white">{statistics.totalReferrals}</div>
+        <div className="text-2xl font-bold text-white">
+          {statistics.totalReferrals}
+        </div>
         <div className="mt-2 text-sm text-gray-400">
-          <span className="text-blue-400">{statistics.activeReferrals} active</span> referrals
+          <span className="text-blue-400">
+            {statistics.activeReferrals} active
+          </span>{" "}
+          referrals
         </div>
       </div>
-      
+
       {/* Total Commission */}
       <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
         <div className="flex items-center justify-between mb-3">
@@ -212,12 +217,12 @@ const ReferralProgram = () => {
             <FaMoneyBillWave size={18} />
           </div>
         </div>
-        <div className="text-2xl font-bold text-white">{formatCurrency(statistics.totalCommission)}</div>
-        <div className="mt-2 text-sm text-gray-400">
-          Lifetime earnings
+        <div className="text-2xl font-bold text-white">
+          {formatCurrency(statistics.totalCommission)}
         </div>
+        <div className="mt-2 text-sm text-gray-400">Lifetime earnings</div>
       </div>
-      
+
       {/* Pending Commission */}
       <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
         <div className="flex items-center justify-between mb-3">
@@ -226,12 +231,12 @@ const ReferralProgram = () => {
             <FaRegClock size={18} />
           </div>
         </div>
-        <div className="text-2xl font-bold text-white">{formatCurrency(statistics.pendingCommission)}</div>
-        <div className="mt-2 text-sm text-gray-400">
-          Processing soon
+        <div className="text-2xl font-bold text-white">
+          {formatCurrency(statistics.pendingCommission)}
         </div>
+        <div className="mt-2 text-sm text-gray-400">Processing soon</div>
       </div>
-      
+
       {/* Conversion Rate */}
       <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
         <div className="flex items-center justify-between mb-3">
@@ -240,22 +245,27 @@ const ReferralProgram = () => {
             <FaPercent size={18} />
           </div>
         </div>
-        <div className="text-2xl font-bold text-white">{statistics.conversionRate}%</div>
+        <div className="text-2xl font-bold text-white">
+          {statistics.conversionRate}%
+        </div>
         <div className="mt-2 text-sm text-gray-400">
           Registration to activation
         </div>
       </div>
     </div>
   );
-  
+
   // Render referral link section
   const renderReferralLinkSection = () => (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-lg font-medium text-white mb-1">Your Referral Link</h3>
+          <h3 className="text-lg font-medium text-white mb-1">
+            Your Referral Link
+          </h3>
           <p className="text-gray-400 text-sm">
-            Share this link with friends and earn up to 10% commission on their trading activity
+            Share this link with friends and earn up to 10% commission on their
+            trading activity
           </p>
         </div>
         <Button
@@ -266,7 +276,7 @@ const ReferralProgram = () => {
           <FaRedo className="mr-2" /> Generate New Link
         </Button>
       </div>
-      
+
       <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
         <div className="flex-1 relative w-full">
           <div className="bg-gray-700 py-3 px-4 rounded-lg text-gray-300 border border-gray-600 w-full overflow-hidden overflow-ellipsis whitespace-nowrap pr-10">
@@ -280,7 +290,7 @@ const ReferralProgram = () => {
             {copied ? <FaCheck className="text-green-500" /> : <FaClipboard />}
           </button>
         </div>
-        
+
         <div className="relative">
           <Button
             onClick={() => setShareDropdown(!shareDropdown)}
@@ -289,36 +299,36 @@ const ReferralProgram = () => {
             <FaLink className="mr-2" /> Share
             <FaChevronDown className="ml-2" />
           </Button>
-          
+
           {shareDropdown && (
             <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-10">
               <div className="p-2">
                 <button
-                  onClick={() => handleShare('facebook')}
+                  onClick={() => handleShare("facebook")}
                   className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
                 >
                   <FaFacebook className="mr-3 text-blue-500" /> Facebook
                 </button>
                 <button
-                  onClick={() => handleShare('twitter')}
+                  onClick={() => handleShare("twitter")}
                   className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
                 >
                   <FaTwitter className="mr-3 text-blue-400" /> Twitter
                 </button>
                 <button
-                  onClick={() => handleShare('whatsapp')}
+                  onClick={() => handleShare("whatsapp")}
                   className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
                 >
                   <FaWhatsapp className="mr-3 text-green-500" /> WhatsApp
                 </button>
                 <button
-                  onClick={() => handleShare('linkedin')}
+                  onClick={() => handleShare("linkedin")}
                   className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
                 >
                   <FaLinkedin className="mr-3 text-blue-600" /> LinkedIn
                 </button>
                 <button
-                  onClick={() => handleShare('telegram')}
+                  onClick={() => handleShare("telegram")}
                   className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded"
                 >
                   <FaTelegram className="mr-3 text-blue-500" /> Telegram
@@ -328,7 +338,7 @@ const ReferralProgram = () => {
           )}
         </div>
       </div>
-      
+
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <div className="bg-gray-700/50 px-4 py-3 rounded-lg border border-gray-600 flex items-center">
           <div className="mr-3 text-gray-400">
@@ -339,7 +349,7 @@ const ReferralProgram = () => {
             <div className="text-white font-medium">{referralCode}</div>
           </div>
         </div>
-        
+
         <form onSubmit={handleSendInvite} className="flex-1 flex gap-3 w-full">
           <input
             type="email"
@@ -355,40 +365,51 @@ const ReferralProgram = () => {
       </div>
     </div>
   );
-  
+
   // Render referral program info
   const renderReferralInfo = () => (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-      <h3 className="text-lg font-medium text-white mb-4">How the Referral Program Works</h3>
-      
+      <h3 className="text-lg font-medium text-white mb-4">
+        How the Referral Program Works
+      </h3>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="flex flex-col items-center text-center p-4 bg-gray-700/30 rounded-lg">
           <div className="w-12 h-12 flex items-center justify-center bg-primary-500/20 rounded-full mb-3 text-primary-400">
             <FaUserPlus size={20} />
           </div>
           <h4 className="text-white font-medium mb-2">Invite Friends</h4>
-          <p className="text-gray-400 text-sm">Share your unique referral link or code with friends interested in trading.</p>
+          <p className="text-gray-400 text-sm">
+            Share your unique referral link or code with friends interested in
+            trading.
+          </p>
         </div>
-        
+
         <div className="flex flex-col items-center text-center p-4 bg-gray-700/30 rounded-lg">
           <div className="w-12 h-12 flex items-center justify-center bg-primary-500/20 rounded-full mb-3 text-primary-400">
             <FaUsers size={20} />
           </div>
           <h4 className="text-white font-medium mb-2">Friends Sign Up</h4>
-          <p className="text-gray-400 text-sm">Your friends register using your link and start trading on the platform.</p>
+          <p className="text-gray-400 text-sm">
+            Your friends register using your link and start trading on the
+            platform.
+          </p>
         </div>
-        
+
         <div className="flex flex-col items-center text-center p-4 bg-gray-700/30 rounded-lg">
           <div className="w-12 h-12 flex items-center justify-center bg-primary-500/20 rounded-full mb-3 text-primary-400">
             <FaMoneyBillWave size={20} />
           </div>
           <h4 className="text-white font-medium mb-2">Earn Commissions</h4>
-          <p className="text-gray-400 text-sm">Earn up to 10% commission on their trading fees and deposits for 12 months.</p>
+          <p className="text-gray-400 text-sm">
+            Earn up to 10% commission on their trading fees and deposits for 12
+            months.
+          </p>
         </div>
       </div>
     </div>
   );
-  
+
   // Render the referrals tab content
   const renderReferralsTab = () => (
     <div>
@@ -413,16 +434,17 @@ const ReferralProgram = () => {
                 </button>
               )}
             </div>
-            
+
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
               >
-                <FaFilter className="mr-2" /> {showFilters ? 'Hide Filters' : 'Show Filters'}
+                <FaFilter className="mr-2" />{" "}
+                {showFilters ? "Hide Filters" : "Show Filters"}
               </Button>
-              
+
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -435,19 +457,21 @@ const ReferralProgram = () => {
               </select>
             </div>
           </div>
-          
+
           <AnimatePresence>
             {showFilters && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
                 className="mt-4 pt-4 border-t border-gray-700"
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Date Range</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Date Range
+                    </label>
                     <div className="flex gap-2">
                       <input
                         type="date"
@@ -459,26 +483,30 @@ const ReferralProgram = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Sort By</label>
-                    <select
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-200"
-                    >
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Sort By
+                    </label>
+                    <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-200">
                       <option value="date-desc">Date (Newest First)</option>
                       <option value="date-asc">Date (Oldest First)</option>
-                      <option value="commission-desc">Commission (Highest First)</option>
-                      <option value="commission-asc">Commission (Lowest First)</option>
+                      <option value="commission-desc">
+                        Commission (Highest First)
+                      </option>
+                      <option value="commission-asc">
+                        Commission (Lowest First)
+                      </option>
                     </select>
                   </div>
-                  
+
                   <div className="flex items-end">
-                    <Button 
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setSearchQuery('');
-                        setStatusFilter('all');
+                        setSearchQuery("");
+                        setStatusFilter("all");
                       }}
                       fullWidth
                     >
@@ -490,21 +518,33 @@ const ReferralProgram = () => {
             )}
           </AnimatePresence>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Name / Email
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Date
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Status
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Commission
                 </th>
               </tr>
@@ -512,12 +552,19 @@ const ReferralProgram = () => {
             <tbody className="divide-y divide-gray-700 bg-gray-800">
               {filteredReferrals.length > 0 ? (
                 filteredReferrals.map((referral) => (
-                  <tr key={referral.id} className="hover:bg-gray-700/50 transition-colors">
+                  <tr
+                    key={referral.id}
+                    className="hover:bg-gray-700/50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="ml-2">
-                          <div className="text-sm font-medium text-white">{referral.name}</div>
-                          <div className="text-sm text-gray-400">{referral.email}</div>
+                          <div className="text-sm font-medium text-white">
+                            {referral.name}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            {referral.email}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -525,11 +572,18 @@ const ReferralProgram = () => {
                       {formatDate(referral.date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${referral.status === 'active' ? 'bg-green-100 text-green-800' : 
-                          referral.status === 'registered' ? 'bg-blue-100 text-blue-800' : 
-                          'bg-yellow-100 text-yellow-800'}`}>
-                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${
+                          referral.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : referral.status === "registered"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {referral.status.charAt(0).toUpperCase() +
+                          referral.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-white">
@@ -539,14 +593,17 @@ const ReferralProgram = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center text-gray-400">
+                  <td
+                    colSpan="4"
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
                     <div className="flex flex-col items-center">
                       <FaUsers className="text-4xl mb-4 text-gray-500" />
                       <p className="text-lg font-medium">No referrals found</p>
                       <p className="text-sm mt-1">
-                        {searchQuery || statusFilter !== 'all' 
-                          ? 'Try adjusting your search or filters'
-                          : 'Start sharing your referral link to invite friends'}
+                        {searchQuery || statusFilter !== "all"
+                          ? "Try adjusting your search or filters"
+                          : "Start sharing your referral link to invite friends"}
                       </p>
                     </div>
                   </td>
@@ -558,7 +615,7 @@ const ReferralProgram = () => {
       </div>
     </div>
   );
-  
+
   // Render the commissions tab content
   const renderCommissionsTab = () => (
     <div>
@@ -569,24 +626,39 @@ const ReferralProgram = () => {
             <FaFileDownload className="mr-2" /> Export
           </Button>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Referral
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Date
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Type
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Status
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
                   Amount
                 </th>
               </tr>
@@ -594,25 +666,40 @@ const ReferralProgram = () => {
             <tbody className="divide-y divide-gray-700 bg-gray-800">
               {commissionHistory.length > 0 ? (
                 commissionHistory.map((commission) => (
-                  <tr key={commission.id} className="hover:bg-gray-700/50 transition-colors">
+                  <tr
+                    key={commission.id}
+                    className="hover:bg-gray-700/50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-white">{commission.referralName}</div>
+                      <div className="text-sm font-medium text-white">
+                        {commission.referralName}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {formatDate(commission.date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                        ${commission.type === 'deposit' ? 'bg-blue-100 text-blue-800' : 
-                          commission.type === 'trading' ? 'bg-purple-100 text-purple-800' : 
-                          'bg-green-100 text-green-800'}`}>
-                        {commission.type.charAt(0).toUpperCase() + commission.type.slice(1)}
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                        ${
+                          commission.type === "deposit"
+                            ? "bg-blue-100 text-blue-800"
+                            : commission.type === "trading"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {commission.type.charAt(0).toUpperCase() +
+                          commission.type.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                        ${commission.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                        {commission.status.charAt(0).toUpperCase() + commission.status.slice(1)}
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                        ${commission.status === "paid" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
+                      >
+                        {commission.status.charAt(0).toUpperCase() +
+                          commission.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-white">
@@ -622,12 +709,18 @@ const ReferralProgram = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                  <td
+                    colSpan="5"
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
                     <div className="flex flex-col items-center">
                       <FaMoneyBillWave className="text-4xl mb-4 text-gray-500" />
-                      <p className="text-lg font-medium">No commission history</p>
+                      <p className="text-lg font-medium">
+                        No commission history
+                      </p>
                       <p className="text-sm mt-1">
-                        Commission will be recorded here when your referrals start trading
+                        Commission will be recorded here when your referrals
+                        start trading
                       </p>
                     </div>
                   </td>
@@ -639,10 +732,10 @@ const ReferralProgram = () => {
       </div>
     </div>
   );
-  
+
   return (
     <DashboardLayout>
-      <motion.div 
+      <motion.div
         className="w-full"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -652,7 +745,7 @@ const ReferralProgram = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center">
             <FaUserPlus className="mr-3 text-primary-500" /> Referral Program
           </h1>
-          
+
           <div className="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
             <button
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
@@ -686,7 +779,7 @@ const ReferralProgram = () => {
             </button>
           </div>
         </div>
-        
+
         {/* Show alert if needed */}
         <AnimatePresence>
           {showAlert && (
@@ -704,10 +797,10 @@ const ReferralProgram = () => {
             </motion.div>
           )}
         </AnimatePresence>
-        
+
         {/* Display tab content */}
         <AnimatePresence mode="wait">
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <motion.div
               key="overview"
               initial={{ opacity: 0, y: 20 }}
@@ -720,8 +813,8 @@ const ReferralProgram = () => {
               {renderReferralInfo()}
             </motion.div>
           )}
-          
-          {activeTab === 'referrals' && (
+
+          {activeTab === "referrals" && (
             <motion.div
               key="referrals"
               initial={{ opacity: 0, y: 20 }}
@@ -732,8 +825,8 @@ const ReferralProgram = () => {
               {renderReferralsTab()}
             </motion.div>
           )}
-          
-          {activeTab === 'commissions' && (
+
+          {activeTab === "commissions" && (
             <motion.div
               key="commissions"
               initial={{ opacity: 0, y: 20 }}

@@ -1,194 +1,142 @@
-import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
-import { FaSearch, FaStar, FaChevronDown } from 'react-icons/fa';
-import { 
-  fetchTradingPairs,
-  setSelectedSymbol, 
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { FaSearch, FaStar, FaRegStar, FaChevronDown } from "react-icons/fa";
+import {
   selectTradingPairs,
   selectSelectedSymbol,
+  setSelectedSymbol,
+  selectMarketPrices,
+  selectFavoriteSymbols,
   toggleFavoriteSymbol,
-  selectFavoriteSymbols
-} from '../../redux/slices/tradingSlice';
+  fetchMarketData,
+} from "../../redux/slices/tradingSlice";
 
-const AssetSelector = ({ variant = 'full' }) => {
+const AssetSelector = ({ variant = "standard", compact = false }) => {
   const dispatch = useDispatch();
-  const dropdownRef = useRef(null);
-  const searchInputRef = useRef(null);
-  
-  // Redux state
-  const tradingPairs = useSelector(selectTradingPairs);
-  const selectedSymbol = useSelector(selectSelectedSymbol);
-  const favoriteSymbols = useSelector(selectFavoriteSymbols);
-  
-  // Local state
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'favorites', 'crypto', 'stocks', 'forex'
-  
-  // Fetch trading pairs if not already loaded
-  useEffect(() => {
-    if (tradingPairs.length === 0) {
-      dispatch(fetchTradingPairs());
-    }
-  }, [dispatch, tradingPairs.length]);
-  
-  // Handle click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-  
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (dropdownOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [dropdownOpen]);
-  
-  // Handle symbol selection
-  const handleSelectSymbol = (symbol) => {
-    dispatch(setSelectedSymbol(symbol));
-    setDropdownOpen(false);
-    setSearchTerm('');
-  };
-  
-  // Handle toggling favorites
-  const handleToggleFavorite = (e, symbol) => {
-    e.stopPropagation(); // Prevent triggering the parent click event
-    dispatch(toggleFavoriteSymbol(symbol));
-  };
-  
-  // Filter trading pairs based on search term and active tab
-  const getFilteredPairs = () => {
-    let filtered = [...tradingPairs];
-    
-    // Filter by active tab
-    switch (activeTab) {
-      case 'favorites':
-        filtered = filtered.filter(pair => favoriteSymbols.includes(pair.symbol));
-        break;
-      case 'crypto':
-        filtered = filtered.filter(pair => pair.type === 'crypto');
-        break;
-      case 'stocks':
-        filtered = filtered.filter(pair => pair.type === 'stock');
-        break;
-      case 'forex':
-        filtered = filtered.filter(pair => pair.type === 'forex');
-        break;
-      default:
-        break;
-    }
-    
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(pair => 
-        pair.symbol.toLowerCase().includes(term) || 
-        pair.name?.toLowerCase().includes(term)
-      );
-    }
-    
-    return filtered;
-  };
-  
-  // Get selected pair details
-  const getSelectedPairDetails = () => {
-    if (!selectedSymbol) return { symbol: 'Select Pair', lastPrice: 0, priceChange: 0 };
-    
-    const pair = tradingPairs.find(p => p.symbol === selectedSymbol);
-    return pair || { symbol: selectedSymbol, lastPrice: 0, priceChange: 0 };
-  };
-  
+  const allAssets = useSelector(selectTradingPairs);
+  const selectedAsset = useSelector(selectSelectedSymbol);
+  const marketPrices = useSelector(selectMarketPrices);
+  const favorites = useSelector(selectFavoriteSymbols);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAssetSelector, setShowAssetSelector] = useState(false);
+  const [filteredAssets, setFilteredAssets] = useState(allAssets);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
   // Format price with appropriate decimal places
   const formatPrice = (price) => {
-    if (typeof price !== 'number' || isNaN(price)) return '0.00';
-    
-    if (price >= 1000) {
-      return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    } else if (price >= 1) {
-      return price.toFixed(2);
-    } else if (price >= 0.01) {
-      return price.toFixed(4);
-    } else {
-      return price.toFixed(8);
+    if (!price) return "0.00";
+    if (price < 1) return price.toFixed(6);
+    if (price < 10) return price.toFixed(4);
+    if (price < 1000) return price.toFixed(2);
+    return price.toFixed(2);
+  };
+
+  // Filter assets based on search query and category
+  useEffect(() => {
+    let result = allAssets;
+
+    // Apply category filter
+    if (selectedCategory !== "all") {
+      result = result.filter((asset) => asset.category === selectedCategory);
     }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (asset) =>
+          asset.name.toLowerCase().includes(query) ||
+          asset.symbol.toLowerCase().includes(query),
+      );
+    }
+
+    setFilteredAssets(result);
+  }, [searchQuery, selectedCategory, allAssets]);
+
+  // Handle asset selection
+  const handleAssetSelect = (symbol) => {
+    dispatch(setSelectedSymbol(symbol));
+    setShowAssetSelector(false);
+    dispatch(fetchMarketData(symbol));
   };
-  
-  // Format price change percentage
-  const formatPriceChange = (change) => {
-    if (typeof change !== 'number' || isNaN(change)) return '+0.00%';
-    return `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+
+  // Toggle favorite
+  const toggleFavorite = (symbol, e) => {
+    e.stopPropagation();
+    dispatch(toggleFavoriteSymbol(symbol));
   };
-  
-  // Selected pair details
-  const selectedPair = getSelectedPairDetails();
-  const filteredPairs = getFilteredPairs();
-  
-  // Minimal variant for chart headers
-  if (variant === 'minimal') {
+
+  // Minimal variant for sidebar display
+  if (variant === "minimal") {
     return (
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative">
         <button
-          className="px-3 py-2 rounded-md bg-gray-700 hover:bg-gray-600 flex items-center gap-1 text-white text-sm"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className={`flex items-center ${
+            compact
+              ? "bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm"
+              : "bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg"
+          }`}
+          onClick={() => setShowAssetSelector(!showAssetSelector)}
         >
-          {selectedSymbol || 'Select Pair'}
-          <FaChevronDown size={10} className="opacity-70" />
+          <span className="font-medium">{selectedAsset}</span>
+          <span className="font-bold ml-1">
+            ${formatPrice(marketPrices[selectedAsset]?.lastPrice)}
+          </span>
+          <FaChevronDown className="ml-2 text-gray-400" />
         </button>
-        
-        {dropdownOpen && (
-          <div className="absolute z-50 top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg w-72">
-            <div className="p-2">
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 text-white text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+
+        {showAssetSelector && (
+          <div className="absolute left-0 right-0 mt-1 bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-700 max-h-60 overflow-y-auto">
+            <div className="p-2 border-b border-gray-700">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search assets..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-700 text-white px-3 py-1.5 rounded pl-8 text-sm focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+                <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs" />
+              </div>
             </div>
-            
-            <div className="max-h-60 overflow-y-auto">
-              {filteredPairs.length > 0 ? (
-                filteredPairs.map(pair => (
+
+            <div>
+              {filteredAssets.length > 0 ? (
+                filteredAssets.map((asset) => (
                   <div
-                    key={pair.symbol}
-                    className={`px-3 py-2 flex justify-between items-center hover:bg-gray-700 cursor-pointer ${
-                      pair.symbol === selectedSymbol ? 'bg-gray-700' : ''
-                    }`}
-                    onClick={() => handleSelectSymbol(pair.symbol)}
+                    key={asset.symbol}
+                    className="flex items-center justify-between px-3 py-2 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => handleAssetSelect(asset.symbol)}
                   >
                     <div className="flex items-center">
                       <button
-                        className="text-gray-400 hover:text-yellow-400 mr-1.5"
-                        onClick={(e) => handleToggleFavorite(e, pair.symbol)}
+                        onClick={(e) => toggleFavorite(asset.symbol, e)}
+                        className="text-gray-400 hover:text-yellow-500 mr-2"
                       >
-                        <FaStar 
-                          size={12} 
-                          className={favoriteSymbols.includes(pair.symbol) ? 'text-yellow-400' : ''}
-                        />
+                        {favorites.includes(asset.symbol) ? (
+                          <FaStar className="text-yellow-500" />
+                        ) : (
+                          <FaRegStar />
+                        )}
                       </button>
-                      <span className="font-medium text-white">{pair.symbol}</span>
+                      <div>
+                        <div className="text-white text-sm font-medium">
+                          {asset.symbol}
+                        </div>
+                      </div>
                     </div>
-                    <div className={`text-sm ${pair.priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatPriceChange(pair.priceChange)}
+
+                    <div className="text-right text-sm">
+                      <div className="text-white">
+                        ${formatPrice(marketPrices[asset.symbol]?.lastPrice)}
+                      </div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="py-4 text-center text-gray-400 text-sm">
-                  No pairs found
+                  No assets found
                 </div>
               )}
             </div>
@@ -197,179 +145,148 @@ const AssetSelector = ({ variant = 'full' }) => {
       </div>
     );
   }
-  
-  // Full variant
+
+  // Standard variant
   return (
-    <div className="relative" ref={dropdownRef}>
-      <div 
-        className={`flex items-center justify-between p-4 bg-gray-800 rounded-lg cursor-pointer ${
-          dropdownOpen ? 'ring-2 ring-primary-500' : 'hover:bg-gray-700'
+    <div className="relative">
+      <button
+        className={`flex items-center ${
+          compact
+            ? "bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm"
+            : "bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg"
         }`}
-        onClick={() => setDropdownOpen(!dropdownOpen)}
+        onClick={() => setShowAssetSelector(!showAssetSelector)}
       >
-        <div className="flex items-center">
-          <div className="mr-3">
-            <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
-              {selectedPair.symbol.substring(0, 1)}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-white">{selectedPair.symbol}</h3>
-            <div className={`text-sm ${selectedPair.priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {formatPrice(selectedPair.lastPrice)} {formatPriceChange(selectedPair.priceChange)}
-            </div>
-          </div>
-        </div>
-        <div>
-          <FaChevronDown className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-        </div>
-      </div>
-      
-      {dropdownOpen && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl">
-          <div className="p-3">
+        <span className="font-medium">{selectedAsset}</span>
+        <span className="font-bold ml-1">
+          ${formatPrice(marketPrices[selectedAsset]?.lastPrice)}
+        </span>
+        <FaChevronDown className="ml-2 text-gray-400" />
+      </button>
+
+      {/* Asset selector dropdown */}
+      {showAssetSelector && (
+        <div
+          className={`absolute left-0 mt-2 ${compact ? "w-72" : "w-96"} bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-700`}
+        >
+          <div className="p-3 border-b border-gray-700">
             <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
               <input
-                ref={searchInputRef}
                 type="text"
-                placeholder="Search pairs..."
-                className="w-full pl-10 pr-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 text-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search assets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg pl-9 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-          
-          <div className="border-b border-gray-700">
-            <div className="flex overflow-x-auto">
-              <button
-                className={`px-4 py-2.5 font-medium text-sm whitespace-nowrap ${
-                  activeTab === 'all' 
-                    ? 'text-primary-400 border-b-2 border-primary-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-                onClick={() => setActiveTab('all')}
-              >
-                All
-              </button>
-              <button
-                className={`px-4 py-2.5 font-medium text-sm whitespace-nowrap ${
-                  activeTab === 'favorites' 
-                    ? 'text-primary-400 border-b-2 border-primary-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-                onClick={() => setActiveTab('favorites')}
-              >
-                Favorites
-              </button>
-              <button
-                className={`px-4 py-2.5 font-medium text-sm whitespace-nowrap ${
-                  activeTab === 'crypto' 
-                    ? 'text-primary-400 border-b-2 border-primary-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-                onClick={() => setActiveTab('crypto')}
-              >
-                Crypto
-              </button>
-              <button
-                className={`px-4 py-2.5 font-medium text-sm whitespace-nowrap ${
-                  activeTab === 'stocks' 
-                    ? 'text-primary-400 border-b-2 border-primary-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-                onClick={() => setActiveTab('stocks')}
-              >
-                Stocks
-              </button>
-              <button
-                className={`px-4 py-2.5 font-medium text-sm whitespace-nowrap ${
-                  activeTab === 'forex' 
-                    ? 'text-primary-400 border-b-2 border-primary-400' 
-                    : 'text-gray-400 hover:text-white'
-                }`}
-                onClick={() => setActiveTab('forex')}
-              >
-                Forex
-              </button>
-            </div>
+
+          <div className="p-2 border-b border-gray-700 flex space-x-1">
+            <button
+              className={`px-3 py-1 text-xs rounded-lg ${
+                selectedCategory === "all"
+                  ? "bg-primary-600 text-white"
+                  : "text-gray-400 hover:bg-gray-700"
+              }`}
+              onClick={() => setSelectedCategory("all")}
+            >
+              All
+            </button>
+            <button
+              className={`px-3 py-1 text-xs rounded-lg ${
+                selectedCategory === "crypto"
+                  ? "bg-primary-600 text-white"
+                  : "text-gray-400 hover:bg-gray-700"
+              }`}
+              onClick={() => setSelectedCategory("crypto")}
+            >
+              Crypto
+            </button>
+            <button
+              className={`px-3 py-1 text-xs rounded-lg ${
+                selectedCategory === "forex"
+                  ? "bg-primary-600 text-white"
+                  : "text-gray-400 hover:bg-gray-700"
+              }`}
+              onClick={() => setSelectedCategory("forex")}
+            >
+              Forex
+            </button>
+            <button
+              className={`px-3 py-1 text-xs rounded-lg ${
+                selectedCategory === "indices"
+                  ? "bg-primary-600 text-white"
+                  : "text-gray-400 hover:bg-gray-700"
+              }`}
+              onClick={() => setSelectedCategory("indices")}
+            >
+              Indices
+            </button>
+            <button
+              className={`px-3 py-1 text-xs rounded-lg ${
+                selectedCategory === "commodities"
+                  ? "bg-primary-600 text-white"
+                  : "text-gray-400 hover:bg-gray-700"
+              }`}
+              onClick={() => setSelectedCategory("commodities")}
+            >
+              Commodities
+            </button>
           </div>
-          
+
           <div className="max-h-80 overflow-y-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-900">
-                <tr>
-                  <th className="pl-4 pr-2 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Pair
-                  </th>
-                  <th className="px-2 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-2 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    24h Change
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Volume
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-gray-800 divide-y divide-gray-700">
-                {filteredPairs.length > 0 ? (
-                  filteredPairs.map(pair => (
-                    <tr
-                      key={pair.symbol}
-                      className={`hover:bg-gray-700 cursor-pointer ${pair.symbol === selectedSymbol ? 'bg-gray-700' : ''}`}
-                      onClick={() => handleSelectSymbol(pair.symbol)}
+            {filteredAssets.length > 0 ? (
+              filteredAssets.map((asset) => (
+                <div
+                  key={asset.symbol}
+                  className="flex items-center justify-between px-4 py-3 hover:bg-gray-700 cursor-pointer"
+                  onClick={() => handleAssetSelect(asset.symbol)}
+                >
+                  <div className="flex items-center">
+                    <button
+                      onClick={(e) => toggleFavorite(asset.symbol, e)}
+                      className="text-gray-400 hover:text-yellow-500 mr-2"
                     >
-                      <td className="pl-4 pr-2 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <button
-                            className="text-gray-400 hover:text-yellow-400 mr-2"
-                            onClick={(e) => handleToggleFavorite(e, pair.symbol)}
-                          >
-                            <FaStar 
-                              size={14} 
-                              className={favoriteSymbols.includes(pair.symbol) ? 'text-yellow-400' : ''}
-                            />
-                          </button>
-                          <div>
-                            <div className="font-medium text-white">{pair.symbol}</div>
-                            <div className="text-xs text-gray-400">{pair.name || '—'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-2 py-3 whitespace-nowrap text-right">
-                        <div className="text-white">{formatPrice(pair.lastPrice)}</div>
-                      </td>
-                      <td className="px-2 py-3 whitespace-nowrap text-right">
-                        <div className={`${pair.priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {formatPriceChange(pair.priceChange)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <div className="text-gray-300">{(pair.volume || 0).toLocaleString()}</div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="px-4 py-6 text-center text-gray-400">
-                      No matching pairs found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                      {favorites.includes(asset.symbol) ? (
+                        <FaStar className="text-yellow-500" />
+                      ) : (
+                        <FaRegStar />
+                      )}
+                    </button>
+                    <div>
+                      <div className="text-white font-medium">{asset.name}</div>
+                      <div className="text-gray-400 text-sm">
+                        {asset.symbol}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-white">
+                      ${formatPrice(marketPrices[asset.symbol]?.lastPrice)}
+                    </div>
+                    {marketPrices[asset.symbol] && (
+                      <div
+                        className={`text-xs ${marketPrices[asset.symbol].change24h >= 0 ? "text-green-500" : "text-red-500"}`}
+                      >
+                        {marketPrices[asset.symbol].change24h >= 0 ? "+" : ""}
+                        {marketPrices[asset.symbol].change24h?.toFixed(2)}%
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-6 text-center text-gray-400">
+                No assets found matching your criteria
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
-};
-
-AssetSelector.propTypes = {
-  variant: PropTypes.oneOf(['full', 'minimal'])
 };
 
 export default AssetSelector;

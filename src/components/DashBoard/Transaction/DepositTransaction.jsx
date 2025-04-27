@@ -1,36 +1,36 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronDown, FaSearch, FaTimes, FaEye } from 'react-icons/fa';
-import Button from '../../common/Button';
-import TransactionStatusBadge from '../../common/TransactionStatusBadge';
-import TransactionDetailsModal from '../../common/TransactionDetailsModal';
-import DashboardLayout from '../Layout/DashboardLayout';
-import ComponentLoader from '../../common/ComponentLoader';
-import Pagination from '../../common/Pagination';
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaChevronDown, FaSearch, FaTimes, FaEye } from "react-icons/fa";
+import Button from "../../common/Button";
+import TransactionStatusBadge from "../../common/TransactionStatusBadge";
+import TransactionDetailsModal from "../../common/TransactionDetailsModal";
+import DashboardLayout from "../Layout/DashboardLayout";
+import ComponentLoader from "../../common/ComponentLoader";
+import Pagination from "../../common/Pagination";
 import {
   fetchDepositHistory,
   selectDepositHistory,
   selectDepositStatus,
   selectDepositError,
-  selectDepositPagination
-} from '../../../redux/slices/depositSlice';
+  selectDepositPagination,
+} from "../../../redux/slices/depositSlice";
 
 const DepositTransaction = () => {
   const dispatch = useDispatch();
   const depositsData = useSelector(selectDepositHistory);
-  const transaction = depositsData.deposits; 
+  const transaction = depositsData.deposits;
   const pagination = useSelector(selectDepositPagination);
   const status = useSelector(selectDepositStatus);
   const error = useSelector(selectDepositError);
-  const isLoading = status === 'loading';
+  const isLoading = status === "loading";
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [selectedDeposit, setSelectedDeposit] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
@@ -38,10 +38,10 @@ const DepositTransaction = () => {
     const params = {
       page: currentPage,
       limit: 10,
-      status: filterStatus !== 'all' ? filterStatus : undefined,
+      status: filterStatus !== "all" ? filterStatus : undefined,
       search: searchQuery || undefined,
       sortBy,
-      sortOrder
+      sortOrder,
     };
     dispatch(fetchDepositHistory(params));
   }, [dispatch, currentPage, filterStatus, searchQuery, sortBy, sortOrder]);
@@ -58,10 +58,10 @@ const DepositTransaction = () => {
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(field);
-      setSortOrder('desc');
+      setSortOrder("desc");
     }
     setCurrentPage(1);
   };
@@ -74,14 +74,14 @@ const DepositTransaction = () => {
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
   // Format currency
-  const formatCurrency = (amount, currency = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency
+  const formatCurrency = (amount, currency = "USD") => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
     }).format(amount);
   };
 
@@ -89,7 +89,9 @@ const DepositTransaction = () => {
     return (
       <DashboardLayout>
         <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold text-white mb-6">Deposit History</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">
+            Deposit History
+          </h1>
           <ComponentLoader />
         </div>
       </DashboardLayout>
@@ -100,7 +102,9 @@ const DepositTransaction = () => {
     return (
       <DashboardLayout>
         <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold text-white mb-6">Deposit History</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">
+            Deposit History
+          </h1>
           <div className="bg-red-500/20 border border-red-500/50 text-white p-4 rounded-lg">
             <p>Error: {error}</p>
           </div>
@@ -113,7 +117,7 @@ const DepositTransaction = () => {
     <DashboardLayout>
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold text-white mb-6">Deposit History</h1>
-        
+
         {/* Filters */}
         <div className="bg-gray-800 p-4 rounded-lg mb-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -130,13 +134,13 @@ const DepositTransaction = () => {
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                 >
                   <FaTimes />
                 </button>
               )}
             </form>
-            
+
             <div className="flex gap-2">
               <div className="relative inline-block">
                 <Button
@@ -145,7 +149,9 @@ const DepositTransaction = () => {
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
                   className="flex items-center"
                 >
-                  <span>Status: {filterStatus === 'all' ? 'All' : filterStatus}</span>
+                  <span>
+                    Status: {filterStatus === "all" ? "All" : filterStatus}
+                  </span>
                   <FaChevronDown className="ml-2" />
                 </Button>
                 <AnimatePresence>
@@ -157,20 +163,25 @@ const DepositTransaction = () => {
                       className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-10"
                     >
                       <div className="py-1">
-                        {['all', 'pending', 'completed', 'failed'].map((statusValue) => (
-                          <button
-                            key={statusValue}
-                            onClick={() => {
-                              handleStatusChange(statusValue);
-                              setIsFilterOpen(false);
-                            }}
-                            className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors ${
-                              filterStatus === statusValue ? 'bg-gray-700 text-white' : 'text-gray-300'
-                            }`}
-                          >
-                            {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
-                          </button>
-                        ))}
+                        {["all", "pending", "completed", "failed"].map(
+                          (statusValue) => (
+                            <button
+                              key={statusValue}
+                              onClick={() => {
+                                handleStatusChange(statusValue);
+                                setIsFilterOpen(false);
+                              }}
+                              className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-700 transition-colors ${
+                                filterStatus === statusValue
+                                  ? "bg-gray-700 text-white"
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              {statusValue.charAt(0).toUpperCase() +
+                                statusValue.slice(1)}
+                            </button>
+                          ),
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -179,7 +190,7 @@ const DepositTransaction = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Desktop Table */}
         <div className="hidden md:block bg-gray-800 rounded-lg overflow-hidden mb-6">
           <div className="overflow-x-auto">
@@ -188,33 +199,58 @@ const DepositTransaction = () => {
                 <tr>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('date')}
+                    onClick={() => handleSort("date")}
                   >
-                    Date {sortBy === 'date' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                    Date{" "}
+                    {sortBy === "date" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('reference')}
+                    onClick={() => handleSort("reference")}
                   >
-                    Reference {sortBy === 'reference' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                    Reference{" "}
+                    {sortBy === "reference" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('method')}
+                    onClick={() => handleSort("method")}
                   >
-                    Method {sortBy === 'method' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                    Method{" "}
+                    {sortBy === "method" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('amount')}
+                    onClick={() => handleSort("amount")}
                   >
-                    Amount {sortBy === 'amount' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                    Amount{" "}
+                    {sortBy === "amount" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('status')}
+                    onClick={() => handleSort("status")}
                   >
-                    Status {sortBy === 'status' && <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                    Status{" "}
+                    {sortBy === "status" && (
+                      <span className="ml-1">
+                        {sortOrder === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Actions
@@ -229,7 +265,7 @@ const DepositTransaction = () => {
                         {formatDate(deposit.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        {deposit.reference || 'N/A'}
+                        {deposit.reference || "N/A"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 capitalize">
                         {deposit.method}
@@ -252,7 +288,10 @@ const DepositTransaction = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-10 text-center text-gray-400">
+                    <td
+                      colSpan="6"
+                      className="px-6 py-10 text-center text-gray-400"
+                    >
                       No deposit records found.
                     </td>
                   </tr>
@@ -261,7 +300,7 @@ const DepositTransaction = () => {
             </table>
           </div>
         </div>
-        
+
         {/* Mobile View Cards */}
         <div className="block md:hidden space-y-4 mb-6">
           {transaction && transaction.length > 0 ? (
@@ -274,23 +313,41 @@ const DepositTransaction = () => {
                 className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg p-4 shadow-lg transition-all"
               >
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-400">Date:</span>
-                  <span className="ml-2 text-sm text-gray-300">{formatDate(deposit.createdAt)}</span>
+                  <span className="text-sm font-medium text-gray-400">
+                    Date:
+                  </span>
+                  <span className="ml-2 text-sm text-gray-300">
+                    {formatDate(deposit.createdAt)}
+                  </span>
                 </div>
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-400">Reference:</span>
-                  <span className="ml-2 text-sm text-gray-300">{deposit.reference || 'N/A'}</span>
+                  <span className="text-sm font-medium text-gray-400">
+                    Reference:
+                  </span>
+                  <span className="ml-2 text-sm text-gray-300">
+                    {deposit.reference || "N/A"}
+                  </span>
                 </div>
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-400">Method:</span>
-                  <span className="ml-2 text-sm text-gray-300 capitalize">{deposit.method}</span>
+                  <span className="text-sm font-medium text-gray-400">
+                    Method:
+                  </span>
+                  <span className="ml-2 text-sm text-gray-300 capitalize">
+                    {deposit.method}
+                  </span>
                 </div>
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-400">Amount:</span>
-                  <span className="ml-2 text-sm text-gray-300">{formatCurrency(deposit.amount, deposit.currency)}</span>
+                  <span className="text-sm font-medium text-gray-400">
+                    Amount:
+                  </span>
+                  <span className="ml-2 text-sm text-gray-300">
+                    {formatCurrency(deposit.amount, deposit.currency)}
+                  </span>
                 </div>
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-400">Status:</span>
+                  <span className="text-sm font-medium text-gray-400">
+                    Status:
+                  </span>
                   <span className="ml-2 text-sm">
                     <TransactionStatusBadge status={deposit.status} />
                   </span>
@@ -311,7 +368,7 @@ const DepositTransaction = () => {
             </div>
           )}
         </div>
-        
+
         {/* Pagination */}
         {pagination && pagination.total > 0 && (
           <div className="flex justify-center">
@@ -322,7 +379,7 @@ const DepositTransaction = () => {
             />
           </div>
         )}
-        
+
         {/* Transaction Details Modal */}
         <AnimatePresence>
           {showDetailsModal && selectedDeposit && (
@@ -332,7 +389,7 @@ const DepositTransaction = () => {
                 setShowDetailsModal(false);
                 setSelectedDeposit(null);
               }}
-              showQR={selectedDeposit.method === 'crypto'}
+              showQR={selectedDeposit.method === "crypto"}
             />
           )}
         </AnimatePresence>

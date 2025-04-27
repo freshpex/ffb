@@ -1,97 +1,109 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import apiClient from '../../services/apiService';
-import { auth } from '../../firebase';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import apiClient from "../../services/apiService";
+import { auth } from "../../firebase";
 
 // Helper to check authentication status
 const checkAuthStatus = () => {
-  return !!localStorage.getItem('ffb_auth_token') || !!sessionStorage.getItem('ffb_auth_token');
+  return (
+    !!localStorage.getItem("ffb_auth_token") ||
+    !!sessionStorage.getItem("ffb_auth_token")
+  );
 };
 
 // Async thunks
 export const fetchNotifications = createAsyncThunk(
-  'notifications/fetchNotifications',
+  "notifications/fetchNotifications",
   async ({ limit = 10, page = 1 } = {}, { rejectWithValue, dispatch }) => {
     try {
       if (!checkAuthStatus()) {
-        console.log('Skipping notifications fetch - user not authenticated');
+        console.log("Skipping notifications fetch - user not authenticated");
         return { data: [], unreadCount: 0 };
       }
-      
-      const response = await apiClient.get('/notifications', {
-        params: { limit, page }
+
+      const response = await apiClient.get("/notifications", {
+        params: { limit, page },
       });
       return response.data;
     } catch (error) {
       // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
-        console.log('Not authenticated for notifications');
+        console.log("Not authenticated for notifications");
         return { data: [], unreadCount: 0 };
       }
-      
-      console.error('Error fetching notifications:', error);
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications');
+
+      console.error("Error fetching notifications:", error);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch notifications",
+      );
     }
-  }
+  },
 );
 
 export const markAsRead = createAsyncThunk(
-  'notifications/markAsRead',
+  "notifications/markAsRead",
   async (notificationId, { rejectWithValue }) => {
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log('Skipping mark as read - user not authenticated');
+        console.log("Skipping mark as read - user not authenticated");
         return { notificationId };
       }
-      
-      const response = await apiClient.put(`/notifications/${notificationId}/read`);
+
+      const response = await apiClient.put(
+        `/notifications/${notificationId}/read`,
+      );
       return { ...response.data, notificationId };
     } catch (error) {
       // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
         return { notificationId };
       }
-      
-      console.error('Error marking notification as read:', error);
-      return rejectWithValue(error.response?.data?.message || 'Failed to mark notification as read');
+
+      console.error("Error marking notification as read:", error);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to mark notification as read",
+      );
     }
-  }
+  },
 );
 
 export const markAllAsRead = createAsyncThunk(
-  'notifications/markAllAsRead',
+  "notifications/markAllAsRead",
   async (_, { rejectWithValue }) => {
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log('Skipping mark all as read - user not authenticated');
+        console.log("Skipping mark all as read - user not authenticated");
         return { success: true };
       }
-      
-      const response = await apiClient.put('/notifications/read-all');
+
+      const response = await apiClient.put("/notifications/read-all");
       return response.data;
     } catch (error) {
       // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
         return { success: true };
       }
-      
-      console.error('Error marking all notifications as read:', error);
-      return rejectWithValue(error.response?.data?.message || 'Failed to mark all notifications as read');
+
+      console.error("Error marking all notifications as read:", error);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Failed to mark all notifications as read",
+      );
     }
-  }
+  },
 );
 
 export const deleteNotification = createAsyncThunk(
-  'notifications/deleteNotification',
+  "notifications/deleteNotification",
   async (notificationId, { rejectWithValue }) => {
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log('Skipping delete notification - user not authenticated');
+        console.log("Skipping delete notification - user not authenticated");
         return { notificationId };
       }
-      
+
       await apiClient.delete(`/notifications/${notificationId}`);
       return { notificationId };
     } catch (error) {
@@ -99,11 +111,13 @@ export const deleteNotification = createAsyncThunk(
       if (error.isAuthError || error.response?.status === 401) {
         return { notificationId };
       }
-      
-      console.error('Error deleting notification:', error);
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete notification');
+
+      console.error("Error deleting notification:", error);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete notification",
+      );
     }
-  }
+  },
 );
 
 // Initial state
@@ -112,11 +126,11 @@ const initialState = {
   unreadCount: 0,
   loading: false,
   error: null,
-  success: false
+  success: false,
 };
 
 const notificationSlice = createSlice({
-  name: 'notifications',
+  name: "notifications",
   initialState,
   reducers: {
     clearNotificationError: (state) => {
@@ -137,7 +151,7 @@ const notificationSlice = createSlice({
           state.unreadCount += 1;
         }
       }
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -150,11 +164,11 @@ const notificationSlice = createSlice({
         state.loading = false;
         state.notifications = action.payload.data || [];
         // Calculate unreadCount from the notifications array
-        state.unreadCount = state.notifications.filter(n => !n.read).length;
+        state.unreadCount = state.notifications.filter((n) => !n.read).length;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to fetch notifications';
+        state.error = action.payload || "Failed to fetch notifications";
       })
 
       // markAsRead
@@ -165,7 +179,11 @@ const notificationSlice = createSlice({
       .addCase(markAsRead.fulfilled, (state, action) => {
         state.loading = false;
         // Find the notification and update its read status safely
-        const notification = state.notifications.find(n => n.id === action.payload.notificationId || n._id === action.payload.notificationId);
+        const notification = state.notifications.find(
+          (n) =>
+            n.id === action.payload.notificationId ||
+            n._id === action.payload.notificationId,
+        );
         if (notification && !notification.read) {
           notification.read = true;
           state.unreadCount = Math.max(0, state.unreadCount - 1);
@@ -173,7 +191,7 @@ const notificationSlice = createSlice({
       })
       .addCase(markAsRead.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to mark notification as read';
+        state.error = action.payload || "Failed to mark notification as read";
       })
 
       // markAllAsRead
@@ -184,14 +202,15 @@ const notificationSlice = createSlice({
       .addCase(markAllAsRead.fulfilled, (state) => {
         state.loading = false;
         // Update all notifications to read
-        state.notifications.forEach(notification => {
+        state.notifications.forEach((notification) => {
           notification.read = true;
         });
         state.unreadCount = 0;
       })
       .addCase(markAllAsRead.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to mark all notifications as read';
+        state.error =
+          action.payload || "Failed to mark all notifications as read";
       })
 
       // deleteNotification
@@ -202,11 +221,12 @@ const notificationSlice = createSlice({
       .addCase(deleteNotification.fulfilled, (state, action) => {
         state.loading = false;
         // Remove the notification and update unread count if needed
-        const index = state.notifications.findIndex(n => 
-          n.id === action.payload.notificationId || 
-          n._id === action.payload.notificationId
+        const index = state.notifications.findIndex(
+          (n) =>
+            n.id === action.payload.notificationId ||
+            n._id === action.payload.notificationId,
         );
-        
+
         if (index !== -1) {
           const wasPreviouslyUnread = !state.notifications[index].read;
           state.notifications.splice(index, 1);
@@ -217,22 +237,23 @@ const notificationSlice = createSlice({
       })
       .addCase(deleteNotification.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to delete notification';
+        state.error = action.payload || "Failed to delete notification";
       });
-  }
+  },
 });
 
 // Export actions
-export const { 
-  clearNotificationError, 
+export const {
+  clearNotificationError,
   resetNotificationState,
-  addNotification 
+  addNotification,
 } = notificationSlice.actions;
 
 // Export selectors
-export const selectNotifications = state => state.notification.notifications || [];
-export const selectUnreadCount = state => state.notification.unreadCount || 0;
-export const selectNotificationLoading = state => state.notification.loading;
-export const selectNotificationError = state => state.notification.error;
+export const selectNotifications = (state) =>
+  state.notification.notifications || [];
+export const selectUnreadCount = (state) => state.notification.unreadCount || 0;
+export const selectNotificationLoading = (state) => state.notification.loading;
+export const selectNotificationError = (state) => state.notification.error;
 
 export default notificationSlice.reducer;

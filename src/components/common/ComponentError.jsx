@@ -3,10 +3,10 @@ import PropTypes from "prop-types";
 import { FaExclamationTriangle } from "react-icons/fa";
 import Button from "./Button";
 
-const ComponentError = ({ 
-  height = "200px", 
-  message = "Failed to load data", 
-  onRetry = null
+const ComponentError = ({
+  height = "200px",
+  message = "Failed to load data",
+  onRetry = null,
 }) => {
   return (
     <motion.div
@@ -18,7 +18,7 @@ const ComponentError = ({
     >
       <FaExclamationTriangle className="text-4xl text-red-500 mb-3" />
       <p className="text-gray-300 text-sm mb-4">{message}</p>
-      
+
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           Try Again
@@ -31,7 +31,7 @@ const ComponentError = ({
 ComponentError.propTypes = {
   height: PropTypes.string,
   message: PropTypes.string,
-  onRetry: PropTypes.func
+  onRetry: PropTypes.func,
 };
 
 export default ComponentError;

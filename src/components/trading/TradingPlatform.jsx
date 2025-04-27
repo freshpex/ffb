@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaBars, FaTimes, FaSync } from 'react-icons/fa';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaBars, FaTimes, FaSync } from "react-icons/fa";
 import {
   fetchTradingPairs,
   fetchMarketData,
@@ -18,17 +18,17 @@ import {
   selectShowSidebar,
   selectShowAlert,
   selectAlertMessage,
-  selectTradingStatus
-} from '../../redux/slices/tradingSlice';
-import DashboardLayout from '../DashBoard/Layout/DashboardLayout';
-import Alert from '../common/Alert';
-import TradingViewWidget from './TradingViewWidget';
-import LiveOrderbook from './LiveOrderbook';
-import MarketDepthChart from './MarketDepthChart';
-import AssetSelector from './AssetSelector';
-import OrderForm from './OrderForm';
-import OrderHistory from './OrderHistory';
-import PositionsTable from './PositionsTable';
+  selectTradingStatus,
+} from "../../redux/slices/tradingSlice";
+import DashboardLayout from "../DashBoard/Layout/DashboardLayout";
+import Alert from "../common/Alert";
+import TradingViewWidget from "./TradingViewWidget";
+import LiveOrderbook from "./LiveOrderbook";
+import MarketDepthChart from "./MarketDepthChart";
+import AssetSelector from "./AssetSelector";
+import OrderForm from "./OrderForm";
+import OrderHistory from "./OrderHistory";
+import PositionsTable from "./PositionsTable";
 
 const TradingPlatform = () => {
   const dispatch = useDispatch();
@@ -41,7 +41,7 @@ const TradingPlatform = () => {
     dispatch(fetchTradingHistory());
   }, [dispatch]);
 
-  // Redux state 
+  // Redux state
   const selectedSymbol = useSelector(selectSelectedSymbol);
   const activeTab = useSelector(selectActiveTab);
   const showSidebar = useSelector(selectShowSidebar);
@@ -50,12 +50,12 @@ const TradingPlatform = () => {
   // tradingStatus is not used in this component
 
   useEffect(() => {
-    dispatch(setActiveTab('positions'));
+    dispatch(setActiveTab("positions"));
   }, [dispatch]);
-  
+
   // For mobile responsiveness
   const isMobile = window.innerWidth < 1024;
-  
+
   // Fetch symbol-specific data
   useEffect(() => {
     if (!selectedSymbol) return;
@@ -68,14 +68,16 @@ const TradingPlatform = () => {
     try {
       await dispatch(cancelOrder(orderId)).unwrap();
     } catch (error) {
-      console.error('Failed to cancel order:', error);
+      console.error("Failed to cancel order:", error);
     }
   };
 
   const renderSidebar = () => (
-    <div className={`bg-gray-800 ${isMobile ? 'fixed inset-y-0 left-0 z-30 w-80 shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col' : 'rounded-lg p-4'} ${
-      showSidebar ? 'translate-x-0' : '-translate-x-full'
-    }`}>
+    <div
+      className={`bg-gray-800 ${isMobile ? "fixed inset-y-0 left-0 z-30 w-80 shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col" : "rounded-lg p-4"} ${
+        showSidebar ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       {isMobile && (
         <div className="flex justify-end p-4 sticky top-0 bg-gray-800 z-10">
           <button
@@ -87,7 +89,7 @@ const TradingPlatform = () => {
         </div>
       )}
 
-      <div className={`${isMobile ? 'overflow-y-auto flex-1 p-4 pb-20' : ''}`}>
+      <div className={`${isMobile ? "overflow-y-auto flex-1 p-4 pb-20" : ""}`}>
         <div className="mb-6">
           <AssetSelector variant="full" />
         </div>
@@ -100,53 +102,50 @@ const TradingPlatform = () => {
           <div className="flex border-b border-gray-700 mb-4">
             <button
               className={`flex-1 py-2 px-4 text-sm font-medium ${
-                activeTab === 'positions'
-                  ? 'text-primary-400 border-b-2 border-primary-400'
-                  : 'text-gray-400 hover:text-white'
+                activeTab === "positions"
+                  ? "text-primary-400 border-b-2 border-primary-400"
+                  : "text-gray-400 hover:text-white"
               }`}
-              onClick={() => dispatch(setActiveTab('positions'))}
+              onClick={() => dispatch(setActiveTab("positions"))}
             >
               Positions
             </button>
             <button
               className={`flex-1 py-2 px-4 text-sm font-medium ${
-                activeTab === 'orders'
-                  ? 'text-primary-400 border-b-2 border-primary-400'
-                  : 'text-gray-400 hover:text-white'
+                activeTab === "orders"
+                  ? "text-primary-400 border-b-2 border-primary-400"
+                  : "text-gray-400 hover:text-white"
               }`}
-              onClick={() => dispatch(setActiveTab('orders'))}
+              onClick={() => dispatch(setActiveTab("orders"))}
             >
               Open Orders
             </button>
             <button
               className={`flex-1 py-2 px-4 text-sm font-medium ${
-                activeTab === 'history'
-                  ? 'text-primary-400 border-b-2 border-primary-400'
-                  : 'text-gray-400 hover:text-white'
+                activeTab === "history"
+                  ? "text-primary-400 border-b-2 border-primary-400"
+                  : "text-gray-400 hover:text-white"
               }`}
-              onClick={() => dispatch(setActiveTab('history'))}
+              onClick={() => dispatch(setActiveTab("history"))}
             >
               History
             </button>
           </div>
 
-          {activeTab === 'positions' && (
+          {activeTab === "positions" && (
             <PositionsTable onCancelOrder={handleCancelOrder} />
           )}
-          
-          {activeTab === 'orders' && (
-            <OrderHistory 
-              showOrders={true} 
+
+          {activeTab === "orders" && (
+            <OrderHistory
+              showOrders={true}
               showHistory={false}
               onCancelOrder={handleCancelOrder}
             />
           )}
-          
-          {activeTab === 'history' && (
-            <OrderHistory 
-              showOrders={false} 
-              showHistory={true}
-            />
+
+          {activeTab === "history" && (
+            <OrderHistory showOrders={false} showHistory={true} />
           )}
         </div>
       </div>
@@ -176,7 +175,7 @@ const TradingPlatform = () => {
     <div className="bg-gray-800 rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
         <h3 className="text-sm font-medium text-white">Recent Trades</h3>
-        <button 
+        <button
           className="text-gray-400 hover:text-white transition-colors"
           onClick={() => dispatch(fetchTradingHistory())}
         >
@@ -184,7 +183,7 @@ const TradingPlatform = () => {
         </button>
       </div>
       <div className="p-0">
-        <OrderHistory 
+        <OrderHistory
           showRecentTradesOnly={true}
           maxItems={10}
           compact={false}
@@ -198,7 +197,9 @@ const TradingPlatform = () => {
     <DashboardLayout>
       <div className="flex flex-col space-y-4">
         <div className="flex flex-col-reverse lg:flex-row justify-between items-start lg:items-center mb-2 gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Trading Platform</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">
+            Trading Platform
+          </h1>
 
           {isMobile && (
             <button
@@ -240,9 +241,7 @@ const TradingPlatform = () => {
               {renderSidebar()}
             </div>
           ) : (
-            <div className="lg:col-span-1">
-              {renderSidebar()}
-            </div>
+            <div className="lg:col-span-1">{renderSidebar()}</div>
           )}
 
           {/* Main content area */}

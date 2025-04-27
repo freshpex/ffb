@@ -8,7 +8,7 @@ import { useDarkMode } from "../../context/DarkModeContext";
 
 const ServicePage = () => {
   const { darkMode } = useDarkMode();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = "Our Services | Fidelity First Brokers";

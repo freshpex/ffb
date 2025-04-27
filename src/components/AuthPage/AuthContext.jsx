@@ -12,10 +12,10 @@ import {
 import { auth } from "../../firebase";
 
 const AuthContext = createContext();
-const CURRENT_USER_KEY = 'ffb_current_user';
-const AUTH_TOKEN_KEY = 'ffb_auth_token';
+const CURRENT_USER_KEY = "ffb_current_user";
+const AUTH_TOKEN_KEY = "ffb_auth_token";
 const apiUrl = import.meta.env.VITE_API_URL;
-1
+1;
 export function AuthContextProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -40,22 +40,35 @@ export function AuthContextProvider({ children }) {
   };
 
   // Register user
-  const createUser = async (email, password, firstName, lastName, phoneNumber, accountType, country, referralCode, additionalInfo = {}) => {
+  const createUser = async (
+    email,
+    password,
+    firstName,
+    lastName,
+    phoneNumber,
+    accountType,
+    country,
+    referralCode,
+    additionalInfo = {},
+  ) => {
     try {
       setAuthError(null);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+
       await updateProfile(userCredential.user, {
-        displayName: `${firstName} ${lastName}`
+        displayName: `${firstName} ${lastName}`,
       });
-      
+
       const firebaseToken = await userCredential.user.getIdToken();
-      
-      
+
       const registerResponse = await fetch(`${apiUrl}/auth/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           uid: userCredential.user.uid,
@@ -66,23 +79,25 @@ export function AuthContextProvider({ children }) {
           accountType,
           country,
           referralCode,
-          ...additionalInfo
+          ...additionalInfo,
         }),
       });
-      
+
       if (!registerResponse.ok) {
         const registerError = await registerResponse.json();
-        throw new Error(registerError.message || 'Failed to register with backend');
+        throw new Error(
+          registerError.message || "Failed to register with backend",
+        );
       }
-      
+
       // Get user data and token from the registration response
       const userData = await registerResponse.json();
-      
+
       // Save token and user data
       saveToken(userData.token);
       setUserData(userData.user);
       saveCurrentUser(userData.user);
-      
+
       return userCredential;
     } catch (error) {
       console.error("Registration error:", error);
@@ -95,57 +110,62 @@ export function AuthContextProvider({ children }) {
   const logIn = async (email, password) => {
     try {
       setAuthError(null);
-      
+
       // First authenticate with Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+
       // Get Firebase user token for backend authentication
       const firebaseToken = await userCredential.user.getIdToken();
-      
-      
+
       // First sync the user
       const syncResponse = await fetch(`${apiUrl}/auth/sync`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
-          firebaseToken
+          firebaseToken,
         }),
       });
-      
+
       if (!syncResponse.ok) {
         const syncError = await syncResponse.json();
-        throw new Error(syncError.message || 'Failed to synchronize with backend');
+        throw new Error(
+          syncError.message || "Failed to synchronize with backend",
+        );
       }
-      
+
       // Then login with the backend
       const loginResponse = await fetch(`${apiUrl}/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
         }),
       });
-      
+
       if (!loginResponse.ok) {
         const loginError = await loginResponse.json();
-        throw new Error(loginError.message || 'Failed to login with backend');
+        throw new Error(loginError.message || "Failed to login with backend");
       }
-      
+
       const userData = await loginResponse.json();
-      
+
       // Save token and user data
       saveToken(userData.token);
       setUserData(userData.user);
       saveCurrentUser(userData.user);
-      
+
       return userCredential;
     } catch (error) {
       console.error("Login error:", error);
@@ -157,32 +177,33 @@ export function AuthContextProvider({ children }) {
   const signInWithGoogle = async () => {
     try {
       setAuthError(null);
-      
+
       const googleProvider = new GoogleAuthProvider();
       googleProvider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: "select_account",
       });
-      
+
       const userCredential = await signInWithPopup(auth, googleProvider);
 
       const { user } = userCredential;
       const { displayName, email, uid, photoURL, phoneNumber } = user;
-      
-      let firstName = '', lastName = '';
+
+      let firstName = "",
+        lastName = "";
       if (displayName) {
-        const nameParts = displayName.split(' ');
+        const nameParts = displayName.split(" ");
         if (nameParts.length > 0) {
           firstName = nameParts[0];
-          lastName = nameParts.slice(1).join(' ');
+          lastName = nameParts.slice(1).join(" ");
         }
       }
-      
+
       const firebaseToken = await user.getIdToken();
-      
+
       const registerResponse = await fetch(`${apiUrl}/auth/google-auth`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           uid,
@@ -193,21 +214,23 @@ export function AuthContextProvider({ children }) {
           phoneNumber,
           photoURL,
           firebaseToken,
-          loginType: 'google'
+          loginType: "google",
         }),
       });
-      
+
       if (!registerResponse.ok) {
         const registerError = await registerResponse.json();
-        throw new Error(registerError.message || 'Failed to authenticate with backend');
+        throw new Error(
+          registerError.message || "Failed to authenticate with backend",
+        );
       }
-      
+
       const userData = await registerResponse.json();
-      
+
       saveToken(userData.token);
       setUserData(userData.user);
       saveCurrentUser(userData.user);
-      
+
       return userCredential;
     } catch (error) {
       console.error("Google Sign-In error:", error);
@@ -244,7 +267,7 @@ export function AuthContextProvider({ children }) {
     try {
       if (!user) {
         console.warn("Cannot fetch user profile: User is not logged in");
-        
+
         if (token) {
           const cachedUser = getCurrentUser();
           if (cachedUser) {
@@ -252,34 +275,34 @@ export function AuthContextProvider({ children }) {
             return cachedUser;
           }
         }
-        
+
         return null;
       }
-      
+
       const response = await fetch(`${apiUrl}/users/profile`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch user profile');
+        throw new Error("Failed to fetch user profile");
       }
-      
+
       const userData = await response.json();
       setUserData(userData);
       saveCurrentUser(userData);
-      
+
       return userData;
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      
+
       const cachedUser = getCurrentUser();
       if (cachedUser) {
         setUserData(cachedUser);
         return cachedUser;
       }
-      
+
       return null;
     }
   };
@@ -293,7 +316,7 @@ export function AuthContextProvider({ children }) {
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
     if (storedToken) {
       setToken(storedToken);
-      
+
       const storedUser = getCurrentUser();
       if (storedUser) {
         setUserData(storedUser);
@@ -302,26 +325,26 @@ export function AuthContextProvider({ children }) {
       }
     }
   }, []);
-  
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      
+
       if (currentUser) {
         try {
           const cachedUser = getCurrentUser();
           if (cachedUser && cachedUser.uid === currentUser.uid) {
             setUserData(cachedUser);
           }
-          
+
           const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
           if (storedToken) {
             setToken(storedToken);
           } else {
-            const newToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
+            const newToken =
+              "mock_token_" + Math.random().toString(36).substring(2, 15);
             saveToken(newToken);
           }
-          
 
           if (!userData || userData.uid !== currentUser.uid) {
             await getUserProfile();
@@ -332,7 +355,6 @@ export function AuthContextProvider({ children }) {
           setLoading(false);
         }
       } else {
-
         if (token) {
           const cachedUser = getCurrentUser();
           if (cachedUser) {
@@ -346,14 +368,14 @@ export function AuthContextProvider({ children }) {
         } else {
           setUserData(null);
         }
-        
+
         setLoading(false);
       }
     });
-    
+
     return () => unsubscribe();
   }, []);
-  
+
   // Refresh user data
   const refreshUserData = async () => {
     if (user) {
@@ -364,7 +386,7 @@ export function AuthContextProvider({ children }) {
 
   // Check if user is admin
   const isAdmin = () => {
-    return userData?.role === 'admin' || userData?.role === 'superadmin';
+    return userData?.role === "admin" || userData?.role === "superadmin";
   };
 
   // Debug auth state
@@ -391,7 +413,7 @@ export function AuthContextProvider({ children }) {
     resetPassword,
     refreshUserData,
     getUserProfile,
-    isAdmin
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

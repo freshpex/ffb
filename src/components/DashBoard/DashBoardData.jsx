@@ -1,9 +1,9 @@
 // import { motion } from "framer-motion";
 // import { FaInfoCircle, FaEye } from "react-icons/fa";
 // import { Link } from "react-router-dom";
-// import { AiOutlineDashboard, AiOutlineCloudUpload, AiOutlineCloudDownload, 
-//   AiOutlineLineChart, AiOutlineDollar, AiOutlineUserAdd, AiOutlineBook, 
-//   AiOutlineSetting, AiOutlineBell, AiOutlineLogout, AiOutlineGift, 
+// import { AiOutlineDashboard, AiOutlineCloudUpload, AiOutlineCloudDownload,
+//   AiOutlineLineChart, AiOutlineDollar, AiOutlineUserAdd, AiOutlineBook,
+//   AiOutlineSetting, AiOutlineBell, AiOutlineLogout, AiOutlineGift,
 //   AiOutlineQuestionCircle, AiOutlineProfile, AiOutlineLock } from "react-icons/ai";
 // import { FaGraduationCap, FaChartLine, FaUsers, FaMoneyBillWave } from "react-icons/fa";
 
@@ -57,7 +57,7 @@
 //   };
 
 //   return (
-//     <motion.div 
+//     <motion.div
 //       className="bg-gray-800 rounded-lg shadow-lg overflow-hidden"
 //       initial={{ opacity: 0, y: 20 }}
 //       animate={{ opacity: 1, y: 0 }}
@@ -65,18 +65,18 @@
 //     >
 //       <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
 //         <h2 className="text-xl font-bold text-white">Recent Transactions</h2>
-//         <Link 
-//           to="/login/deposittransaction" 
+//         <Link
+//           to="/login/deposittransaction"
 //           className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
 //         >
 //           View All
 //         </Link>
 //       </div>
-      
+
 //       <div className="p-6">
 //         {data.length > 0 ? (
 //           <div className="overflow-x-auto">
-//             <motion.table 
+//             <motion.table
 //               className="w-full"
 //               variants={containerVariants}
 //               initial="hidden"
@@ -94,7 +94,7 @@
 //               </thead>
 //               <tbody>
 //                 {data.map((transaction, index) => (
-//                   <motion.tr 
+//                   <motion.tr
 //                     key={transaction.id}
 //                     variants={itemVariants}
 //                     className="hover:bg-gray-700/30 transition-colors"

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import TransactionItem from './TransactionItem';
-import Button from './Button';
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import TransactionItem from "./TransactionItem";
+import Button from "./Button";
 
 const TransactionList = ({
   transactions,
@@ -68,21 +68,23 @@ const TransactionList = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{title}</h3>
-      
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        {title}
+      </h3>
+
       <div className="space-y-3">
         {transactions.map((transaction) => {
           const isExpanded = expandedId === transaction._id;
           return (
             <div key={transaction._id} className="transition-all duration-200">
-              <TransactionItem 
+              <TransactionItem
                 transaction={transaction}
                 onViewDetails={handleViewDetails}
                 isExpanded={isExpanded}
                 detailFields={detailFields}
                 showDetailButton={!onViewDetails || isExpanded}
               />
-              
+
               {/* Render custom actions if provided and transaction is expanded */}
               {isExpanded && renderCustomActions && (
                 <div className="px-4 py-2 bg-gray-50 dark:bg-gray-750 border-t border-gray-200 dark:border-gray-700 flex justify-end">
@@ -93,12 +95,12 @@ const TransactionList = ({
           );
         })}
       </div>
-      
+
       {pagination && pagination.total > transactions.length && onLoadMore && (
         <div className="mt-6 text-center">
-          <Button 
-            onClick={onLoadMore} 
-            variant="secondary" 
+          <Button
+            onClick={onLoadMore}
+            variant="secondary"
             size="md"
             disabled={isLoading}
           >
