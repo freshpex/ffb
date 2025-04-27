@@ -119,12 +119,21 @@ export const investmentService = {
 
 // Trading endpoints
 export const tradingService = {
+  getMarketPrices: () => api.get("/trading/market/prices"),
+  getMarketPrice: (symbol) => api.get(`/trading/market/price?symbol=${symbol}`),
+  getOrderbook: (symbol) => api.get(`/trading/market/orderbook/${symbol}`),
+  getCandlesticks: (symbol, interval, limit) => api.get(`/trading/market/candlesticks`, { 
+    params: { symbol, interval, limit } 
+  }),
+  getTradingPairs: () => api.get("/trading/market/pairs"),
+  getRecentTrades: (symbol) => api.get(`/trading/market/trades`, { params: { symbol } }),
+  
+  // Order endpoints
   getOrders: (params) => api.get("/trading/orders", { params }),
-  createOrder: (data) => api.post("/trading/orders", data),
+  placeOrder: (data) => api.post("/trading/orders", data),
+  getOrder: (id) => api.get(`/trading/orders/${id}`),
   cancelOrder: (id) => api.delete(`/trading/orders/${id}`),
-  getOrderbook: (symbol) => api.get(`/market/orderbook/${symbol}`),
-  getAccountInfo: () => api.get("/trading/account"),
-  getPositions: () => api.get("/trading/positions"),
+  getPositions: () => api.get("/trading/positions")
 };
 
 // Admin endpoints

@@ -431,7 +431,6 @@ const tradingSlice = createSlice({
         state.loading.placeOrder = false;
         state.lastSuccessfulOrder = action.payload.data;
 
-        // Add the new order to open orders if it's not an immediate execution
         if (action.payload.data.status === "open") {
           state.orders.open.unshift(action.payload.data);
         } else {
