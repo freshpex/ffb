@@ -9,6 +9,7 @@ import {
   selectFavoriteSymbols,
   toggleFavoriteSymbol,
   fetchMarketData,
+  fetchTradingPairs,
 } from "../../redux/slices/tradingSlice";
 
 const AssetSelector = ({ variant = "standard", compact = false }) => {
@@ -17,11 +18,18 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
   const selectedAsset = useSelector(selectSelectedSymbol);
   const marketPrices = useSelector(selectMarketPrices);
   const favorites = useSelector(selectFavoriteSymbols);
+  console.log("Market Prices", marketPrices);
+  console.log("all Assets", allAssets);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showAssetSelector, setShowAssetSelector] = useState(false);
   const [filteredAssets, setFilteredAssets] = useState(allAssets);
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+   // Fetch data on mount
+    useEffect(() => {
+      dispatch(fetchTradingPairs());
+    }, [dispatch]);
 
   // Format price with appropriate decimal places
   const formatPrice = (price) => {

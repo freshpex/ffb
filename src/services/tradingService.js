@@ -15,9 +15,9 @@ const tradingService = {
   getTradingPairs: async () => {
     try {
       const response = await api.get('/trading/market/pairs');
+      console.log("trading pairs", response);
       return response.data.data;
     } catch (error) {
-      // If API fails, use mock data as fallback in development
       if (import.meta.env.DEV) {
         console.warn('Using mock trading pairs due to API error');
         return generateMockTradingPairs();
@@ -31,6 +31,7 @@ const tradingService = {
     try {
       if (symbol) {
         const response = await api.get(`/trading/market/price?symbol=${symbol}`);
+        console.log("Market data", response);
         return response.data.data;
       } else {
         const response = await api.get('/trading/market/prices');
@@ -44,7 +45,12 @@ const tradingService = {
   // Get order book data for a specific trading pair
   getOrderbook: async (symbol) => {
     try {
-      const response = await api.get(`/trading/market/orderbook/${symbol}`);
+      const [baseAsset, quoteAsset] = symbol.split('/');
+      if (!baseAsset || !quoteAsset) {
+        throw new Error(`Invalid symbol format: ${symbol}`);
+      }
+      
+      const response = await api.get(`/trading/market/orderbook/${baseAsset}/${quoteAsset}`);
       return response.data.data;
     } catch (error) {
       return handleApiError(error, generateMockOrderBook(symbol));
@@ -177,6 +183,7 @@ const tradingService = {
       });
       
       const response = await api.get(`/trading/market/candlesticks?${params.toString()}`);
+      console.log("Chart Data", response);
       return response.data.data.candlesticks;
     } catch (error) {
       return handleApiError(error, generateMockCandlesticks(symbol, timeframe, 100));
@@ -197,6 +204,7 @@ const tradingService = {
   getTicker: async (symbol) => {
     try {
       const response = await api.get(`/trading/market/price?symbol=${symbol}`);
+      console.log("Ticker", response);
       return response.data.data;
     } catch (error) {
       return handleApiError(error, {

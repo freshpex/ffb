@@ -27,9 +27,9 @@ const TradingHeader = () => {
   const favorites = useSelector(selectFavoriteSymbols);
 
   // For debugging
-  // console.log("All Assets:", allAssets);
-  // console.log("Selected Asset:", selectedAsset);
-  // console.log("Market Prices:", marketPrices);
+  console.log("All Assets:", allAssets);
+  console.log("Selected Asset:", selectedAsset);
+  console.log("Market Prices:", marketPrices);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showAssetSelector, setShowAssetSelector] = useState(false);
