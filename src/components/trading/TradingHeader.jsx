@@ -50,24 +50,6 @@ const TradingHeader = () => {
     };
   }, []);
 
-   useEffect(() => {
-      // Fetch initial market data for selected asset
-      if (selectedAsset) {
-        dispatch(fetchMarketData(selectedAsset));
-      }
-    }, [dispatch, selectedAsset]);
-    
-    // Fetch market data for all visible assets when dropdown is opened
-    useEffect(() => {
-      if (showAssetSelector && filteredAssets.length > 0) {
-        filteredAssets.forEach(asset => {
-          if (!marketPrices[asset.symbol]?.price) {
-            dispatch(fetchMarketData(asset.symbol));
-          }
-        });
-      }
-    }, [showAssetSelector, filteredAssets, dispatch, marketPrices]);
-
   // Format price with appropriate decimal places
   const formatPrice = (price) => {
     if (!price) return "0.00";
@@ -229,10 +211,10 @@ const TradingHeader = () => {
                       </div>
 
                       <div className="text-right">
-                        <div className="text-white">
+                        {/* <div className="text-white">
                           ${formatPrice(marketPrices[asset.symbol]?.price)}
-                        </div>
-                        {marketPrices[asset.symbol] && (
+                        </div> */}
+                        {/* {marketPrices[asset.symbol] && (
                           <div
                             className={`text-xs ${
                               marketPrices[asset.symbol].priceChangePercent >= 0
@@ -248,7 +230,7 @@ const TradingHeader = () => {
                             )}
                             %
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   ))

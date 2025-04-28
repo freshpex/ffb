@@ -51,18 +51,6 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
       dispatch(fetchMarketData(selectedAsset));
     }
   }, [dispatch, selectedAsset]);
-  
-  // Fetch market data for all visible assets when dropdown is opened
-  useEffect(() => {
-    if (showAssetSelector && filteredAssets.length > 0) {
-      // Fetch market data for visible assets in the dropdown
-      filteredAssets.forEach(asset => {
-        if (!marketPrices[asset.symbol]?.price) {
-          dispatch(fetchMarketData(asset.symbol));
-        }
-      });
-    }
-  }, [showAssetSelector, filteredAssets, dispatch, marketPrices]);
 
   // Format price with appropriate decimal places
   const formatPrice = (price) => {
@@ -196,9 +184,9 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
                     </div>
 
                     <div className="text-right text-sm">
-                      <div className="text-white">
+                      {/* <div className="text-white">
                         ${formatPrice(getAssetPrice(asset.symbol))}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 ))
@@ -331,9 +319,9 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-white">
+                    {/* <div className="text-white">
                       ${formatPrice(getAssetPrice(asset.symbol))}
-                    </div>
+                    </div> */}
                     {/* 
                       Note: Price change data doesn't appear to be in the market price data structure.
                       Removing the change display until that data is available.

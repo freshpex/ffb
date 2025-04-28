@@ -11,11 +11,12 @@ import {
   selectNotificationError,
 } from "../../../redux/slices/notificationSlice";
 import { FaBell, FaCheck, FaTrash, FaCheckDouble } from "react-icons/fa";
-import Loader from "../../Loader";
+import Loader from "../../common/Loader";
 
 const NotificationsPanel = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
+  console.log("nttocation", notifications);
   const unreadCount = useSelector(selectUnreadCount);
   const isLoading = useSelector(selectNotificationLoading);
   const error = useSelector(selectNotificationError);
