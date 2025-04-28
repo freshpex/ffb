@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   FaSearch,
@@ -25,6 +25,7 @@ const TradingHeader = () => {
   const selectedAsset = useSelector(selectSelectedSymbol);
   const marketPrices = useSelector(selectMarketPrices);
   const favorites = useSelector(selectFavoriteSymbols);
+  const dropdownRef = useRef(null);
 
   // For debugging
   console.log("All Assets:", allAssets);
@@ -36,11 +37,36 @@ const TradingHeader = () => {
   const [filteredAssets, setFilteredAssets] = useState(allAssets);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  // Close dropdown when clicking outside
   useEffect(() => {
-    if (selectedAsset) {
-      dispatch(fetchMarketData(selectedAsset));
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAssetSelector(false);
+      }
     }
-  }, [dispatch, selectedAsset]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+   useEffect(() => {
+      // Fetch initial market data for selected asset
+      if (selectedAsset) {
+        dispatch(fetchMarketData(selectedAsset));
+      }
+    }, [dispatch, selectedAsset]);
+    
+    // Fetch market data for all visible assets when dropdown is opened
+    useEffect(() => {
+      if (showAssetSelector && filteredAssets.length > 0) {
+        filteredAssets.forEach(asset => {
+          if (!marketPrices[asset.symbol]?.price) {
+            dispatch(fetchMarketData(asset.symbol));
+          }
+        });
+      }
+    }, [showAssetSelector, filteredAssets, dispatch, marketPrices]);
 
   // Format price with appropriate decimal places
   const formatPrice = (price) => {
@@ -51,9 +77,9 @@ const TradingHeader = () => {
     return price.toFixed(2);
   };
 
-  // Get current price and price change
-  const currentPrice = marketPrices[selectedAsset]?.lastPrice || 0;
-  const priceChange = marketPrices[selectedAsset]?.change24h || 0;
+  // Get current price and price change based on the backend data structure
+  const currentPrice = marketPrices[selectedAsset]?.price || 0;
+  const priceChange = marketPrices[selectedAsset]?.priceChangePercent || 0;
   const isPriceUp = priceChange >= 0;
 
   // Filter assets based on search query and category
@@ -62,7 +88,7 @@ const TradingHeader = () => {
 
     // Apply category filter
     if (selectedCategory !== "all") {
-      result = result.filter((asset) => asset.category === selectedCategory);
+      result = result.filter((asset) => asset.type === selectedCategory);
     }
 
     // Apply search filter
@@ -70,8 +96,8 @@ const TradingHeader = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (asset) =>
-          asset.name.toLowerCase().includes(query) ||
-          asset.symbol.toLowerCase().includes(query),
+          asset.baseAsset.toLowerCase().includes(query) ||
+          asset.symbol.toLowerCase().includes(query)
       );
     }
 
@@ -95,7 +121,7 @@ const TradingHeader = () => {
     <div className="bg-gray-900 border-b border-gray-700 px-4 py-3">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         {/* Asset selector */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             className="flex items-center bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
             onClick={() => setShowAssetSelector(!showAssetSelector)}
@@ -120,7 +146,7 @@ const TradingHeader = () => {
                 </div>
               </div>
 
-              <div className="p-2 border-b border-gray-700 flex space-x-1">
+              <div className="p-2 border-b border-gray-700 flex flex-wrap gap-1">
                 <button
                   className={`px-3 py-1 text-xs rounded-lg ${
                     selectedCategory === "all"
@@ -143,31 +169,31 @@ const TradingHeader = () => {
                 </button>
                 <button
                   className={`px-3 py-1 text-xs rounded-lg ${
-                    selectedCategory === "forex"
+                    selectedCategory === "stock"
                       ? "bg-primary-600 text-white"
                       : "text-gray-400 hover:bg-gray-700"
                   }`}
-                  onClick={() => setSelectedCategory("forex")}
+                  onClick={() => setSelectedCategory("stock")}
                 >
-                  Forex
+                  Stocks
                 </button>
                 <button
                   className={`px-3 py-1 text-xs rounded-lg ${
-                    selectedCategory === "indices"
+                    selectedCategory === "etf"
                       ? "bg-primary-600 text-white"
                       : "text-gray-400 hover:bg-gray-700"
                   }`}
-                  onClick={() => setSelectedCategory("indices")}
+                  onClick={() => setSelectedCategory("etf")}
                 >
-                  Indices
+                  ETFs
                 </button>
                 <button
                   className={`px-3 py-1 text-xs rounded-lg ${
-                    selectedCategory === "commodities"
+                    selectedCategory === "commodity"
                       ? "bg-primary-600 text-white"
                       : "text-gray-400 hover:bg-gray-700"
                   }`}
-                  onClick={() => setSelectedCategory("commodities")}
+                  onClick={() => setSelectedCategory("commodity")}
                 >
                   Commodities
                 </button>
@@ -194,7 +220,7 @@ const TradingHeader = () => {
                         </button>
                         <div>
                           <div className="text-white font-medium">
-                            {asset.name}
+                            {asset.baseAsset}
                           </div>
                           <div className="text-gray-400 text-sm">
                             {asset.symbol}
@@ -204,16 +230,23 @@ const TradingHeader = () => {
 
                       <div className="text-right">
                         <div className="text-white">
-                          ${formatPrice(marketPrices[asset.symbol]?.lastPrice)}
+                          ${formatPrice(marketPrices[asset.symbol]?.price)}
                         </div>
                         {marketPrices[asset.symbol] && (
                           <div
-                            className={`text-xs ${marketPrices[asset.symbol].change24h >= 0 ? "text-green-500" : "text-red-500"}`}
+                            className={`text-xs ${
+                              marketPrices[asset.symbol].priceChangePercent >= 0
+                                ? "text-green-500"
+                                : "text-red-500"
+                            }`}
                           >
-                            {marketPrices[asset.symbol].change24h >= 0
+                            {marketPrices[asset.symbol].priceChangePercent >= 0
                               ? "+"
                               : ""}
-                            {marketPrices[asset.symbol].change24h?.toFixed(2)}%
+                            {marketPrices[asset.symbol].priceChangePercent?.toFixed(
+                              2
+                            )}
+                            %
                           </div>
                         )}
                       </div>
@@ -234,7 +267,9 @@ const TradingHeader = () => {
           <div>
             <div className="text-gray-400 text-xs">Last Price</div>
             <div
-              className={`text-2xl font-bold ${isPriceUp ? "text-green-500" : "text-red-500"}`}
+              className={`text-2xl font-bold ${
+                isPriceUp ? "text-green-500" : "text-red-500"
+              }`}
             >
               ${formatPrice(currentPrice)}
             </div>
@@ -243,7 +278,9 @@ const TradingHeader = () => {
           <div>
             <div className="text-gray-400 text-xs">24h Change</div>
             <div
-              className={`flex items-center ${isPriceUp ? "text-green-500" : "text-red-500"}`}
+              className={`flex items-center ${
+                isPriceUp ? "text-green-500" : "text-red-500"
+              }`}
             >
               {isPriceUp ? (
                 <FaArrowUp className="mr-1" />
@@ -256,27 +293,23 @@ const TradingHeader = () => {
           </div>
 
           <div className="hidden lg:block">
-            <div className="text-gray-400 text-xs">24h High</div>
+            <div className="text-gray-400 text-xs">Market</div>
             <div className="text-white">
-              ${formatPrice(marketPrices[selectedAsset]?.high24h || 0)}
+              {allAssets.find(a => a.symbol === selectedAsset)?.type || "N/A"}
             </div>
           </div>
 
           <div className="hidden lg:block">
-            <div className="text-gray-400 text-xs">24h Low</div>
+            <div className="text-gray-400 text-xs">Min Quantity</div>
             <div className="text-white">
-              ${formatPrice(marketPrices[selectedAsset]?.low24h || 0)}
+              {allAssets.find(a => a.symbol === selectedAsset)?.minQuantity || "N/A"}
             </div>
           </div>
 
           <div className="hidden lg:block">
-            <div className="text-gray-400 text-xs">24h Volume</div>
+            <div className="text-gray-400 text-xs">Quote Asset</div>
             <div className="text-white">
-              $
-              {(marketPrices[selectedAsset]?.volume24h || 0).toLocaleString(
-                undefined,
-                { maximumFractionDigits: 2 },
-              )}
+              {allAssets.find(a => a.symbol === selectedAsset)?.quoteAsset || "USDT"}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
-import { FaInfoCircle, FaExclamationTriangle } from "react-icons/fa";
+import { FaExclamationTriangle } from "react-icons/fa";
 import Button from "../common/Button";
 import Alert from "../common/Alert";
 import {
@@ -115,12 +115,15 @@ const OrderForm = ({ compact = false }) => {
   // Handle setting max amount based on available balance
   const handleSetMaxAmount = () => {
     if (orderSide === "buy") {
-      // For buy orders, max is based on available quote currency
       let price =
         orderType === "market"
           ? currentPrice
           : parseFloat(orderPrice || currentPrice);
-      if (isNaN(price) || price <= 0) price = currentPrice;
+      
+      if (isNaN(price) || price <= 0.00000001) {
+        dispatch(setOrderFormError("Cannot calculate max amount: Price is zero or invalid"));
+        return;
+      }
 
       const maxAmount = (availableBalance / price) * 0.995; // Account for fees
       dispatch(updateOrderForm({ amount: maxAmount.toFixed(8) }));
@@ -207,14 +210,12 @@ const OrderForm = ({ compact = false }) => {
         type: orderType,
         amount: parseFloat(orderAmount),
         price: orderType === "market" ? currentPrice : parseFloat(orderPrice),
-        stopPrice: orderType === "stop" ? parseFloat(stopPrice) : undefined,
         expiry: expiry,
         total: parseFloat(orderTotal),
       };
 
-      const result = await dispatch(placeOrder(orderData)).unwrap();
+      await dispatch(placeOrder(orderData)).unwrap();
 
-      // Show success message
       dispatch(
         setAlertMessage({
           type: "success",
@@ -222,19 +223,17 @@ const OrderForm = ({ compact = false }) => {
         }),
       );
 
-      // Reset form after successful order
       dispatch(resetEntireOrderForm());
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         dispatch(clearAlert());
       }, 3000);
-    } catch (error) {
-      dispatch(setOrderFormError(error.message || "Failed to place order"));
-    }
+  } catch (error) {
+    console.error("Order submission error:", error);
+  }
   };
-
-  // Format price with appropriate decimal precision
+  
+  // Used to format prices for display
   const formatPrice = (price) => {
     if (typeof price !== "number" || isNaN(price)) return "0.00";
 
@@ -482,21 +481,17 @@ const OrderForm = ({ compact = false }) => {
             )}
           </div>
         )}
-
         {/* Available balance indicator */}
-        <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
-          <div className="flex items-center">
-            <span>Available:</span>
-            <FaInfoCircle className="ml-1 text-gray-500" />
-          </div>
+        <div className="mb-3">
+          <div className="text-xs text-gray-400">Available:</div>
           <div>
             {orderSide === "buy" ? (
               <span className="text-white">
-                {availableBalance.toLocaleString()} {quoteAsset}
+                {formatPrice(availableBalance)} {quoteAsset}
               </span>
             ) : (
               <span className="text-white">
-                {baseAssetAvailable.toLocaleString()} {baseAsset}
+                {formatPrice(baseAssetAvailable)} {baseAsset}
               </span>
             )}
           </div>

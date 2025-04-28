@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaSearch, FaStar, FaRegStar, FaChevronDown } from "react-icons/fa";
 import {
@@ -18,18 +18,51 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
   const selectedAsset = useSelector(selectSelectedSymbol);
   const marketPrices = useSelector(selectMarketPrices);
   const favorites = useSelector(selectFavoriteSymbols);
-  console.log("Market Prices", marketPrices);
-  console.log("all Assets", allAssets);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showAssetSelector, setShowAssetSelector] = useState(false);
   const [filteredAssets, setFilteredAssets] = useState(allAssets);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  
+  const dropdownRef = useRef(null);
 
-   // Fetch data on mount
-    useEffect(() => {
-      dispatch(fetchTradingPairs());
-    }, [dispatch]);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAssetSelector(false);
+      }
+    }
+
+    if (showAssetSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAssetSelector]);
+
+  // Fetch data on mount
+  useEffect(() => {
+    dispatch(fetchTradingPairs());
+    
+    // Fetch initial market data for selected asset
+    if (selectedAsset) {
+      dispatch(fetchMarketData(selectedAsset));
+    }
+  }, [dispatch, selectedAsset]);
+  
+  // Fetch market data for all visible assets when dropdown is opened
+  useEffect(() => {
+    if (showAssetSelector && filteredAssets.length > 0) {
+      // Fetch market data for visible assets in the dropdown
+      filteredAssets.forEach(asset => {
+        if (!marketPrices[asset.symbol]?.price) {
+          dispatch(fetchMarketData(asset.symbol));
+        }
+      });
+    }
+  }, [showAssetSelector, filteredAssets, dispatch, marketPrices]);
 
   // Format price with appropriate decimal places
   const formatPrice = (price) => {
@@ -40,13 +73,20 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
     return price.toFixed(2);
   };
 
+  // Get asset price
+  const getAssetPrice = (symbol) => {
+    return marketPrices[symbol]?.price;
+  };
+
   // Filter assets based on search query and category
   useEffect(() => {
-    let result = allAssets;
+    if (!showAssetSelector) return;
+    
+    let result = [...allAssets];
 
     // Apply category filter
     if (selectedCategory !== "all") {
-      result = result.filter((asset) => asset.category === selectedCategory);
+      result = result.filter((asset) => asset.type === selectedCategory);
     }
 
     // Apply search filter
@@ -54,13 +94,13 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (asset) =>
-          asset.name.toLowerCase().includes(query) ||
-          asset.symbol.toLowerCase().includes(query),
+          asset.baseAsset.toLowerCase().includes(query) ||
+          asset.symbol.toLowerCase().includes(query)
       );
     }
 
     setFilteredAssets(result);
-  }, [searchQuery, selectedCategory, allAssets]);
+  }, [searchQuery, selectedCategory, allAssets, showAssetSelector]);
 
   // Handle asset selection
   const handleAssetSelect = (symbol) => {
@@ -69,27 +109,47 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
     dispatch(fetchMarketData(symbol));
   };
 
+  // Toggle dropdown with immediate state update
+  const toggleDropdown = () => {
+    const newState = !showAssetSelector;
+    setShowAssetSelector(newState);
+    
+    // Pre-filter assets when opening dropdown
+    if (newState) {
+      let result = [...allAssets];
+      if (selectedCategory !== "all") {
+        result = result.filter((asset) => asset.type === selectedCategory);
+      }
+      setFilteredAssets(result);
+    }
+  };
+
   // Toggle favorite
   const toggleFavorite = (symbol, e) => {
     e.stopPropagation();
     dispatch(toggleFavoriteSymbol(symbol));
   };
 
+  // Get asset display name
+  const getAssetDisplayName = (asset) => {
+    return asset.baseAsset;
+  };
+
   // Minimal variant for sidebar display
   if (variant === "minimal") {
     return (
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <button
           className={`flex items-center ${
             compact
               ? "bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm"
               : "bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg"
           }`}
-          onClick={() => setShowAssetSelector(!showAssetSelector)}
+          onClick={toggleDropdown}
         >
           <span className="font-medium">{selectedAsset}</span>
           <span className="font-bold ml-1">
-            ${formatPrice(marketPrices[selectedAsset]?.lastPrice)}
+            ${formatPrice(getAssetPrice(selectedAsset))}
           </span>
           <FaChevronDown className="ml-2 text-gray-400" />
         </button>
@@ -137,7 +197,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
 
                     <div className="text-right text-sm">
                       <div className="text-white">
-                        ${formatPrice(marketPrices[asset.symbol]?.lastPrice)}
+                        ${formatPrice(getAssetPrice(asset.symbol))}
                       </div>
                     </div>
                   </div>
@@ -156,18 +216,18 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
 
   // Standard variant
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         className={`flex items-center ${
           compact
             ? "bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded text-sm"
             : "bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg"
         }`}
-        onClick={() => setShowAssetSelector(!showAssetSelector)}
+        onClick={toggleDropdown}
       >
         <span className="font-medium">{selectedAsset}</span>
         <span className="font-bold ml-1">
-          ${formatPrice(marketPrices[selectedAsset]?.lastPrice)}
+          ${formatPrice(getAssetPrice(selectedAsset))}
         </span>
         <FaChevronDown className="ml-2 text-gray-400" />
       </button>
@@ -190,7 +250,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
             </div>
           </div>
 
-          <div className="p-2 border-b border-gray-700 flex space-x-1">
+          <div className="p-2 border-b border-gray-700 flex space-x-1 overflow-x-auto">
             <button
               className={`px-3 py-1 text-xs rounded-lg ${
                 selectedCategory === "all"
@@ -213,31 +273,31 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
             </button>
             <button
               className={`px-3 py-1 text-xs rounded-lg ${
-                selectedCategory === "forex"
+                selectedCategory === "stock"
                   ? "bg-primary-600 text-white"
                   : "text-gray-400 hover:bg-gray-700"
               }`}
-              onClick={() => setSelectedCategory("forex")}
+              onClick={() => setSelectedCategory("stock")}
             >
-              Forex
+              Stocks
             </button>
             <button
               className={`px-3 py-1 text-xs rounded-lg ${
-                selectedCategory === "indices"
+                selectedCategory === "etf"
                   ? "bg-primary-600 text-white"
                   : "text-gray-400 hover:bg-gray-700"
               }`}
-              onClick={() => setSelectedCategory("indices")}
+              onClick={() => setSelectedCategory("etf")}
             >
-              Indices
+              ETFs
             </button>
             <button
               className={`px-3 py-1 text-xs rounded-lg ${
-                selectedCategory === "commodities"
+                selectedCategory === "commodity"
                   ? "bg-primary-600 text-white"
                   : "text-gray-400 hover:bg-gray-700"
               }`}
-              onClick={() => setSelectedCategory("commodities")}
+              onClick={() => setSelectedCategory("commodity")}
             >
               Commodities
             </button>
@@ -263,7 +323,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
                       )}
                     </button>
                     <div>
-                      <div className="text-white font-medium">{asset.name}</div>
+                      <div className="text-white font-medium">{getAssetDisplayName(asset)}</div>
                       <div className="text-gray-400 text-sm">
                         {asset.symbol}
                       </div>
@@ -272,9 +332,13 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
 
                   <div className="text-right">
                     <div className="text-white">
-                      ${formatPrice(marketPrices[asset.symbol]?.lastPrice)}
+                      ${formatPrice(getAssetPrice(asset.symbol))}
                     </div>
-                    {marketPrices[asset.symbol] && (
+                    {/* 
+                      Note: Price change data doesn't appear to be in the market price data structure.
+                      Removing the change display until that data is available.
+
+                      {marketPrices[asset.symbol] && (
                       <div
                         className={`text-xs ${marketPrices[asset.symbol].change24h >= 0 ? "text-green-500" : "text-red-500"}`}
                       >
@@ -282,6 +346,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
                         {marketPrices[asset.symbol].change24h?.toFixed(2)}%
                       </div>
                     )}
+                    */}
                   </div>
                 </div>
               ))
