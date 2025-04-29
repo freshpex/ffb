@@ -45,13 +45,22 @@ const TradingHeader = () => {
     };
   }, []);
 
-  // Format price with appropriate decimal places
   const formatPrice = (price) => {
     if (!price) return "0.00";
-    if (price < 1) return price.toFixed(6);
-    if (price < 10) return price.toFixed(4);
-    if (price < 1000) return price.toFixed(2);
-    return price.toFixed(2);
+    let formatted;
+    if (price < 1) {
+      formatted = price.toFixed(6);
+    } else if (price < 10) {
+      formatted = price.toFixed(4);
+    } else if (price < 1000) {
+      formatted = price.toFixed(2);
+    } else {
+      formatted = price.toFixed(2);
+    }
+    return Number(formatted).toLocaleString(undefined, {
+      minimumFractionDigits: formatted.split(".")[1]?.length || 0,
+      maximumFractionDigits: formatted.split(".")[1]?.length || 0,
+    });
   };
 
   // Get current price and price change based on the backend data structure

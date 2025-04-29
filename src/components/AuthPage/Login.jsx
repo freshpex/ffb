@@ -437,13 +437,13 @@ const Login = () => {
                 </div>
               </div>
 
-              <button
+              {/* <button
                 type="button"
                 onClick={handleGoogleSignIn}
                 className="w-full bg-white text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
                 <FaGoogle className="mr-2" /> Continue with Google
-              </button>
+              </button> */}
             </form>
 
             <div className="mt-6 text-center">

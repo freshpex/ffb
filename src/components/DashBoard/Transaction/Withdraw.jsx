@@ -39,6 +39,7 @@ const Withdraw = () => {
   const withdrawalStatus = useSelector(selectWithdrawalStatus);
   const withdrawalError = useSelector(selectWithdrawalError);
   const pendingWithdrawal = useSelector(selectPendingWithdrawal);
+  const [isSubmitting, setSubmitting] = useState(false);
 
   // Local state
   const [errors, setErrors] = useState({});
@@ -240,6 +241,7 @@ const Withdraw = () => {
         description:
           formData.description || `Withdrawal via ${activeMethod.name}`,
       };
+      setSubmitting(true);
 
       // Add method-specific details
       if (activeMethod.id === "cryptocurrency") {
@@ -256,8 +258,6 @@ const Withdraw = () => {
         withdrawalData.paypalEmail = formData.paypalEmail;
       }
 
-      console.log("Submitting withdrawal:", withdrawalData);
-
       await dispatch(submitWithdrawal(withdrawalData));
 
       // Success will be handled by useEffect when pendingWithdrawal is updated
@@ -266,6 +266,8 @@ const Withdraw = () => {
         type: "error",
         message: error.message || "Failed to process withdrawal",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -313,6 +315,8 @@ const Withdraw = () => {
 
   const renderWithdrawalConfirmation = () => {
     if (!pendingWithdrawal) return null;
+
+    // Format price with appropriate decimal places
 
     return (
       <motion.div
@@ -397,6 +401,25 @@ const Withdraw = () => {
     );
   };
 
+  const formatPrice = (price) => {
+    if (!price) return "0.00";
+    let formatted;
+    if (price < 1) {
+      formatted = price.toFixed(6);
+    } else if (price < 10) {
+      formatted = price.toFixed(4);
+    } else if (price < 1000) {
+      formatted = price.toFixed(2);
+    } else {
+      formatted = price.toFixed(2);
+    }
+    // Add commas for thousands
+    return Number(formatted).toLocaleString(undefined, {
+      minimumFractionDigits: formatted.split(".")[1]?.length || 0,
+      maximumFractionDigits: formatted.split(".")[1]?.length || 0,
+    });
+  };
+
   return (
     <DashboardLayout>
       <motion.div
@@ -421,7 +444,7 @@ const Withdraw = () => {
             <div className="mb-6 bg-gray-800 p-4 rounded-lg">
               <h3 className="text-white font-medium mb-2">Available Balance</h3>
               <div className="text-2xl font-bold text-green-400">
-                ${userBalance.toFixed(2)}
+                ${formatPrice(userBalance)}
               </div>
             </div>
 
@@ -660,8 +683,8 @@ const Withdraw = () => {
                 <div className="flex justify-end mt-6">
                   <Button
                     type="submit"
-                    isLoading={withdrawalStatus === "loading"}
-                    disabled={withdrawalStatus === "loading"}
+                    disabled={withdrawalStatus === "loading" || isSubmitting}
+                    loading={isSubmitting}
                   >
                     <FaArrowRight className="mr-2" /> Submit Withdrawal
                   </Button>

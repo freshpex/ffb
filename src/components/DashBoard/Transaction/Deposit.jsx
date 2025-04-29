@@ -52,6 +52,7 @@ const Deposit = () => {
   const [alert, setAlert] = useState(null);
   const [selectedCrypto, setSelectedCrypto] = useState(null);
   const [copySuccess, setCopySuccess] = useState("");
+  const [isSubmitting, setSubmitting] = useState(false);
 
   // Clear alerts after 5 seconds
   useEffect(() => {
@@ -152,6 +153,8 @@ const Deposit = () => {
         note: formData.note,
       };
 
+      setSubmitting(true);
+
       // Add crypto-specific details if applicable
       if (activeMethod.id === "cryptocurrency" && selectedCrypto) {
         depositData.cryptoType = selectedCrypto.id;
@@ -167,6 +170,8 @@ const Deposit = () => {
         type: "error",
         message: error.message || "Failed to process deposit",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -563,8 +568,8 @@ const Deposit = () => {
                   <div className="flex justify-end">
                     <Button
                       type="submit"
-                      isLoading={depositStatus === "loading"}
-                      disabled={depositStatus === "loading"}
+                      disabled={depositStatus === "loading" || isSubmitting}
+                      loading={isSubmitting}
                     >
                       <FaArrowRight className="mr-2" /> Submit Deposit
                     </Button>
