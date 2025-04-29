@@ -153,7 +153,7 @@ const WithdrawTransaction = () => {
               <div className="relative inline-block">
                 <Button
                   variant="outline"
-                  size="md"
+                  size="default"
                   onClick={() => setIsFilterOpen(!isFilterOpen)}
                   className="flex items-center"
                 >

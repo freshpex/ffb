@@ -59,7 +59,6 @@ export const fetchAdminCards = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await apiService.get("/admin/atm-cards/all", { params });
-      console.log("response Data", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(

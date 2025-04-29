@@ -66,7 +66,7 @@ const AdminDashboard = () => {
 
         // Calculate statistics
         const userStats = {
-          total: usersResponse?.pagination?.totalUsers || 0,
+          total: usersResponse?.pagination?.total || 0,
           active: (usersResponse?.users || []).filter(
             (u) => u?.status === "active",
           ).length,
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
         };
 
         const transactionStats = {
-          total: transactionsResponse?.pagination?.totalTransactions || 0,
+          total: transactionsResponse?.pagination?.total || 0,
           pending: (transactionsResponse?.transactions || []).filter(
             (t) => t?.status === "pending",
           ).length,
@@ -89,7 +89,7 @@ const AdminDashboard = () => {
         };
 
         const kycStats = {
-          total: kycResponse?.pagination?.totalRequests || 0,
+          total: kycResponse?.pagination?.total || 0,
           pending: (kycResponse?.kycRequests || []).filter(
             (k) => k?.status === "pending",
           ).length,
@@ -102,7 +102,7 @@ const AdminDashboard = () => {
         };
 
         const ticketStats = {
-          total: supportResponse?.pagination?.totalTickets || 0,
+          total: supportResponse?.pagination?.total || 0,
           open: (supportResponse?.supportTickets || []).filter(
             (t) => t?.status === "open" || t?.status === "in_progress",
           ).length,

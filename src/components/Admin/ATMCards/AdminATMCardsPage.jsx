@@ -31,8 +31,6 @@ const AdminATMCardsPage = () => {
 
   const adminCards = useSelector(selectAdminCards);
   const cardRequests = useSelector(selectAdminCardRequests);
-  console.log("Admin Cards", adminCards);
-  console.log("Requests", cardRequests);
   const status = useSelector(selectAdminCardsStatus);
   const error = useSelector(selectAdminCardsError);
   const pagination = useSelector(selectAdminCardsPagination);
