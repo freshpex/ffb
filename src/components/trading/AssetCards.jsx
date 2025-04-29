@@ -31,6 +31,8 @@ const AssetCards = ({
   const navigate = useNavigate();
   const { positions = [], balances = {} } = useSelector(selectPortfolio);
   const [isLoading, setIsLoading] = useState(true);
+  console.log("Positions", positions);
+  console.log("Balances", balances);
 
   useEffect(() => {
     const loadPortfolio = async () => {
@@ -68,33 +70,14 @@ const AssetCards = ({
   // Get appropriate icon for the crypto asset
   const getAssetIcon = (symbol) => {
     const assetSymbol = symbol?.split("/")?.[0] || symbol;
-
-    switch (assetSymbol) {
-      case "BTC":
-        return (
-          <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
-            ₿
-          </div>
-        );
-      case "ETH":
-        return (
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-            €
-          </div>
-        );
-      case "USDT":
-        return (
-          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">
-            $
-          </div>
-        );
-      default:
-        return (
-          <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white font-bold">
-            {assetSymbol.charAt(0)}
-          </div>
-        );
-    }
+    const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-yellow-500", "bg-red-500", "bg-indigo-500"];
+    const colorIndex = assetSymbol.length % colors.length;
+    
+    return (
+      <div className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center text-white font-bold`}>
+        {assetSymbol.charAt(0)}
+      </div>
+    );
   };
 
   // Handle asset card click - can be used for trade or detail view
@@ -196,7 +179,7 @@ const AssetCards = ({
             Your assets will appear here once you deposit or trade.
           </p>
           <button
-            onClick={() => navigate("/account/deposit")}
+            onClick={() => navigate("/login/deposit")}
             className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md transition-colors"
           >
             Make a Deposit

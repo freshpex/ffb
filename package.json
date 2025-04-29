@@ -20,6 +20,7 @@
     "chart.js": "^4.4.8",
     "country-list": "2.3.0",
     "crypto-js": "^4.2.0",
+    "cryptocurrency-icons": "0.18.1",
     "date-fns": "4.1.0",
     "decimal.js": "10.5.0",
     "firebase": "^11.4.0",

@@ -29,8 +29,11 @@ export const fetchAdminNotifications = createAsyncThunk(
           "Content-Type": "application/json",
         },
       });
+      console.log("Notifsyutogg rsponse", response);
 
       const data = await handleApiError(response);
+
+      console.log("data rsponse", data);
       return data.data || data;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch notifications");
