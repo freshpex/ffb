@@ -33,14 +33,17 @@ const AssetCards = ({
   const [isLoading, setIsLoading] = useState(true);
   console.log("Positions", positions);
   console.log("Balances", balances);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
     const loadPortfolio = async () => {
       setIsLoading(true);
+      setLoadError(null);
       try {
         await dispatch(fetchPortfolio()).unwrap();
       } catch (error) {
         console.error("Failed to load portfolio:", error);
+        setLoadError("Unable to load your portfolio data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +54,7 @@ const AssetCards = ({
 
   // Format currency values with the appropriate number of decimal places
   const formatCurrency = (value) => {
-    if (typeof value !== "number") return "0.00";
+    if (typeof value !== "number" || isNaN(value)) return "0.00";
 
     if (value >= 1000) {
       return value.toLocaleString(undefined, {
@@ -108,19 +111,34 @@ const AssetCards = ({
       isStablecoin: true,
     });
 
-    // Add other assets from positions
     for (const position of positions) {
-      const [asset] = position.symbol.split("/");
-      assets.push({
-        asset,
-        symbol: position.symbol,
-        balance: position.amount,
-        value: position.value,
-        price: position.currentPrice,
-        pnl: position.pnl || 0,
-        pnlPercentage: position.pnlPercentage || 0,
-        isStablecoin: false,
-      });
+      try {
+        const [asset] = position.symbol.split("/");
+        
+        const price = typeof position.currentPrice === 'object' && position.currentPrice !== null 
+          ? position.currentPrice.price 
+          : position.currentPrice;
+          
+        const numericPrice = typeof price === 'number' ? price : 0;
+        const numericValue = typeof position.value === 'number' ? position.value : 0;
+        const numericPnl = typeof position.pnl === 'number' ? position.pnl : 0;
+        const numericPnlPercentage = typeof position.pnlPercentage === 'number' ? position.pnlPercentage : 0;
+        
+        assets.push({
+          asset,
+          symbol: position.symbol,
+          balance: position.amount || position.quantity || 0,
+          value: numericValue,
+          price: numericPrice,
+          pnl: numericPnl,
+          pnlPercentage: numericPnlPercentage,
+          isStablecoin: false,
+        });
+      } catch (err) {
+        console.error("Error processing position:", err, position);
+        console.log("Error", error);
+        // Skip this position if it has invalid data
+      }
     }
 
     // Add any additional balances not in positions
@@ -130,16 +148,15 @@ const AssetCards = ({
         asset !== "USD" &&
         !assets.find((a) => a.asset === asset)
       ) {
-        // For assets without position data, we don't have price/value info
         assets.push({
           asset,
           symbol: `${asset}/USDT`,
           balance,
-          value: 0, // We don't have this information
-          price: 0, // We don't have this information
+          value: 0,
+          price: 0,
           pnl: 0,
           pnlPercentage: 0,
-          isStablecoin: ["USDC", "BUSD", "DAI"].includes(asset), // Check if it's a stablecoin
+          isStablecoin: ["USDC", "BUSD", "DAI"].includes(asset),
         });
       }
     }
@@ -160,6 +177,26 @@ const AssetCards = ({
         <div className="flex items-center justify-center py-10">
           <FaSpinner className="animate-spin text-primary-500 text-2xl" />
           <span className="ml-3 text-gray-300">Loading assets...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (loadError) {
+    return (
+      <div className={`bg-gray-800 rounded-lg p-4 ${className}`}>
+        {showHeader && (
+          <h3 className="text-lg font-medium text-white mb-4">My Assets</h3>
+        )}
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <p className="text-red-400 mb-4">{loadError}</p>
+          <button
+            onClick={() => dispatch(fetchPortfolio())}
+            className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            Retry Loading
+          </button>
         </div>
       </div>
     );
