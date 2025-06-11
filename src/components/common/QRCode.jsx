@@ -8,11 +8,11 @@ const QRCode = ({ value, size = 200, label, showCopyButton = true }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Generate QR code using Google Charts API
+  // Generate QR code using QRServer API
   useEffect(() => {
     if (!value) return;
 
-    const qrUrl = `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(value)}&choe=UTF-8`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
     setQrImage(qrUrl);
     setIsLoading(false);
   }, [value, size]);
