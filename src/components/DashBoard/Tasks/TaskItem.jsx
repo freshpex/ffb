@@ -91,10 +91,16 @@ const TaskItem = ({ task, onStart, onClaim }) => {
   
   // Handle action button click
   const handleActionClick = () => {
+    const taskId = task._id || task.id;
+    if (!taskId) {
+      console.error("Task ID is missing:", task);
+      return;
+    }
+    
     if (isCompletedNotClaimed) {
-      onClaim(task.id);
+      onClaim(taskId);
     } else if (!isInProgress && !isClaimed) {
-      onStart(task.id);
+      onStart(taskId);
     }
   };
   

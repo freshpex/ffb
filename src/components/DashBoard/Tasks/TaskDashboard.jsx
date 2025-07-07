@@ -99,6 +99,16 @@ const TaskDashboard = () => {
 
   // Handler for starting a task
   const handleStartTask = (taskId) => {
+    if (!taskId) {
+      setAlertMessage({
+        type: "error",
+        message: "Task ID is missing. Please try again.",
+      });
+      setShowAlert(true);
+      console.error("Attempted to start a task with no ID");
+      return;
+    }
+    
     dispatch(startTask(taskId))
       .unwrap()
       .then(() => {
@@ -119,6 +129,16 @@ const TaskDashboard = () => {
 
   // Handler for claiming a reward
   const handleClaimReward = (taskId) => {
+    if (!taskId) {
+      setAlertMessage({
+        type: "error",
+        message: "Task ID is missing. Please try again.",
+      });
+      setShowAlert(true);
+      console.error("Attempted to claim reward for a task with no ID");
+      return;
+    }
+    
     dispatch(claimTaskReward(taskId))
       .unwrap()
       .then((result) => {
@@ -348,7 +368,7 @@ const TaskDashboard = () => {
           {filteredTasks.length > 0 ? (
             filteredTasks.map((task) => (
               <TaskItem 
-                key={task.id}
+                key={task._id || task.id || `task-${Math.random()}`}
                 task={task}
                 onStart={handleStartTask}
                 onClaim={handleClaimReward}
@@ -404,7 +424,7 @@ const TaskDashboard = () => {
                 const task = allTasks.find(t => t.id === userTask.task);
                 return task ? (
                   <TaskItem 
-                    key={userTask._id}
+                    key={userTask._id || userTask.id || `usertask-${Math.random()}`}
                     task={{...task, userProgress: userTask}}
                     onStart={handleStartTask}
                     onClaim={handleClaimReward}

@@ -172,7 +172,12 @@ const taskSlice = createSlice({
         state.status = 'succeeded';
         
         // Update user tasks
-        const index = state.availableTasks.findIndex(task => task.id === action.payload.data.task);
+        const index = state.availableTasks.findIndex(task => {
+          const taskId = task._id || task.id;
+          const payloadTaskId = action.payload.data.task;
+          return taskId === payloadTaskId;
+        });
+        
         if (index !== -1) {
           state.availableTasks[index].userProgress = {
             status: 'in_progress',
@@ -199,14 +204,24 @@ const taskSlice = createSlice({
         state.status = 'succeeded';
         
         // Update task status in userTasks
-        const userTaskIndex = state.userTasks.findIndex(task => task.task === action.payload.data.userTask.task);
+        const userTaskIndex = state.userTasks.findIndex(task => {
+          const taskId = task.task?._id || task.task;
+          const payloadTaskId = action.payload.data.userTask.task?._id || action.payload.data.userTask.task;
+          return taskId === payloadTaskId;
+        });
+        
         if (userTaskIndex !== -1) {
           state.userTasks[userTaskIndex].status = 'claimed';
           state.userTasks[userTaskIndex].claimedAt = new Date().toISOString();
         }
         
         // Update available tasks
-        const availableTaskIndex = state.availableTasks.findIndex(task => task.id === action.payload.data.userTask.task);
+        const availableTaskIndex = state.availableTasks.findIndex(task => {
+          const taskId = task._id || task.id;
+          const payloadTaskId = action.payload.data.userTask.task?._id || action.payload.data.userTask.task;
+          return taskId === payloadTaskId;
+        });
+        
         if (availableTaskIndex !== -1 && state.availableTasks[availableTaskIndex].userProgress) {
           state.availableTasks[availableTaskIndex].userProgress.status = 'claimed';
           state.availableTasks[availableTaskIndex].userProgress.claimedAt = new Date().toISOString();
