@@ -173,7 +173,7 @@ const ContactSection2 = () => {
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}
                   >
-                    London, NY WIF7BJ
+                    London, WIF7BJ
                   </p>
                 </div>
               </div>

@@ -194,7 +194,7 @@ const HomeFooter = () => {
                 <span
                   className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}
                 >
-                  1234 Wall Street, New York, NY 10005, United States
+                  13 Poland Street, London, WIF7BJ, England
                 </span>
               </li>
               <li className="flex items-center">
@@ -202,7 +202,7 @@ const HomeFooter = () => {
                 <span
                   className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}
                 >
-                  +1 (555) 123-4567
+                  +44 (787) 847 2046
                 </span>
               </li>
               <li className="flex items-center">

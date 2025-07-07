@@ -217,7 +217,7 @@ const AboutSection5 = () => {
                   } transition-colors`}
                 >
                   <FaPhoneAlt className="mr-3 text-primary-500" />
-                  +1 (555) 123-4567
+                  +44 (787) 847 2046
                 </a>
                 <a
                   href="mailto:info@fidelityfirst.com"

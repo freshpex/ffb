@@ -19,41 +19,41 @@ const AboutSection4 = () => {
       name: "Sarah Johnson",
       position: "Chief Investment Officer",
       bio: "Sarah's expertise in portfolio management and market analysis has been instrumental in delivering consistent returns for our clients.",
-      image: "/src/assets/images/team/cio.jpg",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSD7I3tXCAEF4qRppLl6Pqp7vEe0lfTsSbBXg&s",
     },
     {
       name: "David Chen",
       position: "Chief Technology Officer",
       bio: "David has pioneered the integration of AI and blockchain technologies into our trading platforms, enhancing security and performance.",
-      image: "/src/assets/images/team/cto.jpg",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmM2Rog65egKj4QaN4nNbAMb7kyEP1Blg27A&s",
     },
     {
       name: "Emily Rodriguez",
       position: "Head of Client Relations",
       bio: "Emily's dedication to client satisfaction has established our reputation for exceptional service and personalized investment solutions.",
-      image: "/src/assets/images/team/client-relations.jpg",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPkYGauObGWMk4rFAQuFVASzepRLdhQj9Mgw&s",
     },
   ];
 
   const partners = [
     {
       name: "Global Financial Exchange",
-      logo: "/src/assets/images/partners/gfe.png",
+      logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfwcOzl2EAzUvaOJW-1U8OFhyAYV51n_2hyw&s",
       icon: <FaGlobe />,
     },
     {
       name: "Investment Banking Institute",
-      logo: "/src/assets/images/partners/ibi.png",
+      logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpa-TSm31XCMAgVh5J1d7neMQunK-xDBJWEA&s",
       icon: <FaUniversity />,
     },
     {
       name: "Market Analysis Group",
-      logo: "/src/assets/images/partners/mag.png",
+      logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCxOyLZEDUhxp5v_KXpwE8Qx-eGmkIpcPxIA&s",
       icon: <FaChartBar />,
     },
     {
       name: "International Traders Association",
-      logo: "/src/assets/images/partners/ita.png",
+      logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjHQj2VDsR2VWw2dM8OZV13S_OmaG5InYgLw&s",
       icon: <FaUserTie />,
     },
   ];
@@ -176,23 +176,27 @@ const AboutSection4 = () => {
                     : "bg-white backdrop-blur-sm border border-gray-200 hover:border-primary-500 shadow-lg"
                 } p-6 rounded-xl transition-all duration-300 flex flex-col items-center text-center`}
               >
-                {partner.logo ? (
-                  <img
-                    src={partner.logo}
-                    alt={partner.name}
-                    className="h-16 mb-4 opacity-80"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "flex";
-                    }}
-                  />
-                ) : null}
-
-                <div
-                  className={`w-16 h-16 rounded-full ${darkMode ? "bg-primary-900/30" : "bg-primary-100"} flex items-center justify-center text-primary-500 text-2xl mb-4 ${partner.logo ? "hidden" : ""}`}
-                >
-                  {partner.icon}
+                <div className="relative h-16 mb-4">
+                  {partner.logo ? (
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="h-16 opacity-80"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = "none";
+                        e.target.parentNode.querySelector(".icon-fallback").style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  
+                  <div
+                    className={`icon-fallback w-16 h-16 rounded-full ${darkMode ? "bg-primary-900/30" : "bg-primary-100"} 
+                    flex items-center justify-center text-primary-500 text-2xl absolute top-0 left-0 right-0 mx-auto
+                    ${partner.logo ? "hidden" : ""}`}
+                  >
+                    {partner.icon}
+                  </div>
                 </div>
 
                 <h3
