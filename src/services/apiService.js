@@ -136,6 +136,17 @@ export const tradingService = {
   getPositions: () => api.get("/trading/positions")
 };
 
+// Task endpoints
+export const taskService = {
+  getTasks: (params) => api.get("/tasks", { params }),
+  getUserTasks: () => api.get("/tasks/user"),
+  getTaskById: (id) => api.get(`/tasks/${id}`),
+  startTask: (taskId) => api.post(`/tasks/${taskId}/start`),
+  updateTaskProgress: (taskId, data) => api.put(`/tasks/${taskId}/progress`, data),
+  claimTaskReward: (taskId) => api.post(`/tasks/${taskId}/claim`),
+  getTaskStatistics: () => api.get("/tasks/statistics"),
+};
+
 // Admin endpoints
 export const adminService = {
   getUsers: (params) => api.get("/admin/users", { params }),
@@ -168,4 +179,13 @@ export const proxyService = {
   },
 };
 
-export default api;
+const apiService = {
+  ...api,
+  ...userService,
+  ...transactionService,
+  ...investmentService,
+  ...tradingService,
+  ...taskService
+};
+
+export default apiService;

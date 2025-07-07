@@ -138,13 +138,13 @@ const DashboardHeader = ({ isMobile, isSidebarOpen, onToggleSidebar }) => {
           <div className="relative">
             <button className="flex items-center space-x-2 rounded-full hover:bg-gray-700/50 py-1 px-2">
               <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary-600 to-primary-400 flex items-center justify-center text-white font-bold">
-                {userProfile?.fullName?.charAt(0) || "U"}
+                {userProfile?.firstName?.charAt(0)?.toUpperCase() || "U"}
               </div>
               <div className="hidden md:block text-left">
                 <div className="text-sm font-medium text-white">
-                  {userProfile?.fullName || "User Name"}
+                  {userProfile?.username || userProfile?.firstName || "User Name"}
                 </div>
-                <div className="text-xs text-gray-400">Premium Member</div>
+                {/* <div className="text-xs text-gray-400">Premium Member</div> */}
               </div>
             </button>
           </div>

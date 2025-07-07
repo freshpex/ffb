@@ -12,6 +12,7 @@ import tradingSlice from "./slices/tradingSlice";
 import educationSlice from "./slices/educationSlice";
 import layoutSlice from "./slices/layoutSlice";
 import atmCardsSlice from "./slices/atmCardsSlice";
+import taskSlice from "./slices/taskSlice";
 
 // Admin slices
 import adminAuthSlice from "./slices/adminAuthSlice";
@@ -41,6 +42,7 @@ const store = configureStore({
     education: educationSlice,
     layout: layoutSlice,
     atmCards: atmCardsSlice,
+    tasks: taskSlice,
 
     // Admin reducers
     adminAuth: adminAuthSlice,

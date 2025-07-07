@@ -16,7 +16,6 @@ import Loader from "../../common/Loader";
 const NotificationsPanel = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const notifications = useSelector(selectNotifications);
-  console.log("nttocation", notifications);
   const unreadCount = useSelector(selectUnreadCount);
   const isLoading = useSelector(selectNotificationLoading);
   const error = useSelector(selectNotificationError);

@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import React, { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { AuthContextProvider } from "./components/AuthPage/AuthContext";
 import ProtectedRoute from "./components/AuthPage/ProtectedRoute";
 import VisitorTracker from './components/VisitorTracker';
@@ -21,6 +21,9 @@ const Deposit = lazy(
 );
 const Withdraw = lazy(
   () => import("./components/DashBoard/Transaction/Withdraw"),
+);
+const TaskDashboard = lazy(
+  () => import("./components/DashBoard/Tasks/TaskDashboard"),
 );
 const DepositTransaction = lazy(
   () => import("./components/DashBoard/Transaction/DepositTransaction"),
@@ -152,6 +155,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Withdraw />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/tasks"
+            element={
+              <ProtectedRoute>
+                <TaskDashboard />
               </ProtectedRoute>
             }
           />

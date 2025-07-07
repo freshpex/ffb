@@ -19,6 +19,7 @@ import {
   FaCreditCard,
   FaQuestionCircle,
   FaTachometerAlt,
+  FaTasks,
 } from "react-icons/fa";
 import { toggleSidebar } from "../../../redux/slices/layoutSlice";
 import {
@@ -105,6 +106,13 @@ const navigationGroups = [
         label: "Education",
         icon: <FaBookOpen />,
         path: "/login/education",
+      },
+      {
+        id: "tasks",
+        label: "Tasks & Rewards",
+        icon: <FaTasks />,
+        path: "/login/tasks",
+        badge: "New",
       },
       {
         id: "referral",
