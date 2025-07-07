@@ -6,6 +6,7 @@ export const fetchTradingPairs = createAsyncThunk(
   'trading/fetchTradingPairs',
   async (_, { rejectWithValue }) => {
     try {
+      console.log("fetching TradingPairs");
       return await tradingService.getTradingPairs();
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -17,6 +18,7 @@ export const fetchMarketData = createAsyncThunk(
   'trading/fetchMarketData',
   async (symbol, { rejectWithValue }) => {
     try {
+      console.log("fetching MarketData");
       return await tradingService.getMarketData(symbol);
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);

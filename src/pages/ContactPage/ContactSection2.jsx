@@ -141,12 +141,12 @@ const ContactSection2 = () => {
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"} mb-1`}
                   >
-                    +1 (555) 123-4567
+                    +44 (787) 847 2046
                   </p>
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}
                   >
-                    Mon-Fri: 8am - 8pm EST
+                    Mon-SAT: 8am - 8pm UST
                   </p>
                 </div>
               </div>
@@ -168,12 +168,12 @@ const ContactSection2 = () => {
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"} mb-1`}
                   >
-                    123 Finance Street
+                    13 Poland Street
                   </p>
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}
                   >
-                    New York, NY 10001
+                    London, NY WIF7BJ
                   </p>
                 </div>
               </div>

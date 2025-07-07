@@ -24,6 +24,7 @@ import adminAnalyticsReducer from "./slices/adminAnalyticsSlice";
 import adminSettingsSlice from "./slices/adminSettingsSlice";
 import adminProfileSlice from "./slices/adminProfileSlice";
 import adminCardSlice from "./slices/adminCardSlice";
+import visitorAnalyticsSlice from "./slices/visitorAnalyticsSlice";
 
 const store = configureStore({
   reducer: {
@@ -52,6 +53,7 @@ const store = configureStore({
     adminSettings: adminSettingsSlice,
     adminProfile: adminProfileSlice,
     adminCards: adminCardSlice,
+    visitorAnalytics: visitorAnalyticsSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

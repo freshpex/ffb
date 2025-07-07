@@ -1,14 +1,11 @@
 import api from './apiService';
 import { generateMockCandlesticks, generateMockOrderBook, generateMockTradingPairs } from '../utils/mockDataGenerator';
-import { toast } from 'react-toastify';
 
-// Helper function to handle API errors with toast notifications
+// Helper function to handle API errors more gracefully
 const handleApiError = (error, fallbackData = null) => {
-  const errorMessage = error.message || 'Unknown error occurred';
-  console.error('API Error:', errorMessage);
-  toast.error(`Error: ${errorMessage}`);
-  
-  if (fallbackData && import.meta.env.DEV) {
+  console.error('API Error:', error.message || 'Unknown error');
+  if (fallbackData) {
+    console.warn('Using fallback data instead');
     return fallbackData;
   }
   throw error;
@@ -18,9 +15,14 @@ const tradingService = {
   getTradingPairs: async () => {
     try {
       const response = await api.get('/trading/market/pairs');
+      console.log("trading pairs", response);
       return response.data.data;
     } catch (error) {
-      return handleApiError(error);
+      if (import.meta.env.DEV) {
+        console.warn('Using mock trading pairs due to API error');
+        return generateMockTradingPairs();
+      }
+      throw error;
     }
   },
 
@@ -29,13 +31,14 @@ const tradingService = {
     try {
       if (symbol) {
         const response = await api.get(`/trading/market/price?symbol=${symbol}`);
+        console.log("Market data", response);
         return response.data.data;
       } else {
         const response = await api.get('/trading/market/prices');
         return response.data.data;
       }
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, symbol ? { symbol, price: 0, timestamp: Date.now() } : []);
     }
   },
 
@@ -50,7 +53,7 @@ const tradingService = {
       const response = await api.get(`/trading/market/orderbook/${baseAsset}/${quoteAsset}`);
       return response.data.data;
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, generateMockOrderBook(symbol));
     }
   },
 
@@ -60,7 +63,7 @@ const tradingService = {
       const response = await api.get('/trading/positions');
       return response.data.data;
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, { positions: [], balances: {} });
     }
   },
 
@@ -90,7 +93,15 @@ const tradingService = {
         }
       };
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, {
+        orders: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          pages: 0
+        }
+      });
     }
   },
 
@@ -131,8 +142,8 @@ const tradingService = {
     try {
       const response = await api.post('/trading/orders', orderData);
       return response.data;
-    } catch (error) {      
-      return handleApiError(error);
+    } catch (error) {
+      throw error;
     }
   },
 
@@ -142,7 +153,7 @@ const tradingService = {
       const response = await api.delete(`/trading/orders/${orderId}`);
       return response.data;
     } catch (error) {
-      return handleApiError(error);
+      throw error;
     }
   },
 
@@ -158,7 +169,7 @@ const tradingService = {
       const response = await api.get(`/trading/market/candlesticks?${params.toString()}`);
       return response.data.data.candlesticks;
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, generateMockCandlesticks(symbol, interval, limit));
     }
   },
 
@@ -172,9 +183,10 @@ const tradingService = {
       });
       
       const response = await api.get(`/trading/market/candlesticks?${params.toString()}`);
+      console.log("Chart Data", response);
       return response.data.data.candlesticks;
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, generateMockCandlesticks(symbol, timeframe, 100));
     }
   },
 
@@ -184,7 +196,7 @@ const tradingService = {
       const response = await api.get(`/trading/market/trades?symbol=${symbol}&limit=20`);
       return response.data.data;
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, []);
     }
   },
 
@@ -192,9 +204,17 @@ const tradingService = {
   getTicker: async (symbol) => {
     try {
       const response = await api.get(`/trading/market/price?symbol=${symbol}`);
+      console.log("Ticker", response);
       return response.data.data;
     } catch (error) {
-      return handleApiError(error);
+      return handleApiError(error, {
+        symbol,
+        lastPrice: 0,
+        change24h: 0,
+        high24h: 0,
+        low24h: 0,
+        volume24h: 0
+      });
     }
   },
 };

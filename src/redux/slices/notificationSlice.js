@@ -23,9 +23,9 @@ export const fetchNotifications = createAsyncThunk(
       const response = await apiClient.get("/notifications", {
         params: { limit, page },
       });
-      console.log("fetchNotifications", response);
       return response.data;
     } catch (error) {
+      // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
         console.log("Not authenticated for notifications");
         return { data: [], unreadCount: 0 };
@@ -54,6 +54,7 @@ export const markAsRead = createAsyncThunk(
       );
       return { ...response.data, notificationId };
     } catch (error) {
+      // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
         return { notificationId };
       }
@@ -70,6 +71,7 @@ export const markAllAsRead = createAsyncThunk(
   "notifications/markAllAsRead",
   async (_, { rejectWithValue }) => {
     try {
+      // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
         console.log("Skipping mark all as read - user not authenticated");
         return { success: true };
@@ -78,6 +80,7 @@ export const markAllAsRead = createAsyncThunk(
       const response = await apiClient.put("/notifications/read-all");
       return response.data;
     } catch (error) {
+      // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
         return { success: true };
       }
@@ -95,6 +98,7 @@ export const deleteNotification = createAsyncThunk(
   "notifications/deleteNotification",
   async (notificationId, { rejectWithValue }) => {
     try {
+      // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
         console.log("Skipping delete notification - user not authenticated");
         return { notificationId };
@@ -103,6 +107,7 @@ export const deleteNotification = createAsyncThunk(
       await apiClient.delete(`/notifications/${notificationId}`);
       return { notificationId };
     } catch (error) {
+      // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
         return { notificationId };
       }

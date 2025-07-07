@@ -82,35 +82,35 @@ const ATMCardsPage = () => {
           </h1>
 
           <Button onClick={() => setIsModalOpen(true)}>
-            <FaPlus className="mr-2" /> Request New Card
-          </Button>
+          <FaPlus className="mr-2" /> Request New Card
+            </Button>
         </div>
 
-        <AnimatePresence>
-          {showAlert && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mb-6"
-            >
-              <Alert
-                type={alertMessage.type}
-                message={alertMessage.message}
-                onDismiss={() => setShowAlert(false)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <AnimatePresence>
+            {showAlert && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-6"
+          >
+            <Alert
+              type={alertMessage.type}
+              message={alertMessage.message}
+              onDismiss={() => setShowAlert(false)}
+            />
+          </motion.div>
+            )}
+          </AnimatePresence>
 
-        {status === "loading" ? (
-          <div className="flex justify-center py-20">
-            <Loader size="lg" />
-          </div>
-        ) : (
-          <>
-            {/* Card information section */}
+          {status === "loading" ? (
+            <div className="flex justify-center py-20">
+          <Loader size="lg" />
+            </div>
+          ) : (
+            <>
+          {/* Card information section */}
             <div className="mb-12">
               <div className="flex items-center mb-6">
                 <FaCreditCard className="text-primary-400 mr-3" size={24} />

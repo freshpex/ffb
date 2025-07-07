@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import React, { lazy, Suspense } from "react";
 import { AuthContextProvider } from "./components/AuthPage/AuthContext";
 import ProtectedRoute from "./components/AuthPage/ProtectedRoute";
+import VisitorTracker from './components/VisitorTracker';
 import Loader from "./components/Loader";
 
 // Lazy-loaded components
@@ -100,6 +101,9 @@ const FinancialAnalytics = lazy(
 );
 const AdminATMCardsPage = lazy(
   () => import("./components/Admin/ATMCards/AdminATMCardsPage"),
+);
+const VisitorAnalytics = lazy(
+  () => import("./components/Admin/analytics/VisitorAnalytics"),
 );
 
 // Error page
@@ -270,6 +274,10 @@ function App() {
               path="analytics/performance"
               element={<PerformanceAnalytics />}
             />
+            <Route
+              path="analytics/visitors"
+              element={<VisitorAnalytics />}
+            />
 
             {/* User management routes */}
             <Route path="users" element={<AdminUsers />} />
@@ -303,6 +311,7 @@ function App() {
           {/* Error route */}
           <Route path="*" element={<ErrorPage />} />
         </Routes>
+        <VisitorTracker />
       </Suspense>
     </AuthContextProvider>
   );

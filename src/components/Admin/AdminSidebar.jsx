@@ -15,7 +15,7 @@ import {
   FaChartPie,
   FaChartBar,
   FaDollarSign,
-  FaHome,
+  FaGlobe,
   FaCreditCard,
 } from "react-icons/fa";
 import { useDarkMode } from "../../context/DarkModeContext";
@@ -113,6 +113,11 @@ const AdminSidebar = ({ isOpen, isMinimized, toggleSidebar }) => {
           name: "Financial",
           path: "/admin/analytics/financial",
           icon: FaDollarSign,
+        },
+        {
+          name: "Visitor Analytics",
+          path: "/admin/analytics/visitors",
+          icon: FaGlobe,
         },
       ],
     },

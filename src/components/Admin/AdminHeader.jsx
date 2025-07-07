@@ -25,7 +25,6 @@ const AdminHeader = ({ toggleSidebar }) => {
 
   useEffect(() => {
     dispatch(fetchAdminNotifications({ limit: 1 }));
-    console.log("Admin notification", dispatch(fetchAdminNotifications({ limit: 1 })));
 
     // Set up polling every 2 minutes
     const intervalId = setInterval(() => {

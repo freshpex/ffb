@@ -29,11 +29,8 @@ export const fetchAdminNotifications = createAsyncThunk(
           "Content-Type": "application/json",
         },
       });
-      console.log("Notifsyutogg rsponse", response);
 
       const data = await handleApiError(response);
-
-      console.log("data rsponse", data);
       return data.data || data;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch notifications");
@@ -162,8 +159,6 @@ const adminNotificationSlice = createSlice({
       .addCase(fetchAdminNotifications.fulfilled, (state, action) => {
         state.status = "succeeded";
         if (action.payload) {
-          console.log("Notification payload:", action.payload);
-
           if (Array.isArray(action.payload)) {
             state.notifications = action.payload;
             state.unreadCount = action.payload.filter(

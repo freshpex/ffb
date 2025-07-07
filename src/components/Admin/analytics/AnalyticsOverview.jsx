@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   FaUsers,
   FaExchangeAlt,
@@ -8,6 +9,9 @@ import {
   FaTicketAlt,
   FaIdCard,
   FaSyncAlt,
+  FaGlobe,
+  FaChartBar,
+  FaArrowRight,
 } from "react-icons/fa";
 import {
   fetchAnalyticsOverview,
@@ -297,6 +301,102 @@ const AnalyticsOverview = () => {
               <FaTicketAlt className="text-red-400 text-lg" />
             </div>
           </div>
+        </div>
+
+        {/* Visitor Analytics */}
+        <div className="bg-cyan-900/20 rounded-lg p-4 border border-cyan-800/50">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-gray-400 text-sm font-medium mb-1">
+                Visitor Analytics
+              </h3>
+              <p className="text-white text-2xl font-semibold flex items-center">
+                <FaChartBar className="mr-2 text-cyan-400 text-sm" />
+                Track Visitors
+              </p>
+              <p className="text-sm mt-1">
+                <Link 
+                  to="/admin/analytics/visitors"
+                  className="text-cyan-400 hover:text-cyan-300 flex items-center"
+                >
+                  View detailed analytics <FaArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-cyan-700/30">
+              <FaGlobe className="text-cyan-400 text-lg" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics Charts Section */}
+      <div className="mt-8 bg-gray-700/30 p-4 rounded-lg">
+        <h3 className="text-lg font-medium text-gray-200 mb-3">Analytics Dashboard</h3>
+        <p className="text-gray-400 mb-4">
+          Access detailed analytics for different aspects of your platform.
+        </p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <Link 
+            to="/admin/analytics/users" 
+            className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-900/30 rounded-lg mr-3">
+                <FaUsers className="text-blue-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-medium">User Analytics</h4>
+                <p className="text-xs text-gray-400">Growth & engagement</p>
+              </div>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/analytics/transactions" 
+            className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-900/30 rounded-lg mr-3">
+                <FaExchangeAlt className="text-purple-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-medium">Transaction Analytics</h4>
+                <p className="text-xs text-gray-400">Deposits & withdrawals</p>
+              </div>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/analytics/financial" 
+            className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-green-900/30 rounded-lg mr-3">
+                <FaDollarSign className="text-green-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-medium">Financial Analytics</h4>
+                <p className="text-xs text-gray-400">Revenue & projections</p>
+              </div>
+            </div>
+          </Link>
+          
+          <Link 
+            to="/admin/analytics/visitors" 
+            className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-cyan-900/30 rounded-lg mr-3">
+                <FaGlobe className="text-cyan-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-medium">Visitor Analytics</h4>
+                <p className="text-xs text-gray-400">Traffic & behavior</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
