@@ -193,59 +193,63 @@ const TaskDashboard = () => {
 
   // Render task tabs
   const renderTabs = () => (
-    <div className="mb-6">
-      <div className="flex border-b border-gray-700">
+    <div className="mb-6 overflow-x-auto">
+      <div className="flex min-w-full border-b border-gray-700">
         <button
-          className={`py-3 px-6 ${
+          className={`py-3 px-4 md:px-6 flex-shrink-0 whitespace-nowrap ${
             activeTab === "available"
               ? "text-blue-500 border-b-2 border-blue-500 font-medium"
               : "text-gray-400 hover:text-gray-300"
           }`}
           onClick={() => setActiveTab("available")}
         >
-          Available Tasks
+          <span className="hidden md:inline">Available Tasks</span>
+          <span className="inline md:hidden">Available</span>
         </button>
         <button
-          className={`py-3 px-6 ${
+          className={`py-3 px-4 md:px-6 flex-shrink-0 whitespace-nowrap ${
             activeTab === "inProgress"
               ? "text-blue-500 border-b-2 border-blue-500 font-medium"
               : "text-gray-400 hover:text-gray-300"
           }`}
           onClick={() => setActiveTab("inProgress")}
         >
-          In Progress
+          <span className="hidden md:inline">In Progress</span>
+          <span className="inline md:hidden">In Progress</span>
         </button>
         <button
-          className={`py-3 px-6 ${
+          className={`py-3 px-4 md:px-6 flex-shrink-0 whitespace-nowrap ${
             activeTab === "completed"
               ? "text-blue-500 border-b-2 border-blue-500 font-medium"
               : "text-gray-400 hover:text-gray-300"
           }`}
           onClick={() => setActiveTab("completed")}
         >
-          Completed
+          <span className="hidden md:inline">Completed</span>
+          <span className="inline md:hidden">Completed</span>
         </button>
         <button
-          className={`py-3 px-6 ${
+          className={`py-3 px-4 md:px-6 flex-shrink-0 whitespace-nowrap ${
             activeTab === "statistics"
               ? "text-blue-500 border-b-2 border-blue-500 font-medium"
               : "text-gray-400 hover:text-gray-300"
           }`}
           onClick={() => setActiveTab("statistics")}
         >
-          Statistics
+          <span className="hidden md:inline">Statistics</span>
+          <span className="inline md:hidden">Stats</span>
         </button>
       </div>
     </div>
   );
 
   // Render available tasks tab
-  const renderAvailableTasks = () => (
-    <div>
-      <div className="bg-gray-800 rounded-lg overflow-hidden mb-6 border border-gray-700">
+  const renderAvailableTasks = () => {
+    return (
+      <div className="bg-gray-800 rounded-lg">
         <div className="p-4 border-b border-gray-700">
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-            <div className="relative flex-1">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Search tasks..."
@@ -389,18 +393,8 @@ const TaskDashboard = () => {
           )}
         </div>
       </div>
-
-      {pagination.totalPages > 1 && (
-        <div className="mt-4 flex justify-center">
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   // Render in-progress tasks tab
   const renderInProgressTasks = () => {
@@ -461,7 +455,16 @@ const TaskDashboard = () => {
 
   // Render statistics tab
   const renderStatisticsTab = () => (
-    <TaskStats statistics={statistics} />
+    <TaskStats 
+      statistics={{
+        totalCompleted: statistics?.totalCompleted || 0,
+        totalEarnings: statistics?.totalEarnings || 0,
+        totalInProgress: statistics?.totalInProgress || 0,
+        completionRate: statistics?.completionRate || 0,
+        categoryBreakdown: statistics?.categoryBreakdown || {}
+      }} 
+      loading={status === 'loading'}
+    />
   );
 
   return (
@@ -512,63 +515,63 @@ const TaskDashboard = () => {
         )}
 
         {/* Task stats summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm text-gray-400">Available Tasks</div>
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
-                <FaTasks size={18} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
+          <div className="bg-gray-800 rounded-lg p-3 md:p-5 border border-gray-700">
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <div className="text-xs md:text-sm text-gray-400">Available Tasks</div>
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                <FaTasks size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-xl md:text-2xl font-bold text-white">
               {allTasks.length}
             </div>
-            <div className="mt-2 text-sm text-blue-400">
+            <div className="mt-1 md:mt-2 text-xs md:text-sm text-blue-400">
               {userTasks.filter(task => task.status === "in_progress").length} in progress
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm text-gray-400">Completed Tasks</div>
-              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
-                <FaCheck size={18} />
+          <div className="bg-gray-800 rounded-lg p-3 md:p-5 border border-gray-700">
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <div className="text-xs md:text-sm text-gray-400">Completed</div>
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                <FaCheck size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-xl md:text-2xl font-bold text-white">
               {userTasks.filter(task => task.status === "completed" || task.status === "claimed").length}
             </div>
-            <div className="mt-2 text-sm text-green-400">
-              {completableTasks.length} rewards ready to claim
+            <div className="mt-1 md:mt-2 text-xs md:text-sm text-green-400">
+              {completableTasks.length} rewards to claim
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm text-gray-400">Total Earnings</div>
-              <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400">
-                <FaCoins size={18} />
+          <div className="bg-gray-800 rounded-lg p-3 md:p-5 border border-gray-700">
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <div className="text-xs md:text-sm text-gray-400">Earnings</div>
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400">
+                <FaCoins size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white">
-              ${statistics.totalEarnings.toFixed(2)}
+            <div className="text-xl md:text-2xl font-bold text-white">
+              ${(statistics?.totalEarnings || 0).toFixed(2)}
             </div>
-            <div className="mt-2 text-sm text-yellow-400">
+            <div className="mt-1 md:mt-2 text-xs md:text-sm text-yellow-400">
               From completed tasks
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-5 border border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm text-gray-400">Completion Rate</div>
-              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
-                <FaChartLine size={18} />
+          <div className="bg-gray-800 rounded-lg p-3 md:p-5 border border-gray-700">
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <div className="text-xs md:text-sm text-gray-400">Completion</div>
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+                <FaChartLine size={16} />
               </div>
             </div>
-            <div className="text-2xl font-bold text-white">
-              {statistics.completionRate}%
+            <div className="text-xl md:text-2xl font-bold text-white">
+              {(statistics?.completionRate || 0)}%
             </div>
-            <div className="mt-2 text-sm text-purple-400">
+            <div className="mt-1 md:mt-2 text-xs md:text-sm text-purple-400">
               Task success rate
             </div>
           </div>

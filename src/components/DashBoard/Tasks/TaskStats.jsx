@@ -20,6 +20,15 @@ const TaskStats = ({ statistics, loading = false }) => {
     );
   }
 
+  // Ensure statistics has proper values and defaults to prevent crashes
+  const safeStats = {
+    totalCompleted: statistics?.totalCompleted || 0,
+    totalEarnings: statistics?.totalEarnings || 0,
+    totalInProgress: statistics?.totalInProgress || 0,
+    completionRate: statistics?.completionRate || 0,
+    categoryBreakdown: statistics?.categoryBreakdown || {}
+  };
+
   // Format currency value
   const formatCurrency = (value) => {
     return `$${parseFloat(value).toFixed(2)}`;
@@ -51,7 +60,7 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Total Completed</p>
-              <p className="text-white text-xl font-semibold">{statistics.totalCompleted}</p>
+              <p className="text-white text-xl font-semibold">{safeStats.totalCompleted}</p>
             </div>
           </div>
         </motion.div>
@@ -69,7 +78,7 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Total Earnings</p>
-              <p className="text-white text-xl font-semibold">{formatCurrency(statistics.totalEarnings)}</p>
+              <p className="text-white text-xl font-semibold">{formatCurrency(safeStats.totalEarnings)}</p>
             </div>
           </div>
         </motion.div>
@@ -87,7 +96,7 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">In Progress</p>
-              <p className="text-white text-xl font-semibold">{statistics.totalInProgress}</p>
+              <p className="text-white text-xl font-semibold">{safeStats.totalInProgress}</p>
             </div>
           </div>
         </motion.div>
@@ -105,25 +114,30 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Completion Rate</p>
-              <p className="text-white text-xl font-semibold">{formatPercentage(statistics.completionRate)}</p>
+              <p className="text-white text-xl font-semibold">{formatPercentage(safeStats.completionRate)}</p>
             </div>
           </div>
         </motion.div>
       </div>
       
       {/* Category Breakdown */}
-      {statistics.categoryBreakdown && Object.keys(statistics.categoryBreakdown).length > 0 && (
+      {safeStats.categoryBreakdown && Object.keys(safeStats.categoryBreakdown).length > 0 && (
         <div className="mt-6">
           <h4 className="text-gray-300 mb-3 text-sm font-medium">Category Breakdown</h4>
           <div className="bg-gray-700 p-4 rounded-lg">
             <div className="space-y-3">
-              {Object.entries(statistics.categoryBreakdown).map(([category, count], index) => {
+              {Object.entries(safeStats.categoryBreakdown).map(([category, count], index) => {
                 // Format category name
                 const formattedCategory = category.charAt(0).toUpperCase() + 
                   category.slice(1).replace("_", " ");
                 
-                // Calculate percentage
-                const percentage = (count / statistics.totalCompleted) * 100;
+                // Ensure count is a number
+                const safeCount = parseInt(count, 10) || 0;
+                
+                // Calculate percentage (safely)
+                const percentage = safeStats.totalCompleted > 0 
+                  ? (safeCount / safeStats.totalCompleted) * 100
+                  : 0;
                 
                 // Get appropriate color for each category
                 const colors = [
@@ -136,7 +150,7 @@ const TaskStats = ({ statistics, loading = false }) => {
                   <div key={category}>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm text-gray-300">{formattedCategory}</span>
-                      <span className="text-sm text-gray-400">{count}</span>
+                      <span className="text-sm text-gray-400">{safeCount}</span>
                     </div>
                     <div className="w-full bg-gray-800 rounded-full h-2">
                       <div 
