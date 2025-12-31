@@ -23,6 +23,7 @@ const initialState = {
   },
   status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
+  errorType: null,
   pendingWithdrawals: [],
   withdrawalHistory: [],
   pagination: {
@@ -63,10 +64,15 @@ export const submitWithdrawal = createAsyncThunk(
         "Withdrawal submission error:",
         error.response?.data || error.message,
       );
-      return rejectWithValue(
-        error.response?.data?.error ||
-          error.response?.data || { message: "Failed to process withdrawal" },
-      );
+      const apiErr = error?.response?.data?.error;
+      return rejectWithValue({
+        message:
+          apiErr?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to process withdrawal",
+        type: apiErr?.type || error?.response?.data?.type,
+      });
     }
   },
 );
@@ -120,6 +126,11 @@ const withdrawalSlice = createSlice({
     setCurrentPage: (state, action) => {
       state.pagination.currentPage = action.payload;
     },
+
+    clearError: (state) => {
+      state.error = null;
+      state.errorType = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -127,6 +138,7 @@ const withdrawalSlice = createSlice({
       .addCase(submitWithdrawal.pending, (state) => {
         state.status = "loading";
         state.error = null;
+        state.errorType = null;
       })
       .addCase(submitWithdrawal.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -138,13 +150,21 @@ const withdrawalSlice = createSlice({
       })
       .addCase(submitWithdrawal.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        const payload = action.payload;
+        if (payload && typeof payload === "object") {
+          state.error = payload.message || "Failed to process withdrawal";
+          state.errorType = payload.type || null;
+        } else {
+          state.error = payload || action.error?.message || "Failed to process withdrawal";
+          state.errorType = null;
+        }
       })
 
       // Handle fetchWithdrawalHistory
       .addCase(fetchWithdrawalHistory.pending, (state) => {
         state.status = "loading";
         state.error = null;
+        state.errorType = null;
       })
       .addCase(fetchWithdrawalHistory.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -159,13 +179,15 @@ const withdrawalSlice = createSlice({
       })
       .addCase(fetchWithdrawalHistory.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message || "Failed to fetch withdrawal history";
+        state.errorType = null;
       })
 
       // Handle cancelWithdrawal
       .addCase(cancelWithdrawal.pending, (state) => {
         state.status = "loading";
         state.error = null;
+        state.errorType = null;
       })
       .addCase(cancelWithdrawal.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -182,19 +204,21 @@ const withdrawalSlice = createSlice({
       })
       .addCase(cancelWithdrawal.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload;
+        state.error = action.payload || action.error?.message || "Failed to cancel withdrawal";
+        state.errorType = null;
       });
   },
 });
 
 // Export actions
-export const { updateWithdrawalForm, resetWithdrawalForm, setCurrentPage } =
+export const { updateWithdrawalForm, resetWithdrawalForm, setCurrentPage, clearError } =
   withdrawalSlice.actions;
 
 // Selectors
 export const selectWithdrawalLimits = (state) => state.withdrawal.limits;
 export const selectWithdrawalStatus = (state) => state.withdrawal.status;
 export const selectWithdrawalError = (state) => state.withdrawal.error;
+export const selectWithdrawalErrorType = (state) => state.withdrawal.errorType;
 export const selectPendingWithdrawal = (state) =>
   state.withdrawal.pendingWithdrawals[0] || null;
 export const selectWithdrawalHistory = (state) =>

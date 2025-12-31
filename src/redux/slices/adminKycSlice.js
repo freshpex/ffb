@@ -1,8 +1,50 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import apiService from "../../services/apiService";
 
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+const buildFullName = (user) => {
+  const first = user?.firstName?.trim();
+  const last = user?.lastName?.trim();
+  const full = [first, last].filter(Boolean).join(" ");
+  return full || user?.email || "Unknown";
+};
+
+const normalizeKycRequest = (req) => {
+  if (!req) return req;
+
+  const user = req.user || {};
+  const documents = [
+    req.frontImage
+      ? { type: "front_image", label: "Front of ID", url: req.frontImage }
+      : null,
+    req.backImage
+      ? { type: "back_image", label: "Back of ID", url: req.backImage }
+      : null,
+    req.selfieImage
+      ? { type: "selfie_image", label: "Selfie", url: req.selfieImage }
+      : null,
+    req.proofOfAddressImage
+      ? {
+          type: "proof_of_address",
+          label: "Proof of Address",
+          url: req.proofOfAddressImage,
+        }
+      : null,
+  ].filter(Boolean);
+
+  return {
+    ...req,
+    id: req._id,
+    submittedAt: req.createdAt || req.submittedAt || req.updatedAt,
+    user: {
+      ...user,
+      id: user._id || user.id,
+      fullName: buildFullName(user),
+    },
+    documents,
+  };
+};
 
 // Helper function to handle API errors
 const handleApiError = async (response) => {
@@ -58,7 +100,19 @@ export const fetchKycRequests = createAsyncThunk(
       });
 
       const data = await handleApiError(response);
-      return data.data;
+
+      const raw = data.data;
+      const kycRequests = (raw?.kycRequests || []).map(normalizeKycRequest);
+
+      const pagination = {
+        page: raw?.pagination?.page || 1,
+        limit: raw?.pagination?.limit || 10,
+        totalPages: raw?.pagination?.pages || 0,
+        total: raw?.pagination?.total || 0,
+        totalRequests: raw?.pagination?.total || 0,
+      };
+
+      return { kycRequests, pagination };
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch KYC requests");
     }
@@ -85,7 +139,7 @@ export const fetchKycRequestById = createAsyncThunk(
       });
 
       const data = await handleApiError(response);
-      return data.data;
+      return normalizeKycRequest(data.data);
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch KYC request");
     }
@@ -199,10 +253,10 @@ const adminKycSlice = createSlice({
         state.status = "succeeded";
         state.kycRequests = action.payload.kycRequests;
         state.pagination = {
-          page: action.payload.pagination.currentPage || 1,
+          page: action.payload.pagination.page || 1,
           limit: action.payload.pagination.limit || 10,
           totalPages: action.payload.pagination.totalPages || 0,
-          totalRequests: action.payload.pagination.total || 0,
+          totalRequests: action.payload.pagination.totalRequests || 0,
         };
         state.error = null;
       })
@@ -299,5 +353,8 @@ export const selectKycStats = (state) => state.adminKyc.stats;
 export const selectKycStatus = (state) => state.adminKyc.status;
 export const selectKycError = (state) => state.adminKyc.error;
 export const selectKycActionStatus = (state) => state.adminKyc.actionStatus;
+
+// Backwards-compatible alias (older UI imports this name)
+export const selectActionStatus = selectKycActionStatus;
 
 export default adminKycSlice.reducer;

@@ -61,7 +61,7 @@ const AdminKycDetail = () => {
     } else if (action === "reject" && kycRequest?.status === "pending") {
       setShowRejectModal(true);
     }
-  }, [id, searchParams]);
+  }, [id, searchParams, dispatch, kycRequest?.status]);
 
   useEffect(() => {
     if (error) {
@@ -124,15 +124,6 @@ const AdminKycDetail = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const getDocumentLabel = (type) => {
-    const labels = {
-      idDocument: "ID Document",
-      proofOfAddress: "Proof of Address",
-      selfie: "Selfie",
-    };
-    return labels[type] || type;
   };
 
   if (!kycRequest) {
@@ -276,30 +267,24 @@ const AdminKycDetail = () => {
                 Submitted Documents
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {kycRequest.idDocument && (
-                  <DocumentCard
-                    label="ID Document"
-                    url={kycRequest.idDocument}
-                    darkMode={darkMode}
-                    onClick={() => setSelectedImage(kycRequest.idDocument)}
-                  />
+                {(!kycRequest.documents || kycRequest.documents.length === 0) && (
+                  <div
+                    className={`col-span-full text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    No documents found for this request.
+                  </div>
                 )}
-                {kycRequest.proofOfAddress && (
+                {(kycRequest.documents || []).map((doc) => (
                   <DocumentCard
-                    label="Proof of Address"
-                    url={kycRequest.proofOfAddress}
+                    key={doc.type}
+                    label={doc.label || doc.type}
+                    url={doc.url}
                     darkMode={darkMode}
-                    onClick={() => setSelectedImage(kycRequest.proofOfAddress)}
+                    onClick={() => setSelectedImage(doc.url)}
                   />
-                )}
-                {kycRequest.selfie && (
-                  <DocumentCard
-                    label="Selfie"
-                    url={kycRequest.selfie}
-                    darkMode={darkMode}
-                    onClick={() => setSelectedImage(kycRequest.selfie)}
-                  />
-                )}
+                ))}
               </div>
             </div>
           </div>
@@ -339,7 +324,7 @@ const AdminKycDetail = () => {
                     <p
                       className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
                     >
-                      {kycRequest.firstName} {kycRequest.lastName}
+                      {kycRequest.user?.fullName || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -354,14 +339,22 @@ const AdminKycDetail = () => {
                 <InfoRow
                   icon={<FaCalendarAlt />}
                   label="Date of Birth"
-                  value={kycRequest.dateOfBirth || "N/A"}
+                  value={
+                    kycRequest.dateOfBirth
+                      ? new Date(kycRequest.dateOfBirth).toLocaleDateString()
+                      : "N/A"
+                  }
                   darkMode={darkMode}
                 />
 
                 <InfoRow
                   icon={<FaMapMarkerAlt />}
                   label="Address"
-                  value={`${kycRequest.address}, ${kycRequest.city}, ${kycRequest.country}`}
+                  value={
+                    kycRequest.address
+                      ? `${kycRequest.address.street}, ${kycRequest.address.city}, ${kycRequest.address.state}, ${kycRequest.address.postalCode}, ${kycRequest.address.country}`
+                      : "N/A"
+                  }
                   darkMode={darkMode}
                 />
 
@@ -369,6 +362,20 @@ const AdminKycDetail = () => {
                   icon={<FaIdCard />}
                   label="Document Type"
                   value={kycRequest.documentType || "N/A"}
+                  darkMode={darkMode}
+                />
+
+                <InfoRow
+                  icon={<FaIdCard />}
+                  label="Document Number"
+                  value={kycRequest.documentNumber || "N/A"}
+                  darkMode={darkMode}
+                />
+
+                <InfoRow
+                  icon={<FaMapMarkerAlt />}
+                  label="Country of Issue"
+                  value={kycRequest.countryOfIssue || "N/A"}
                   darkMode={darkMode}
                 />
               </div>

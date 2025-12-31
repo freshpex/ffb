@@ -6,9 +6,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // Don't force a global Content-Type.
+  // - For JSON requests, axios will set application/json automatically.
+  // - For FormData uploads, the browser/axios must set the multipart boundary.
+  headers: {},
 });
 
 // Function to get the real token, not any mock tokens
@@ -31,6 +32,15 @@ const getValidAuthToken = () => {
 api.interceptors.request.use(
   async (config) => {
     try {
+      // If we're sending FormData, ensure we don't force JSON headers.
+      // Let the browser/axios set the multipart boundary automatically.
+      const isFormData =
+        typeof FormData !== "undefined" && config.data instanceof FormData;
+      if (isFormData && config.headers) {
+        delete config.headers["Content-Type"];
+        delete config.headers["content-type"];
+      }
+
       const token = getValidAuthToken();
 
       if (token) {
@@ -89,12 +99,8 @@ api.interceptors.response.use(
 export const userService = {
   getProfile: () => api.get("/users/profile"),
   updateProfile: (data) => api.put("/users/profile", data),
-  uploadKYC: (formData) =>
-    api.post("/users/kyc", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }),
+  // Let the browser/axios set the multipart boundary automatically.
+  uploadKYC: (formData) => api.post("/users/kyc", formData),
   getBalanceHistory: (params) => api.get("/users/balance/history", { params }),
 };
 

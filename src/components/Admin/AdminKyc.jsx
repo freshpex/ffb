@@ -72,7 +72,6 @@ const AdminKyc = () => {
     { value: "pending", label: "Pending" },
     { value: "approved", label: "Approved" },
     { value: "rejected", label: "Rejected" },
-    { value: "waiting_for_documents", label: "Waiting For Documents" },
   ];
 
   // Format date to local format
@@ -219,12 +218,12 @@ const AdminKyc = () => {
                                 <p
                                   className={`text-sm font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
                                 >
-                                  {kyc.user.fullName}
+                                  {kyc.user?.fullName || "Unknown User"}
                                 </p>
                                 <p
                                   className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                                 >
-                                  {kyc.user.email}
+                                  {kyc.user?.email || "-"}
                                 </p>
                               </div>
                             </div>
@@ -242,13 +241,13 @@ const AdminKyc = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex flex-col gap-1">
-                              {kyc.documents.map((doc, index) => (
+                              {(kyc.documents || []).map((doc, index) => (
                                 <span
                                   key={index}
                                   className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                                 >
                                   <FaIdCard className="inline mr-1" />{" "}
-                                  {doc.type.replace("_", " ")}
+                                  {doc.label || doc.type}
                                 </span>
                               ))}
                             </div>
@@ -334,7 +333,7 @@ const AdminKyc = () => {
                   Pending
                 </h3>
                 <p className="text-2xl font-bold text-yellow-500">
-                  {kycRequests.filter((k) => k.status === "pending").length}
+                  {kycRequests.filter((k) => k?.status === "pending").length}
                 </p>
               </div>
 
@@ -349,7 +348,7 @@ const AdminKyc = () => {
                   Approved
                 </h3>
                 <p className="text-2xl font-bold text-green-500">
-                  {kycRequests.filter((k) => k.status === "approved").length}
+                  {kycRequests.filter((k) => k?.status === "approved").length}
                 </p>
               </div>
 
@@ -364,7 +363,7 @@ const AdminKyc = () => {
                   Rejected
                 </h3>
                 <p className="text-2xl font-bold text-red-500">
-                  {kycRequests.filter((k) => k.status === "rejected").length}
+                  {kycRequests.filter((k) => k?.status === "rejected").length}
                 </p>
               </div>
 

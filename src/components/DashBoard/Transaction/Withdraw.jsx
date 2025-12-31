@@ -28,6 +28,7 @@ import {
   updateWithdrawalForm,
   submitWithdrawal,
   resetWithdrawalForm,
+  clearError,
 } from "../../../redux/slices/withdrawalSlice";
 
 const Withdraw = () => {
@@ -474,7 +475,7 @@ const Withdraw = () => {
               <Alert
                 type="error"
                 message={withdrawalError}
-                onDismiss={() => dispatch({ type: "withdrawal/clearError" })}
+                onDismiss={() => dispatch(clearError())}
                 className="mb-6"
               />
             )}
