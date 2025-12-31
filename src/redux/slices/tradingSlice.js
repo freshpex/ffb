@@ -1,9 +1,9 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import tradingService from '../../services/tradingService';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import tradingService from "../../services/tradingService";
 
 // Async thunks for trading operations
 export const fetchTradingPairs = createAsyncThunk(
-  'trading/fetchTradingPairs',
+  "trading/fetchTradingPairs",
   async (_, { rejectWithValue }) => {
     try {
       console.log("fetching TradingPairs");
@@ -15,7 +15,7 @@ export const fetchTradingPairs = createAsyncThunk(
 );
 
 export const fetchMarketData = createAsyncThunk(
-  'trading/fetchMarketData',
+  "trading/fetchMarketData",
   async (symbol, { rejectWithValue }) => {
     try {
       console.log("fetching MarketData");
@@ -27,7 +27,7 @@ export const fetchMarketData = createAsyncThunk(
 );
 
 export const fetchOrderbook = createAsyncThunk(
-  'trading/fetchOrderbook',
+  "trading/fetchOrderbook",
   async (symbol, { rejectWithValue }) => {
     try {
       return await tradingService.getOrderbook(symbol);
@@ -38,7 +38,7 @@ export const fetchOrderbook = createAsyncThunk(
 );
 
 export const fetchPortfolio = createAsyncThunk(
-  'trading/fetchPortfolio',
+  "trading/fetchPortfolio",
   async (_, { rejectWithValue }) => {
     try {
       return await tradingService.getPortfolio();
@@ -49,7 +49,7 @@ export const fetchPortfolio = createAsyncThunk(
 );
 
 export const fetchOrders = createAsyncThunk(
-  'trading/fetchOrders',
+  "trading/fetchOrders",
   async (params, { rejectWithValue }) => {
     try {
       return await tradingService.getOrders(params);
@@ -60,7 +60,7 @@ export const fetchOrders = createAsyncThunk(
 );
 
 export const fetchTradingHistory = createAsyncThunk(
-  'trading/fetchTradingHistory',
+  "trading/fetchTradingHistory",
   async (params, { rejectWithValue }) => {
     try {
       const response = await tradingService.getTradingHistory(params);
@@ -72,7 +72,7 @@ export const fetchTradingHistory = createAsyncThunk(
 );
 
 export const placeOrder = createAsyncThunk(
-  'trading/placeOrder',
+  "trading/placeOrder",
   async (orderData, { rejectWithValue }) => {
     try {
       return await tradingService.placeOrder(orderData);
@@ -83,7 +83,7 @@ export const placeOrder = createAsyncThunk(
 );
 
 export const cancelOrder = createAsyncThunk(
-  'trading/cancelOrder',
+  "trading/cancelOrder",
   async (orderId, { rejectWithValue }) => {
     try {
       return await tradingService.cancelOrder(orderId);
@@ -94,7 +94,7 @@ export const cancelOrder = createAsyncThunk(
 );
 
 export const fetchHistoricalData = createAsyncThunk(
-  'trading/fetchHistoricalData',
+  "trading/fetchHistoricalData",
   async (params, { rejectWithValue }) => {
     try {
       return await tradingService.getHistoricalData(params);
@@ -105,7 +105,7 @@ export const fetchHistoricalData = createAsyncThunk(
 );
 
 export const fetchChartData = createAsyncThunk(
-  'trading/fetchChartData',
+  "trading/fetchChartData",
   async ({ symbol, timeframe }, { rejectWithValue }) => {
     try {
       const response = await tradingService.getChartData(symbol, timeframe);
@@ -142,7 +142,7 @@ const initialState = {
   historicalData: [],
   candlesticks: [],
   chartData: {
-    timeframe: '1h',
+    timeframe: "1h",
     indicators: {
       macd: false,
       rsi: false,
@@ -152,23 +152,23 @@ const initialState = {
     loading: false,
     error: null,
   },
-  selectedSymbol: 'BTC/USDT',
-  selectedAsset: 'BTC/USDT',
-  selectedTimeframe: '1d',
-  orderType: 'market', // 'market', 'limit'
-  orderSide: 'buy', // 'buy', 'sell'
-  orderAmount: '',
-  orderPrice: '',
+  selectedSymbol: "BTC/USDT",
+  selectedAsset: "BTC/USDT",
+  selectedTimeframe: "1d",
+  orderType: "market", // 'market', 'limit'
+  orderSide: "buy", // 'buy', 'sell'
+  orderAmount: "",
+  orderPrice: "",
   orderForm: {
-    type: 'limit', // 'limit', 'market', 'stop'
-    side: 'buy', // 'buy', 'sell'
-    amount: '',
-    price: '',
-    stopPrice: '',
-    total: '',
+    type: "limit", // 'limit', 'market', 'stop'
+    side: "buy", // 'buy', 'sell'
+    amount: "",
+    price: "",
+    stopPrice: "",
+    total: "",
   },
-  activeTab: 'positions', // 'positions', 'orders', 'history'
-  marketSideTab: 'buy', // 'buy', 'sell'
+  activeTab: "positions", // 'positions', 'orders', 'history'
+  marketSideTab: "buy", // 'buy', 'sell'
   error: {
     tradingPairs: null,
     marketData: null,
@@ -180,13 +180,13 @@ const initialState = {
     cancelOrder: null,
     historicalData: null,
     chartData: null,
-    orderFormError: '',
+    orderFormError: "",
   },
   ui: {
     dropdownOpen: false,
     showSidebar: true,
     showAlert: false,
-    alertMessage: { type: '', message: '' },
+    alertMessage: { type: "", message: "" },
   },
   loading: {
     tradingPairs: false,
@@ -200,13 +200,13 @@ const initialState = {
     historicalData: false,
     chartData: false,
   },
-  status: 'idle', // 'idle', 'loading', 'succeeded', 'failed'
+  status: "idle", // 'idle', 'loading', 'succeeded', 'failed'
   lastSuccessfulOrder: null,
   recentTrades: [],
 };
 
 const tradingSlice = createSlice({
-  name: 'trading',
+  name: "trading",
   initialState,
   reducers: {
     toggleFavoriteSymbol: (state, action) => {
@@ -234,8 +234,8 @@ const tradingSlice = createSlice({
       state.orderPrice = action.payload;
     },
     resetOrderForm: (state) => {
-      state.orderAmount = '';
-      state.orderPrice = '';
+      state.orderAmount = "";
+      state.orderPrice = "";
     },
     clearOrderError: (state) => {
       state.error.placeOrder = null;
@@ -256,8 +256,8 @@ const tradingSlice = createSlice({
 
       // Auto-calculate total for limit and stop orders
       if (
-        ('amount' in action.payload || 'price' in action.payload) &&
-        (state.orderForm.type === 'limit' || state.orderForm.type === 'stop')
+        ("amount" in action.payload || "price" in action.payload) &&
+        (state.orderForm.type === "limit" || state.orderForm.type === "stop")
       ) {
         const amount = parseFloat(state.orderForm.amount) || 0;
         const price = parseFloat(state.orderForm.price) || 0;
@@ -273,10 +273,10 @@ const tradingSlice = createSlice({
     resetEntireOrderForm: (state) => {
       state.orderForm = {
         ...state.orderForm,
-        amount: '',
-        price: '',
-        stopPrice: '',
-        total: '',
+        amount: "",
+        price: "",
+        stopPrice: "",
+        total: "",
       };
     },
     setActiveTab: (state, action) => {
@@ -289,7 +289,7 @@ const tradingSlice = createSlice({
       state.error.orderFormError = action.payload;
     },
     clearOrderFormError: (state) => {
-      state.error.orderFormError = '';
+      state.error.orderFormError = "";
     },
     toggleDropdown: (state) => {
       state.ui.dropdownOpen = !state.ui.dropdownOpen;
@@ -312,7 +312,7 @@ const tradingSlice = createSlice({
     },
     clearAlert: (state) => {
       state.ui.showAlert = false;
-      state.ui.alertMessage = { type: '', message: '' };
+      state.ui.alertMessage = { type: "", message: "" };
     },
     setChartTimeframe: (state, action) => {
       state.chartData.timeframe = action.payload;
@@ -480,8 +480,8 @@ const tradingSlice = createSlice({
         }
 
         // Reset order form
-        state.orderAmount = '';
-        state.orderPrice = '';
+        state.orderAmount = "";
+        state.orderPrice = "";
       })
       .addCase(placeOrder.rejected, (state, action) => {
         state.loading.placeOrder = false;

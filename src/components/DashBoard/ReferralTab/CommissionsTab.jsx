@@ -329,12 +329,16 @@ const CommissionsTab = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    {getCommissionTypeBadge(commission.metadata?.commissionType)}
+                    {getCommissionTypeBadge(
+                      commission.metadata?.commissionType,
+                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-green-500">
                     {formatCurrency(commission.amount)}
                   </td>
-                  <td className="px-4 py-3">{getStatusBadge(commission.status)}</td>
+                  <td className="px-4 py-3">
+                    {getStatusBadge(commission.status)}
+                  </td>
                 </tr>
               ))
             )}

@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthContextProvider } from "./components/AuthPage/AuthContext";
 import ProtectedRoute from "./components/AuthPage/ProtectedRoute";
-import VisitorTracker from './components/VisitorTracker';
+import VisitorTracker from "./components/VisitorTracker";
 import Loader from "./components/Loader";
 
 // Lazy-loaded components
@@ -77,7 +77,7 @@ const TransactionDetail = lazy(
   () => import("./components/Admin/TransactionDetail"),
 );
 const AdminKyc = lazy(() => import("./components/Admin/AdminKyc"));
-const KycDetail = lazy(() => import("./components/Admin/KycDetail"));
+const AdminKycDetail = lazy(() => import("./components/Admin/AdminKycDetail"));
 const AdminSupport = lazy(() => import("./components/Admin/AdminSupport"));
 const SupportTicketDetail = lazy(
   () => import("./components/Admin/SupportTicketDetail"),
@@ -285,10 +285,7 @@ function App() {
               path="analytics/performance"
               element={<PerformanceAnalytics />}
             />
-            <Route
-              path="analytics/visitors"
-              element={<VisitorAnalytics />}
-            />
+            <Route path="analytics/visitors" element={<VisitorAnalytics />} />
 
             {/* User management routes */}
             <Route path="users" element={<AdminUsers />} />
@@ -307,7 +304,7 @@ function App() {
 
             {/* KYC management routes */}
             <Route path="kyc" element={<AdminKyc />} />
-            <Route path="kyc/:requestId" element={<KycDetail />} />
+            <Route path="kyc/:id" element={<AdminKycDetail />} />
 
             {/* Support ticket management routes */}
             <Route path="support" element={<AdminSupport />} />

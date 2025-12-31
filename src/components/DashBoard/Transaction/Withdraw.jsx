@@ -258,13 +258,26 @@ const Withdraw = () => {
         withdrawalData.paypalEmail = formData.paypalEmail;
       }
 
-      await dispatch(submitWithdrawal(withdrawalData));
+      await dispatch(submitWithdrawal(withdrawalData)).unwrap();
 
       // Success will be handled by useEffect when pendingWithdrawal is updated
     } catch (error) {
+      const errorData = error || {};
+      let errorMessage;
+      if (errorData.type === "kyc_required") {
+        errorMessage =
+          "Please complete KYC verification in Settings before withdrawing funds.";
+      } else if (typeof errorData === "string") {
+        errorMessage = errorData;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      } else {
+        errorMessage = "Failed to process withdrawal";
+      }
+
       setAlert({
         type: "error",
-        message: error.message || "Failed to process withdrawal",
+        message: errorMessage,
       });
     } finally {
       setSubmitting(false);

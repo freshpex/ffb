@@ -315,11 +315,12 @@ const AnalyticsOverview = () => {
                 Track Visitors
               </p>
               <p className="text-sm mt-1">
-                <Link 
+                <Link
                   to="/admin/analytics/visitors"
                   className="text-cyan-400 hover:text-cyan-300 flex items-center"
                 >
-                  View detailed analytics <FaArrowRight className="ml-1 h-3 w-3" />
+                  View detailed analytics{" "}
+                  <FaArrowRight className="ml-1 h-3 w-3" />
                 </Link>
               </p>
             </div>
@@ -332,14 +333,16 @@ const AnalyticsOverview = () => {
 
       {/* Analytics Charts Section */}
       <div className="mt-8 bg-gray-700/30 p-4 rounded-lg">
-        <h3 className="text-lg font-medium text-gray-200 mb-3">Analytics Dashboard</h3>
+        <h3 className="text-lg font-medium text-gray-200 mb-3">
+          Analytics Dashboard
+        </h3>
         <p className="text-gray-400 mb-4">
           Access detailed analytics for different aspects of your platform.
         </p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <Link 
-            to="/admin/analytics/users" 
+          <Link
+            to="/admin/analytics/users"
             className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
           >
             <div className="flex items-center">
@@ -352,9 +355,9 @@ const AnalyticsOverview = () => {
               </div>
             </div>
           </Link>
-          
-          <Link 
-            to="/admin/analytics/transactions" 
+
+          <Link
+            to="/admin/analytics/transactions"
             className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
           >
             <div className="flex items-center">
@@ -362,14 +365,16 @@ const AnalyticsOverview = () => {
                 <FaExchangeAlt className="text-purple-400" />
               </div>
               <div>
-                <h4 className="text-white font-medium">Transaction Analytics</h4>
+                <h4 className="text-white font-medium">
+                  Transaction Analytics
+                </h4>
                 <p className="text-xs text-gray-400">Deposits & withdrawals</p>
               </div>
             </div>
           </Link>
-          
-          <Link 
-            to="/admin/analytics/financial" 
+
+          <Link
+            to="/admin/analytics/financial"
             className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
           >
             <div className="flex items-center">
@@ -382,9 +387,9 @@ const AnalyticsOverview = () => {
               </div>
             </div>
           </Link>
-          
-          <Link 
-            to="/admin/analytics/visitors" 
+
+          <Link
+            to="/admin/analytics/visitors"
             className="bg-gray-700 hover:bg-gray-600 p-4 rounded-lg transition"
           >
             <div className="flex items-center">

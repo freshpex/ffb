@@ -3,7 +3,8 @@ import DashboardLayout from "../Layout/DashboardLayout";
 import ProfileTab from "./ProfileTab";
 import SecurityTab from "./SecurityTab";
 import PaymentMethodsTab from "./PaymentMethodsTab";
-import { FaUserCircle, FaLock, FaCreditCard } from "react-icons/fa";
+import KycTab from "./KycTab";
+import { FaUserCircle, FaLock, FaCreditCard, FaIdCard } from "react-icons/fa";
 
 const AccountSettings = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -11,6 +12,7 @@ const AccountSettings = () => {
   const tabs = [
     { id: "profile", label: "Personal Information", icon: <FaUserCircle /> },
     { id: "security", label: "Security", icon: <FaLock /> },
+    { id: "kyc", label: "KYC Verification", icon: <FaIdCard /> },
     { id: "payment", label: "Payment Methods", icon: <FaCreditCard /> },
   ];
 
@@ -20,6 +22,8 @@ const AccountSettings = () => {
         return <ProfileTab />;
       case "security":
         return <SecurityTab />;
+      case "kyc":
+        return <KycTab />;
       case "payment":
         return <PaymentMethodsTab />;
       default:

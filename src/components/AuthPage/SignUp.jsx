@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { motion } from "framer-motion";
 import Select from "react-select";
@@ -53,8 +53,18 @@ const SignUp = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [agreeToDataPolicy, setAgreeToDataPolicy] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { createUser } = useAuth();
+
+  // Capture referral code from URL query parameter
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const refCode = searchParams.get("ref");
+    if (refCode) {
+      setFormData((prev) => ({ ...prev, referralCode: refCode }));
+    }
+  }, [location.search]);
 
   const countries = countryList.getData().map((country) => ({
     value: country.code,

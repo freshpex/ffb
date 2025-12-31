@@ -50,7 +50,7 @@ const TaskDashboard = () => {
   const error = useSelector(selectTaskError);
   const pagination = useSelector(selectTaskPagination);
   const completableTasks = useSelector(selectCompletableTasks);
-  
+
   const [activeTab, setActiveTab] = useState("available");
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState({ type: "", message: "" });
@@ -88,13 +88,16 @@ const TaskDashboard = () => {
       filters.difficulty === "all" || task.difficulty === filters.difficulty;
 
     // For status filter, check userProgress
-    const matchesStatus = filters.status === "all" 
-      ? true 
-      : task.userProgress 
-        ? task.userProgress.status === filters.status
-        : filters.status === "available";
+    const matchesStatus =
+      filters.status === "all"
+        ? true
+        : task.userProgress
+          ? task.userProgress.status === filters.status
+          : filters.status === "available";
 
-    return matchesQuery && matchesCategory && matchesDifficulty && matchesStatus;
+    return (
+      matchesQuery && matchesCategory && matchesDifficulty && matchesStatus
+    );
   });
 
   // Handler for starting a task
@@ -108,7 +111,7 @@ const TaskDashboard = () => {
       console.error("Attempted to start a task with no ID");
       return;
     }
-    
+
     dispatch(startTask(taskId))
       .unwrap()
       .then(() => {
@@ -138,7 +141,7 @@ const TaskDashboard = () => {
       console.error("Attempted to claim reward for a task with no ID");
       return;
     }
-    
+
     dispatch(claimTaskReward(taskId))
       .unwrap()
       .then((result) => {
@@ -171,11 +174,13 @@ const TaskDashboard = () => {
   // Reset filters
   const resetFilters = () => {
     setSearchQuery("");
-    dispatch(setTaskFilters({
-      category: "all",
-      status: "all",
-      difficulty: "all"
-    }));
+    dispatch(
+      setTaskFilters({
+        category: "all",
+        status: "all",
+        difficulty: "all",
+      }),
+    );
   };
 
   // Refresh tasks
@@ -188,7 +193,9 @@ const TaskDashboard = () => {
   // Format category name for display
   const formatCategoryName = (category) => {
     if (!category) return "";
-    return category.charAt(0).toUpperCase() + category.slice(1).replace("_", " ");
+    return (
+      category.charAt(0).toUpperCase() + category.slice(1).replace("_", " ")
+    );
   };
 
   // Render task tabs
@@ -277,11 +284,7 @@ const TaskDashboard = () => {
                 <FaFilter className="mr-2" />{" "}
                 {showFilters ? "Hide Filters" : "Show Filters"}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshTasks}
-              >
+              <Button variant="outline" size="sm" onClick={refreshTasks}>
                 <FaSyncAlt className="mr-2" /> Refresh
               </Button>
             </div>
@@ -303,7 +306,9 @@ const TaskDashboard = () => {
                     </label>
                     <select
                       value={filters.category}
-                      onChange={(e) => handleFilterChange("category", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("category", e.target.value)
+                      }
                       className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-200"
                     >
                       <option value="all">All Categories</option>
@@ -324,7 +329,9 @@ const TaskDashboard = () => {
                     </label>
                     <select
                       value={filters.difficulty}
-                      onChange={(e) => handleFilterChange("difficulty", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("difficulty", e.target.value)
+                      }
                       className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-200"
                     >
                       <option value="all">All Difficulties</option>
@@ -341,7 +348,9 @@ const TaskDashboard = () => {
                     </label>
                     <select
                       value={filters.status}
-                      onChange={(e) => handleFilterChange("status", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("status", e.target.value)
+                      }
                       className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-200"
                     >
                       <option value="all">All Statuses</option>
@@ -371,7 +380,7 @@ const TaskDashboard = () => {
         <div className="divide-y divide-gray-700">
           {filteredTasks.length > 0 ? (
             filteredTasks.map((task) => (
-              <TaskItem 
+              <TaskItem
                 key={task._id || task.id || `task-${Math.random()}`}
                 task={task}
                 onStart={handleStartTask}
@@ -384,7 +393,10 @@ const TaskDashboard = () => {
                 <FaTasks className="text-4xl mb-4 text-gray-500" />
                 <p className="text-lg font-medium">No tasks found</p>
                 <p className="text-sm mt-1">
-                  {searchQuery || filters.category !== "all" || filters.difficulty !== "all" || filters.status !== "all"
+                  {searchQuery ||
+                  filters.category !== "all" ||
+                  filters.difficulty !== "all" ||
+                  filters.status !== "all"
                     ? "Try adjusting your filters or search query"
                     : "Check back later for new tasks"}
                 </p>
@@ -398,14 +410,18 @@ const TaskDashboard = () => {
 
   // Render in-progress tasks tab
   const renderInProgressTasks = () => {
-    const inProgressTasks = userTasks.filter(task => task.status === "in_progress");
-    
+    const inProgressTasks = userTasks.filter(
+      (task) => task.status === "in_progress",
+    );
+
     return (
       <div>
         <div className="bg-gray-800 rounded-lg overflow-hidden mb-6 border border-gray-700">
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-white">Tasks in Progress</h3>
+              <h3 className="text-lg font-medium text-white">
+                Tasks in Progress
+              </h3>
               <span className="bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full text-xs font-medium">
                 {inProgressTasks.length} Active
               </span>
@@ -415,11 +431,13 @@ const TaskDashboard = () => {
           <div className="divide-y divide-gray-700">
             {inProgressTasks.length > 0 ? (
               inProgressTasks.map((userTask) => {
-                const task = allTasks.find(t => t.id === userTask.task);
+                const task = allTasks.find((t) => t.id === userTask.task);
                 return task ? (
-                  <TaskItem 
-                    key={userTask._id || userTask.id || `usertask-${Math.random()}`}
-                    task={{...task, userProgress: userTask}}
+                  <TaskItem
+                    key={
+                      userTask._id || userTask.id || `usertask-${Math.random()}`
+                    }
+                    task={{ ...task, userProgress: userTask }}
                     onStart={handleStartTask}
                     onClaim={handleClaimReward}
                   />
@@ -444,9 +462,9 @@ const TaskDashboard = () => {
 
   // Render completed tasks tab
   const renderCompletedTasks = () => (
-    <CompletedTaskList 
-      userTasks={userTasks.filter(task => 
-        task.status === "completed" || task.status === "claimed"
+    <CompletedTaskList
+      userTasks={userTasks.filter(
+        (task) => task.status === "completed" || task.status === "claimed",
       )}
       allTasks={allTasks}
       onClaimReward={handleClaimReward}
@@ -455,15 +473,15 @@ const TaskDashboard = () => {
 
   // Render statistics tab
   const renderStatisticsTab = () => (
-    <TaskStats 
+    <TaskStats
       statistics={{
         totalCompleted: statistics?.totalCompleted || 0,
         totalEarnings: statistics?.totalEarnings || 0,
         totalInProgress: statistics?.totalInProgress || 0,
         completionRate: statistics?.completionRate || 0,
-        categoryBreakdown: statistics?.categoryBreakdown || {}
-      }} 
-      loading={status === 'loading'}
+        categoryBreakdown: statistics?.categoryBreakdown || {},
+      }}
+      loading={status === "loading"}
     />
   );
 
@@ -481,13 +499,13 @@ const TaskDashboard = () => {
           </div>
           <div className="flex gap-3">
             {completableTasks.length > 0 && (
-              <Button 
-                variant="success" 
+              <Button
+                variant="success"
                 onClick={() => {
                   setActiveTab("completed");
                 }}
               >
-                <FaCoins className="mr-2" /> 
+                <FaCoins className="mr-2" />
                 {completableTasks.length} Rewards to Claim
               </Button>
             )}
@@ -518,7 +536,9 @@ const TaskDashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">
           <div className="bg-gray-800 rounded-lg p-3 md:p-5 border border-gray-700">
             <div className="flex items-center justify-between mb-2 md:mb-3">
-              <div className="text-xs md:text-sm text-gray-400">Available Tasks</div>
+              <div className="text-xs md:text-sm text-gray-400">
+                Available Tasks
+              </div>
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
                 <FaTasks size={16} />
               </div>
@@ -527,7 +547,8 @@ const TaskDashboard = () => {
               {allTasks.length}
             </div>
             <div className="mt-1 md:mt-2 text-xs md:text-sm text-blue-400">
-              {userTasks.filter(task => task.status === "in_progress").length} in progress
+              {userTasks.filter((task) => task.status === "in_progress").length}{" "}
+              in progress
             </div>
           </div>
 
@@ -539,7 +560,12 @@ const TaskDashboard = () => {
               </div>
             </div>
             <div className="text-xl md:text-2xl font-bold text-white">
-              {userTasks.filter(task => task.status === "completed" || task.status === "claimed").length}
+              {
+                userTasks.filter(
+                  (task) =>
+                    task.status === "completed" || task.status === "claimed",
+                ).length
+              }
             </div>
             <div className="mt-1 md:mt-2 text-xs md:text-sm text-green-400">
               {completableTasks.length} rewards to claim
@@ -569,7 +595,7 @@ const TaskDashboard = () => {
               </div>
             </div>
             <div className="text-xl md:text-2xl font-bold text-white">
-              {(statistics?.completionRate || 0)}%
+              {statistics?.completionRate || 0}%
             </div>
             <div className="mt-1 md:mt-2 text-xs md:text-sm text-purple-400">
               Task success rate

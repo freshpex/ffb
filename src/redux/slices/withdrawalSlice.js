@@ -64,7 +64,8 @@ export const submitWithdrawal = createAsyncThunk(
         error.response?.data || error.message,
       );
       return rejectWithValue(
-        error.response?.data?.message || "Failed to process withdrawal",
+        error.response?.data?.error ||
+          error.response?.data || { message: "Failed to process withdrawal" },
       );
     }
   },

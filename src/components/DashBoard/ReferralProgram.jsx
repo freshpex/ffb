@@ -98,9 +98,15 @@ const ReferralProgram = () => {
   // Filter referrals based on search query and status filter
   const filteredReferrals = referrals.filter((referral) => {
     const matchesQuery = searchQuery
-      ? (referral.referee?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         referral.referee?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-         referral.referee?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()))
+      ? referral.referee?.email
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        referral.referee?.firstName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        referral.referee?.lastName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
       : true;
 
     const matchesStatus =
@@ -200,7 +206,8 @@ const ReferralProgram = () => {
 
   const handleShare = (platform) => {
     let shareUrl;
-    const shareText = "Join me on Fidelity First Brokers and get exclusive trading benefits!";
+    const shareText =
+      "Join me on Fidelity First Brokers and get exclusive trading benefits!";
 
     switch (platform) {
       case "facebook":
@@ -241,7 +248,7 @@ const ReferralProgram = () => {
 
   const handlePageChange = (page) => {
     dispatch(setCurrentPage(page));
-    
+
     if (activeTab === "referrals") {
       dispatch(fetchReferrals({ page }));
     } else if (activeTab === "commissions") {
@@ -984,7 +991,8 @@ const ReferralProgram = () => {
                       </div>
                       <div>
                         <div className="font-medium text-gray-200">
-                          {referral.referee?.firstName} {referral.referee?.lastName}
+                          {referral.referee?.firstName}{" "}
+                          {referral.referee?.lastName}
                         </div>
                         <div className="text-sm text-gray-400">
                           {referral.referee?.email}
@@ -1093,9 +1101,12 @@ const ReferralProgram = () => {
                       <div className="w-12 h-12 rounded-full bg-blue-900/30 text-blue-500 flex items-center justify-center mb-4">
                         <FaUserPlus size={20} />
                       </div>
-                      <h4 className="font-medium text-white mb-2">1. Invite Friends</h4>
+                      <h4 className="font-medium text-white mb-2">
+                        1. Invite Friends
+                      </h4>
                       <p className="text-gray-400 text-sm">
-                        Share your unique referral link with friends and colleagues interested in trading.
+                        Share your unique referral link with friends and
+                        colleagues interested in trading.
                       </p>
                     </div>
 
@@ -1103,9 +1114,12 @@ const ReferralProgram = () => {
                       <div className="w-12 h-12 rounded-full bg-green-900/30 text-green-500 flex items-center justify-center mb-4">
                         <FaUsers size={20} />
                       </div>
-                      <h4 className="font-medium text-white mb-2">2. They Sign Up & Trade</h4>
+                      <h4 className="font-medium text-white mb-2">
+                        2. They Sign Up & Trade
+                      </h4>
                       <p className="text-gray-400 text-sm">
-                        When they register using your link and complete KYC verification, both of you get a bonus.
+                        When they register using your link and complete KYC
+                        verification, both of you get a bonus.
                       </p>
                     </div>
 
@@ -1113,29 +1127,51 @@ const ReferralProgram = () => {
                       <div className="w-12 h-12 rounded-full bg-yellow-900/30 text-yellow-500 flex items-center justify-center mb-4">
                         <FaMoneyBillWave size={20} />
                       </div>
-                      <h4 className="font-medium text-white mb-2">3. Earn Commissions</h4>
+                      <h4 className="font-medium text-white mb-2">
+                        3. Earn Commissions
+                      </h4>
                       <p className="text-gray-400 text-sm">
-                        Earn ongoing commissions from their deposits and trades - up to 10% based on your referral tier!
+                        Earn ongoing commissions from their deposits and trades
+                        - up to 10% based on your referral tier!
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <h3 className="text-lg font-medium text-white mb-4">Referral Program Details</h3>
+                  <h3 className="text-lg font-medium text-white mb-4">
+                    Referral Program Details
+                  </h3>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-medium text-white mb-2">Commission Rates:</h4>
+                      <h4 className="font-medium text-white mb-2">
+                        Commission Rates:
+                      </h4>
                       <ul className="list-disc list-inside text-gray-400 text-sm space-y-1">
-                        <li><span className="text-green-500">5%</span> commission on all deposits made by your referrals</li>
-                        <li><span className="text-green-500">2%</span> commission on all trades made by your referrals</li>
-                        <li><span className="text-green-500">$50</span> bonus when your referral completes KYC verification</li>
-                        <li>Your referral gets a <span className="text-green-500">$25</span> welcome bonus</li>
+                        <li>
+                          <span className="text-green-500">5%</span> commission
+                          on all deposits made by your referrals
+                        </li>
+                        <li>
+                          <span className="text-green-500">2%</span> commission
+                          on all trades made by your referrals
+                        </li>
+                        <li>
+                          <span className="text-green-500">$50</span> bonus when
+                          your referral completes KYC verification
+                        </li>
+                        <li>
+                          Your referral gets a{" "}
+                          <span className="text-green-500">$25</span> welcome
+                          bonus
+                        </li>
                       </ul>
                     </div>
-                    
+
                     <div>
-                      <h4 className="font-medium text-white mb-2">Requirements:</h4>
+                      <h4 className="font-medium text-white mb-2">
+                        Requirements:
+                      </h4>
                       <ul className="list-disc list-inside text-gray-400 text-sm space-y-1">
                         <li>Referee must complete KYC verification</li>
                         <li>Referee must make a minimum deposit of $100</li>

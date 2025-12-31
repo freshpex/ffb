@@ -1,14 +1,21 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { FaCheckCircle, FaTrophy, FaCoins, FaCalendarCheck } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import React from "react";
+import PropTypes from "prop-types";
+import {
+  FaCheckCircle,
+  FaTrophy,
+  FaCoins,
+  FaCalendarCheck,
+} from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const CompletedTaskList = ({ tasks }) => {
   if (!tasks || tasks.length === 0) {
     return (
       <div className="bg-gray-800 rounded-lg p-6 text-center">
         <FaTrophy className="mx-auto text-4xl text-gray-500 mb-3" />
-        <h3 className="text-lg font-medium text-gray-300">No completed tasks yet</h3>
+        <h3 className="text-lg font-medium text-gray-300">
+          No completed tasks yet
+        </h3>
         <p className="text-gray-400 mt-2">
           Complete tasks to earn rewards and see them listed here.
         </p>
@@ -17,14 +24,14 @@ const CompletedTaskList = ({ tasks }) => {
   }
 
   // Format reward amount and type
-  const formatReward = (amount, type = 'cash') => {
-    if (type === 'cash' || type === 'bonus') {
+  const formatReward = (amount, type = "cash") => {
+    if (type === "cash" || type === "bonus") {
       return `$${amount.toFixed(2)}`;
     }
-    if (type === 'points') {
+    if (type === "points") {
       return `${amount} pts`;
     }
-    if (type === 'discount') {
+    if (type === "discount") {
       return `${amount}% off`;
     }
     return amount;
@@ -33,10 +40,10 @@ const CompletedTaskList = ({ tasks }) => {
   // Format date to readable format
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -46,7 +53,7 @@ const CompletedTaskList = ({ tasks }) => {
         <FaCheckCircle className="mr-2 text-green-500" />
         Completed Tasks
       </h3>
-      
+
       <ul className="space-y-3">
         {tasks.map((task) => (
           <motion.li
@@ -63,11 +70,17 @@ const CompletedTaskList = ({ tasks }) => {
                 <h4 className="text-white font-medium">{task.title}</h4>
                 <div className="flex items-center mt-1 text-xs text-gray-400">
                   <FaCalendarCheck className="mr-1" />
-                  <span>Completed {formatDate(task.userProgress.completedAt || task.userProgress.updatedAt)}</span>
+                  <span>
+                    Completed{" "}
+                    {formatDate(
+                      task.userProgress.completedAt ||
+                        task.userProgress.updatedAt,
+                    )}
+                  </span>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center text-right">
               <div className="bg-gray-800 rounded-md py-1 px-3 flex items-center">
                 <FaCoins className="text-yellow-500 mr-1" />
@@ -75,8 +88,8 @@ const CompletedTaskList = ({ tasks }) => {
                   {formatReward(task.reward.amount, task.reward.type)}
                 </span>
               </div>
-              
-              {task.userProgress.status === 'claimed' && (
+
+              {task.userProgress.status === "claimed" && (
                 <span className="ml-2 text-xs bg-green-900/30 text-green-400 border border-green-500 rounded-full px-2 py-1">
                   Claimed
                 </span>
@@ -96,15 +109,15 @@ CompletedTaskList.propTypes = {
       title: PropTypes.string.isRequired,
       reward: PropTypes.shape({
         amount: PropTypes.number.isRequired,
-        type: PropTypes.string.isRequired
+        type: PropTypes.string.isRequired,
       }).isRequired,
       userProgress: PropTypes.shape({
         status: PropTypes.string.isRequired,
         completedAt: PropTypes.string,
-        updatedAt: PropTypes.string
-      }).isRequired
-    })
-  ).isRequired
+        updatedAt: PropTypes.string,
+      }).isRequired,
+    }),
+  ).isRequired,
 };
 
 export default CompletedTaskList;

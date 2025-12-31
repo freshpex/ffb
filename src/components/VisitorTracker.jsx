@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import * as FingerprintJS from '@fingerprintjs/fingerprintjs';
-import axios from 'axios';
+import { useEffect } from "react";
+import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
+import axios from "axios";
 
-const API = import.meta.env.VITE_API_BASE_URL;
-console.log("import.meta.env.VITE_API_BASE_URL", API);
+const API = import.meta.env.VITE_API_URL;
+console.log("import.meta.env.VITE_API_URL", API);
 
 const VisitorTracker = () => {
   useEffect(() => {
@@ -12,8 +12,8 @@ const VisitorTracker = () => {
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         const visitorId = result.visitorId;
-        sessionStorage.setItem('visitorId', visitorId);
-        
+        sessionStorage.setItem("visitorId", visitorId);
+
         // Collect browser and device information
         const browserInfo = {
           userAgent: navigator.userAgent,
@@ -22,34 +22,38 @@ const VisitorTracker = () => {
           screenHeight: window.screen.height,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           platform: navigator.platform,
-          deviceMemory: navigator.deviceMemory || 'unknown',
-          deviceType: /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          deviceMemory: navigator.deviceMemory || "unknown",
+          deviceType: /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(
+            navigator.userAgent,
+          )
+            ? "mobile"
+            : "desktop",
           browser: getBrowserInfo(),
-          os: getOperatingSystem()
+          os: getOperatingSystem(),
         };
 
         let locationInfo = {};
         try {
-          const geoResponse = await axios.get('https://ipapi.co/json/');
+          const geoResponse = await axios.get("https://ipapi.co/json/");
           if (geoResponse.data) {
             locationInfo = {
               country: geoResponse.data.country_name,
               countryCode: geoResponse.data.country_code,
               region: geoResponse.data.region,
               city: geoResponse.data.city,
-              ip: geoResponse.data.ip
+              ip: geoResponse.data.ip,
             };
           }
         } catch (geoError) {
-          console.error('Non-critical error fetching location:', geoError);
-          locationInfo = { error: 'Location unavailable' };
+          console.error("Non-critical error fetching location:", geoError);
+          locationInfo = { error: "Location unavailable" };
         }
 
         // Send tracking data to backend
         const response = await fetch(`${API}/tracking/visitor`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             visitorId,
@@ -57,24 +61,25 @@ const VisitorTracker = () => {
             locationInfo,
             timestamp: new Date().toISOString(),
             path: window.location.pathname,
-            referrer: document.referrer || 'direct',
-            sessionId: sessionStorage.getItem('sessionId') || generateSessionId(),
+            referrer: document.referrer || "direct",
+            sessionId:
+              sessionStorage.getItem("sessionId") || generateSessionId(),
           }),
           keepalive: true,
         });
 
         if (!response.ok) {
-          console.error('Error tracking visitor (non-critical)');
+          console.error("Error tracking visitor (non-critical)");
         } else {
-          if (!sessionStorage.getItem('sessionId')) {
+          if (!sessionStorage.getItem("sessionId")) {
             const data = await response.json();
             if (data && data.sessionId) {
-              sessionStorage.setItem('sessionId', data.sessionId);
+              sessionStorage.setItem("sessionId", data.sessionId);
             }
           }
         }
       } catch (error) {
-        console.error('Error in visitor tracking (non-critical):', error);
+        console.error("Error in visitor tracking (non-critical):", error);
       }
     };
 
@@ -86,7 +91,11 @@ const VisitorTracker = () => {
       if (ua.indexOf("Firefox") > -1) {
         browserName = "Firefox";
         browserVersion = ua.match(/Firefox\/([0-9.]+)/)[1];
-      } else if (ua.indexOf("Chrome") > -1 && ua.indexOf("Edg") === -1 && ua.indexOf("OPR") === -1) {
+      } else if (
+        ua.indexOf("Chrome") > -1 &&
+        ua.indexOf("Edg") === -1 &&
+        ua.indexOf("OPR") === -1
+      ) {
         browserName = "Chrome";
         browserVersion = ua.match(/Chrome\/([0-9.]+)/)[1];
       } else if (ua.indexOf("Safari") > -1 && ua.indexOf("Chrome") === -1) {
@@ -118,12 +127,13 @@ const VisitorTracker = () => {
     };
 
     const generateSessionId = () => {
-      const sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-      sessionStorage.setItem('sessionId', sessionId);
+      const sessionId =
+        "sess_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now();
+      sessionStorage.setItem("sessionId", sessionId);
       return sessionId;
     };
 
-    if (!sessionStorage.getItem('sessionId')) {
+    if (!sessionStorage.getItem("sessionId")) {
       generateSessionId();
     }
 
@@ -134,20 +144,20 @@ const VisitorTracker = () => {
     const handleRouteChange = () => {
       try {
         fetch(`${API}/tracking/pageview`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            visitorId: sessionStorage.getItem('visitorId'),
-            sessionId: sessionStorage.getItem('sessionId'),
+            visitorId: sessionStorage.getItem("visitorId"),
+            sessionId: sessionStorage.getItem("sessionId"),
             timestamp: new Date().toISOString(),
-            path: window.location.pathname
+            path: window.location.pathname,
           }),
           keepalive: true,
         });
       } catch (error) {
-        console.error('Error tracking page view (non-critical):', error);
+        console.error("Error tracking page view (non-critical):", error);
       }
     };
 
@@ -155,33 +165,30 @@ const VisitorTracker = () => {
     const handleBeforeUnload = () => {
       if (navigator.sendBeacon) {
         const data = JSON.stringify({
-          visitorId: sessionStorage.getItem('visitorId') || 'unknown',
-          sessionId: sessionStorage.getItem('sessionId') || 'unknown',
+          visitorId: sessionStorage.getItem("visitorId") || "unknown",
+          sessionId: sessionStorage.getItem("sessionId") || "unknown",
           timestamp: new Date().toISOString(),
-          event: 'page_exit',
+          event: "page_exit",
           path: window.location.pathname,
         });
-        
-        navigator.sendBeacon(
-          `${API}/tracking/exit`, 
-          data
-        );
+
+        navigator.sendBeacon(`${API}/tracking/exit`, data);
       }
     };
 
     // Listen for history changes in SPA
     const originalPushState = window.history.pushState;
-    window.history.pushState = function() {
+    window.history.pushState = function () {
       originalPushState.apply(window.history, arguments);
       handleRouteChange();
     };
 
-    window.addEventListener('popstate', handleRouteChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("popstate", handleRouteChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener("popstate", handleRouteChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       window.history.pushState = originalPushState;
     };
   }, []);

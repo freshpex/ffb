@@ -141,8 +141,20 @@ const DashboardHeader = ({ isMobile, isSidebarOpen, onToggleSidebar }) => {
                 {userProfile?.firstName?.charAt(0)?.toUpperCase() || "U"}
               </div>
               <div className="hidden md:block text-left">
-                <div className="text-sm font-medium text-white">
-                  {userProfile?.username || userProfile?.firstName || "User Name"}
+                <div className="flex items-center space-x-1">
+                  <div className="text-sm font-medium text-white">
+                    {userProfile?.username ||
+                      userProfile?.firstName ||
+                      "User Name"}
+                  </div>
+                  {userProfile?.kycVerified && (
+                    <span
+                      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-400 border border-green-500/50"
+                      title="Verified Account"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </div>
                 {/* <div className="text-xs text-gray-400">Premium Member</div> */}
               </div>

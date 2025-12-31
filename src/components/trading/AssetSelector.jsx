@@ -23,7 +23,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
   const [showAssetSelector, setShowAssetSelector] = useState(false);
   const [filteredAssets, setFilteredAssets] = useState(allAssets);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  
+
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -34,18 +34,18 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
     }
 
     if (showAssetSelector) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
-    
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showAssetSelector]);
 
   // Fetch data on mount
   useEffect(() => {
     dispatch(fetchTradingPairs());
-    
+
     // Fetch initial market data for selected asset
     if (selectedAsset) {
       dispatch(fetchMarketData(selectedAsset));
@@ -69,7 +69,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
   // Filter assets based on search query and category
   useEffect(() => {
     if (!showAssetSelector) return;
-    
+
     let result = [...allAssets];
 
     // Apply category filter
@@ -83,7 +83,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
       result = result.filter(
         (asset) =>
           asset.baseAsset.toLowerCase().includes(query) ||
-          asset.symbol.toLowerCase().includes(query)
+          asset.symbol.toLowerCase().includes(query),
       );
     }
 
@@ -101,7 +101,7 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
   const toggleDropdown = () => {
     const newState = !showAssetSelector;
     setShowAssetSelector(newState);
-    
+
     // Pre-filter assets when opening dropdown
     if (newState) {
       let result = [...allAssets];
@@ -311,7 +311,9 @@ const AssetSelector = ({ variant = "standard", compact = false }) => {
                       )}
                     </button>
                     <div>
-                      <div className="text-white font-medium">{getAssetDisplayName(asset)}</div>
+                      <div className="text-white font-medium">
+                        {getAssetDisplayName(asset)}
+                      </div>
                       <div className="text-gray-400 text-sm">
                         {asset.symbol}
                       </div>

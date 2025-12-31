@@ -1,15 +1,15 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { motion } from 'framer-motion';
-import { 
-  FaTrophy, 
-  FaCoins, 
-  FaChartBar, 
-  FaCalendarCheck, 
+import React from "react";
+import PropTypes from "prop-types";
+import { motion } from "framer-motion";
+import {
+  FaTrophy,
+  FaCoins,
+  FaChartBar,
+  FaCalendarCheck,
   FaUserClock,
   FaPercentage,
-  FaSpinner
-} from 'react-icons/fa';
+  FaSpinner,
+} from "react-icons/fa";
 
 const TaskStats = ({ statistics, loading = false }) => {
   if (loading) {
@@ -26,7 +26,7 @@ const TaskStats = ({ statistics, loading = false }) => {
     totalEarnings: statistics?.totalEarnings || 0,
     totalInProgress: statistics?.totalInProgress || 0,
     completionRate: statistics?.completionRate || 0,
-    categoryBreakdown: statistics?.categoryBreakdown || {}
+    categoryBreakdown: statistics?.categoryBreakdown || {},
   };
 
   // Format currency value
@@ -45,10 +45,10 @@ const TaskStats = ({ statistics, loading = false }) => {
         <FaChartBar className="mr-2 text-blue-500" />
         Task Statistics
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Total Completed */}
-        <motion.div 
+        <motion.div
           className="bg-gray-700 p-4 rounded-lg"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -60,13 +60,15 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Total Completed</p>
-              <p className="text-white text-xl font-semibold">{safeStats.totalCompleted}</p>
+              <p className="text-white text-xl font-semibold">
+                {safeStats.totalCompleted}
+              </p>
             </div>
           </div>
         </motion.div>
-        
+
         {/* Total Earnings */}
-        <motion.div 
+        <motion.div
           className="bg-gray-700 p-4 rounded-lg"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,13 +80,15 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Total Earnings</p>
-              <p className="text-white text-xl font-semibold">{formatCurrency(safeStats.totalEarnings)}</p>
+              <p className="text-white text-xl font-semibold">
+                {formatCurrency(safeStats.totalEarnings)}
+              </p>
             </div>
           </div>
         </motion.div>
-        
+
         {/* In Progress */}
-        <motion.div 
+        <motion.div
           className="bg-gray-700 p-4 rounded-lg"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -96,13 +100,15 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">In Progress</p>
-              <p className="text-white text-xl font-semibold">{safeStats.totalInProgress}</p>
+              <p className="text-white text-xl font-semibold">
+                {safeStats.totalInProgress}
+              </p>
             </div>
           </div>
         </motion.div>
-        
+
         {/* Completion Rate */}
-        <motion.div 
+        <motion.div
           className="bg-gray-700 p-4 rounded-lg"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -114,57 +120,74 @@ const TaskStats = ({ statistics, loading = false }) => {
             </div>
             <div>
               <p className="text-gray-400 text-sm">Completion Rate</p>
-              <p className="text-white text-xl font-semibold">{formatPercentage(safeStats.completionRate)}</p>
+              <p className="text-white text-xl font-semibold">
+                {formatPercentage(safeStats.completionRate)}
+              </p>
             </div>
           </div>
         </motion.div>
       </div>
-      
+
       {/* Category Breakdown */}
-      {safeStats.categoryBreakdown && Object.keys(safeStats.categoryBreakdown).length > 0 && (
-        <div className="mt-6">
-          <h4 className="text-gray-300 mb-3 text-sm font-medium">Category Breakdown</h4>
-          <div className="bg-gray-700 p-4 rounded-lg">
-            <div className="space-y-3">
-              {Object.entries(safeStats.categoryBreakdown).map(([category, count], index) => {
-                // Format category name
-                const formattedCategory = category.charAt(0).toUpperCase() + 
-                  category.slice(1).replace("_", " ");
-                
-                // Ensure count is a number
-                const safeCount = parseInt(count, 10) || 0;
-                
-                // Calculate percentage (safely)
-                const percentage = safeStats.totalCompleted > 0 
-                  ? (safeCount / safeStats.totalCompleted) * 100
-                  : 0;
-                
-                // Get appropriate color for each category
-                const colors = [
-                  'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
-                  'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'
-                ];
-                const color = colors[index % colors.length];
-                
-                return (
-                  <div key={category}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-300">{formattedCategory}</span>
-                      <span className="text-sm text-gray-400">{safeCount}</span>
-                    </div>
-                    <div className="w-full bg-gray-800 rounded-full h-2">
-                      <div 
-                        className={`${color} h-2 rounded-full`}
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                );
-              })}
+      {safeStats.categoryBreakdown &&
+        Object.keys(safeStats.categoryBreakdown).length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-gray-300 mb-3 text-sm font-medium">
+              Category Breakdown
+            </h4>
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <div className="space-y-3">
+                {Object.entries(safeStats.categoryBreakdown).map(
+                  ([category, count], index) => {
+                    // Format category name
+                    const formattedCategory =
+                      category.charAt(0).toUpperCase() +
+                      category.slice(1).replace("_", " ");
+
+                    // Ensure count is a number
+                    const safeCount = parseInt(count, 10) || 0;
+
+                    // Calculate percentage (safely)
+                    const percentage =
+                      safeStats.totalCompleted > 0
+                        ? (safeCount / safeStats.totalCompleted) * 100
+                        : 0;
+
+                    // Get appropriate color for each category
+                    const colors = [
+                      "bg-blue-500",
+                      "bg-green-500",
+                      "bg-yellow-500",
+                      "bg-purple-500",
+                      "bg-pink-500",
+                      "bg-indigo-500",
+                    ];
+                    const color = colors[index % colors.length];
+
+                    return (
+                      <div key={category}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm text-gray-300">
+                            {formattedCategory}
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            {safeCount}
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-2">
+                          <div
+                            className={`${color} h-2 rounded-full`}
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  },
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };
@@ -175,9 +198,9 @@ TaskStats.propTypes = {
     totalEarnings: PropTypes.number.isRequired,
     totalInProgress: PropTypes.number.isRequired,
     completionRate: PropTypes.number.isRequired,
-    categoryBreakdown: PropTypes.object
+    categoryBreakdown: PropTypes.object,
   }).isRequired,
-  loading: PropTypes.bool
+  loading: PropTypes.bool,
 };
 
 export default TaskStats;

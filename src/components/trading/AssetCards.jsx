@@ -43,7 +43,9 @@ const AssetCards = ({
         await dispatch(fetchPortfolio()).unwrap();
       } catch (error) {
         console.error("Failed to load portfolio:", error);
-        setLoadError("Unable to load your portfolio data. Please try again later.");
+        setLoadError(
+          "Unable to load your portfolio data. Please try again later.",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -73,11 +75,20 @@ const AssetCards = ({
   // Get appropriate icon for the crypto asset
   const getAssetIcon = (symbol) => {
     const assetSymbol = symbol?.split("/")?.[0] || symbol;
-    const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-yellow-500", "bg-red-500", "bg-indigo-500"];
+    const colors = [
+      "bg-blue-500",
+      "bg-green-500",
+      "bg-purple-500",
+      "bg-yellow-500",
+      "bg-red-500",
+      "bg-indigo-500",
+    ];
     const colorIndex = assetSymbol.length % colors.length;
-    
+
     return (
-      <div className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center text-white font-bold`}>
+      <div
+        className={`w-8 h-8 rounded-full ${colors[colorIndex]} flex items-center justify-center text-white font-bold`}
+      >
         {assetSymbol.charAt(0)}
       </div>
     );
@@ -114,16 +125,22 @@ const AssetCards = ({
     for (const position of positions) {
       try {
         const [asset] = position.symbol.split("/");
-        
-        const price = typeof position.currentPrice === 'object' && position.currentPrice !== null 
-          ? position.currentPrice.price 
-          : position.currentPrice;
-          
-        const numericPrice = typeof price === 'number' ? price : 0;
-        const numericValue = typeof position.value === 'number' ? position.value : 0;
-        const numericPnl = typeof position.pnl === 'number' ? position.pnl : 0;
-        const numericPnlPercentage = typeof position.pnlPercentage === 'number' ? position.pnlPercentage : 0;
-        
+
+        const price =
+          typeof position.currentPrice === "object" &&
+          position.currentPrice !== null
+            ? position.currentPrice.price
+            : position.currentPrice;
+
+        const numericPrice = typeof price === "number" ? price : 0;
+        const numericValue =
+          typeof position.value === "number" ? position.value : 0;
+        const numericPnl = typeof position.pnl === "number" ? position.pnl : 0;
+        const numericPnlPercentage =
+          typeof position.pnlPercentage === "number"
+            ? position.pnlPercentage
+            : 0;
+
         assets.push({
           asset,
           symbol: position.symbol,

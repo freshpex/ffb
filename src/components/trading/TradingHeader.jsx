@@ -83,7 +83,7 @@ const TradingHeader = () => {
       result = result.filter(
         (asset) =>
           asset.baseAsset.toLowerCase().includes(query) ||
-          asset.symbol.toLowerCase().includes(query)
+          asset.symbol.toLowerCase().includes(query),
       );
     }
 
@@ -281,21 +281,23 @@ const TradingHeader = () => {
           <div className="hidden lg:block">
             <div className="text-gray-400 text-xs">Market</div>
             <div className="text-white">
-              {allAssets.find(a => a.symbol === selectedAsset)?.type || "N/A"}
+              {allAssets.find((a) => a.symbol === selectedAsset)?.type || "N/A"}
             </div>
           </div>
 
           <div className="hidden lg:block">
             <div className="text-gray-400 text-xs">Min Quantity</div>
             <div className="text-white">
-              {allAssets.find(a => a.symbol === selectedAsset)?.minQuantity || "N/A"}
+              {allAssets.find((a) => a.symbol === selectedAsset)?.minQuantity ||
+                "N/A"}
             </div>
           </div>
 
           <div className="hidden lg:block">
             <div className="text-gray-400 text-xs">Quote Asset</div>
             <div className="text-white">
-              {allAssets.find(a => a.symbol === selectedAsset)?.quoteAsset || "USDT"}
+              {allAssets.find((a) => a.symbol === selectedAsset)?.quoteAsset ||
+                "USDT"}
             </div>
           </div>
         </div>

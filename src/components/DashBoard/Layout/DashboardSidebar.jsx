@@ -287,10 +287,20 @@ const DashboardSidebar = ({ isMobile }) => {
           <div className="h-10 w-10 rounded-full bg-gradient-to-r from-primary-600 to-primary-400 flex items-center justify-center text-white font-bold">
             {userName?.charAt(0) || "U"}
           </div>
-          <div className="overflow-hidden">
-            <h3 className="text-sm font-medium text-white truncate">
-              {userName || "User Name"}
-            </h3>
+          <div className="overflow-hidden flex-1">
+            <div className="flex items-center space-x-1">
+              <h3 className="text-sm font-medium text-white truncate">
+                {userName || "User Name"}
+              </h3>
+              {user?.kycVerified && (
+                <span
+                  className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-500/20 text-green-400 border border-green-500/50"
+                  title="Verified Account"
+                >
+                  ✓
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-400 truncate">
               {user && user.email}
             </p>

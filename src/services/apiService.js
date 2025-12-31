@@ -122,18 +122,20 @@ export const tradingService = {
   getMarketPrices: () => api.get("/trading/market/prices"),
   getMarketPrice: (symbol) => api.get(`/trading/market/price?symbol=${symbol}`),
   getOrderbook: (symbol) => api.get(`/trading/market/orderbook/${symbol}`),
-  getCandlesticks: (symbol, interval, limit) => api.get(`/trading/market/candlesticks`, { 
-    params: { symbol, interval, limit } 
-  }),
+  getCandlesticks: (symbol, interval, limit) =>
+    api.get(`/trading/market/candlesticks`, {
+      params: { symbol, interval, limit },
+    }),
   getTradingPairs: () => api.get("/trading/market/pairs"),
-  getRecentTrades: (symbol) => api.get(`/trading/market/trades`, { params: { symbol } }),
-  
+  getRecentTrades: (symbol) =>
+    api.get(`/trading/market/trades`, { params: { symbol } }),
+
   // Order endpoints
   getOrders: (params) => api.get("/trading/orders", { params }),
   placeOrder: (data) => api.post("/trading/orders", data),
   getOrder: (id) => api.get(`/trading/orders/${id}`),
   cancelOrder: (id) => api.delete(`/trading/orders/${id}`),
-  getPositions: () => api.get("/trading/positions")
+  getPositions: () => api.get("/trading/positions"),
 };
 
 // Task endpoints
@@ -142,7 +144,8 @@ export const taskService = {
   getUserTasks: () => api.get("/tasks/user"),
   getTaskById: (id) => api.get(`/tasks/${id}`),
   startTask: (taskId) => api.post(`/tasks/${taskId}/start`),
-  updateTaskProgress: (taskId, data) => api.put(`/tasks/${taskId}/progress`, data),
+  updateTaskProgress: (taskId, data) =>
+    api.put(`/tasks/${taskId}/progress`, data),
   claimTaskReward: (taskId) => api.post(`/tasks/${taskId}/claim`),
   getTaskStatistics: () => api.get("/tasks/statistics"),
 };
@@ -185,7 +188,7 @@ const apiService = {
   ...transactionService,
   ...investmentService,
   ...tradingService,
-  ...taskService
+  ...taskService,
 };
 
 export default apiService;

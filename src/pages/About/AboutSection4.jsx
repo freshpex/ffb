@@ -19,19 +19,22 @@ const AboutSection4 = () => {
       name: "Sarah Johnson",
       position: "Chief Investment Officer",
       bio: "Sarah's expertise in portfolio management and market analysis has been instrumental in delivering consistent returns for our clients.",
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSD7I3tXCAEF4qRppLl6Pqp7vEe0lfTsSbBXg&s",
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSD7I3tXCAEF4qRppLl6Pqp7vEe0lfTsSbBXg&s",
     },
     {
       name: "David Chen",
       position: "Chief Technology Officer",
       bio: "David has pioneered the integration of AI and blockchain technologies into our trading platforms, enhancing security and performance.",
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmM2Rog65egKj4QaN4nNbAMb7kyEP1Blg27A&s",
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmM2Rog65egKj4QaN4nNbAMb7kyEP1Blg27A&s",
     },
     {
       name: "Emily Rodriguez",
       position: "Head of Client Relations",
       bio: "Emily's dedication to client satisfaction has established our reputation for exceptional service and personalized investment solutions.",
-      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPkYGauObGWMk4rFAQuFVASzepRLdhQj9Mgw&s",
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPkYGauObGWMk4rFAQuFVASzepRLdhQj9Mgw&s",
     },
   ];
 
@@ -185,11 +188,13 @@ const AboutSection4 = () => {
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.style.display = "none";
-                        e.target.parentNode.querySelector(".icon-fallback").style.display = "flex";
+                        e.target.parentNode.querySelector(
+                          ".icon-fallback",
+                        ).style.display = "flex";
                       }}
                     />
                   ) : null}
-                  
+
                   <div
                     className={`icon-fallback w-16 h-16 rounded-full ${darkMode ? "bg-primary-900/30" : "bg-primary-100"} 
                     flex items-center justify-center text-primary-500 text-2xl absolute top-0 left-0 right-0 mx-auto

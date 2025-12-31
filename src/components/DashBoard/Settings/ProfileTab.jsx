@@ -21,11 +21,11 @@ const ProfileTab = () => {
   const error = useSelector(selectUserError);
 
   const [formData, setFormData] = useState({
-    firstName: userProfile.firstName || "",
-    lastName: userProfile.lastName || "",
-    phoneNumber: userProfile.phone || "",
-    address: userProfile.address || "",
-    country: userProfile.country || "",
+    firstName: userProfile?.firstName || "",
+    lastName: userProfile?.lastName || "",
+    phoneNumber: userProfile?.phone || "",
+    address: userProfile?.address || "",
+    country: userProfile?.country || "",
   });
 
   const [success, setSuccess] = useState(false);

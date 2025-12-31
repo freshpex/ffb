@@ -42,7 +42,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import VisitorDetails from "./VisitorDetails"
+import VisitorDetails from "./VisitorDetails";
 
 const VisitorAnalytics = () => {
   const dispatch = useDispatch();
@@ -70,7 +70,11 @@ const VisitorAnalytics = () => {
   const loadData = () => {
     let queryParams = { period };
 
-    if (period === "custom" && customDateRange.startDate && customDateRange.endDate) {
+    if (
+      period === "custom" &&
+      customDateRange.startDate &&
+      customDateRange.endDate
+    ) {
       queryParams = {
         startDate: customDateRange.startDate,
         endDate: customDateRange.endDate,
@@ -78,7 +82,10 @@ const VisitorAnalytics = () => {
     }
 
     console.log("Dispatch query Data", queryParams);
-    console.log("Dispatch data Data", dispatch(fetchVisitorAnalytics(queryParams)));
+    console.log(
+      "Dispatch data Data",
+      dispatch(fetchVisitorAnalytics(queryParams)),
+    );
     dispatch(fetchVisitorAnalytics(queryParams));
   };
 
@@ -89,7 +96,7 @@ const VisitorAnalytics = () => {
   const handlePeriodChange = (newPeriod) => {
     setPeriod(newPeriod);
     setShowPeriodDropdown(false);
-    
+
     if (newPeriod === "custom") {
       setShowCustomDatePicker(true);
     } else {
@@ -170,7 +177,9 @@ const VisitorAnalytics = () => {
     return (
       <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
         <div className="bg-red-900/30 border-l-4 border-red-500 p-4">
-          <p className="text-red-400">Error loading visitor analytics: {error}</p>
+          <p className="text-red-400">
+            Error loading visitor analytics: {error}
+          </p>
           <button
             onClick={handleRefresh}
             className="mt-2 px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center"
@@ -220,16 +229,16 @@ const VisitorAnalytics = () => {
               {period === "24h"
                 ? "Last 24 Hours"
                 : period === "7d"
-                ? "Last 7 Days"
-                : period === "30d"
-                ? "Last 30 Days"
-                : period === "90d"
-                ? "Last 90 Days"
-                : period === "1y"
-                ? "Last Year"
-                : period === "custom"
-                ? "Custom Range"
-                : "Last 30 Days"}
+                  ? "Last 7 Days"
+                  : period === "30d"
+                    ? "Last 30 Days"
+                    : period === "90d"
+                      ? "Last 90 Days"
+                      : period === "1y"
+                        ? "Last Year"
+                        : period === "custom"
+                          ? "Custom Range"
+                          : "Last 30 Days"}
               <FaFilter className="ml-1" />
             </button>
 
@@ -304,7 +313,10 @@ const VisitorAnalytics = () => {
       {showCustomDatePicker && (
         <div className="mb-6 p-4 bg-gray-700 rounded-lg flex flex-col sm:flex-row gap-4">
           <div>
-            <label htmlFor="startDate" className="block text-sm text-gray-400 mb-1">
+            <label
+              htmlFor="startDate"
+              className="block text-sm text-gray-400 mb-1"
+            >
               Start Date
             </label>
             <input
@@ -317,7 +329,10 @@ const VisitorAnalytics = () => {
             />
           </div>
           <div>
-            <label htmlFor="endDate" className="block text-sm text-gray-400 mb-1">
+            <label
+              htmlFor="endDate"
+              className="block text-sm text-gray-400 mb-1"
+            >
               End Date
             </label>
             <input
@@ -373,8 +388,9 @@ const VisitorAnalytics = () => {
               </h3>
               <p className="text-white text-2xl font-semibold mt-1">
                 {/* Get the most common device type */}
-                {visitorData.deviceDistribution && visitorData.deviceDistribution.length > 0 
-                  ? visitorData.deviceDistribution[0]._id || "Unknown" 
+                {visitorData.deviceDistribution &&
+                visitorData.deviceDistribution.length > 0
+                  ? visitorData.deviceDistribution[0]._id || "Unknown"
                   : "Unknown"}
               </p>
               <p className="text-sm text-gray-400 mt-1">
@@ -396,8 +412,9 @@ const VisitorAnalytics = () => {
                 Top Countries
               </h3>
               <p className="text-white text-2xl font-semibold mt-1">
-                {visitorData.countryDistribution && visitorData.countryDistribution.length > 0 
-                  ? visitorData.countryDistribution[0]._id || "Unknown" 
+                {visitorData.countryDistribution &&
+                visitorData.countryDistribution.length > 0
+                  ? visitorData.countryDistribution[0]._id || "Unknown"
                   : "Unknown"}
               </p>
               <p className="text-sm text-gray-400 mt-1">
@@ -460,7 +477,9 @@ const VisitorAnalytics = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={formatDistributionData(visitorData.deviceDistribution || [])}
+                  data={formatDistributionData(
+                    visitorData.deviceDistribution || [],
+                  )}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -472,12 +491,14 @@ const VisitorAnalytics = () => {
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
                 >
-                  {(visitorData.deviceDistribution || []).map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
+                  {(visitorData.deviceDistribution || []).map(
+                    (entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ),
+                  )}
                 </Pie>
                 <Tooltip
                   formatter={(value, name) => [
@@ -503,7 +524,9 @@ const VisitorAnalytics = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={formatDistributionData(visitorData.browserDistribution || [])}
+                  data={formatDistributionData(
+                    visitorData.browserDistribution || [],
+                  )}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -515,12 +538,14 @@ const VisitorAnalytics = () => {
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
                 >
-                  {(visitorData.browserDistribution || []).map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
+                  {(visitorData.browserDistribution || []).map(
+                    (entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ),
+                  )}
                 </Pie>
                 <Tooltip
                   formatter={(value, name) => [
@@ -585,7 +610,9 @@ const VisitorAnalytics = () => {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={formatDistributionData(visitorData.countryDistribution || [])}
+                data={formatDistributionData(
+                  visitorData.countryDistribution || [],
+                )}
                 layout="vertical"
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
@@ -674,7 +701,10 @@ const VisitorAnalytics = () => {
                 <Pie
                   data={[
                     { name: "New", value: visitorData.visitorTypes?.new || 0 },
-                    { name: "Returning", value: visitorData.visitorTypes?.returning || 0 },
+                    {
+                      name: "Returning",
+                      value: visitorData.visitorTypes?.returning || 0,
+                    },
                   ]}
                   cx="50%"
                   cy="50%"
@@ -705,7 +735,7 @@ const VisitorAnalytics = () => {
           </div>
         </div>
       </div>
-      <VisitorDetails/>
+      <VisitorDetails />
     </div>
   );
 };
