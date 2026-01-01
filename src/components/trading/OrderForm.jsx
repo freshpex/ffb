@@ -67,10 +67,15 @@ const OrderForm = ({
     : ["BTC", "USDT"];
 
   // Get user's available amount for the base asset (for sell orders)
-  const baseAssetPosition = portfolio.positions?.find(
-    (p) => p.symbol === baseAsset,
-  );
-  const baseAssetAvailable = baseAssetPosition?.amount || 0;
+  const baseAssetPosition = portfolio.positions?.find((p) => {
+    if (!p?.symbol) return false;
+    const sym = p.symbol.toUpperCase();
+    const sel = selectedSymbol?.toUpperCase() || "";
+    const base = baseAsset?.toUpperCase() || "";
+    return sym === sel || sym.split("/")[0] === base;
+  });
+
+  const baseAssetAvailable = parseFloat(baseAssetPosition?.quantity) || 0;
 
   // Validation check
   const isValid = () => {
@@ -178,29 +183,29 @@ const OrderForm = ({
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     if (!isValid()) {
       toast.error("Please correct all errors before submitting");
       return;
     }
-
+  
     try {
       // Parse values to ensure they're valid numbers
       const parsedAmount = parseFloat(orderAmount);
       const parsedTotal = parseFloat(orderTotal);
-
+  
       // For market orders, use current market price; otherwise use entered price
       const parsedPrice =
         orderType === "market" ? currentPrice : parseFloat(orderPrice);
-
+  
       // Ensure all values are valid numbers
       if (isNaN(parsedAmount) || isNaN(parsedPrice) || isNaN(parsedTotal)) {
         toast.error("Invalid order values. Please check your inputs.");
         return;
       }
-
+  
       setSubmitting(true);
-
+  
       // Prepare the order data with properly formatted numbers
       const orderData = {
         symbol: selectedSymbol,
@@ -210,7 +215,7 @@ const OrderForm = ({
         total: parsedTotal.toString(),
         price: parsedPrice.toString(),
       };
-
+  
       if (orderType === "stop") {
         const parsedStopPrice = parseFloat(stopPrice);
         if (isNaN(parsedStopPrice)) {
@@ -219,11 +224,31 @@ const OrderForm = ({
         }
         orderData.stopPrice = parsedStopPrice.toString();
       }
-
+  
       const result = await dispatch(placeOrder(orderData)).unwrap();
-
+  
       if (result.success) {
-        toast.success(result.message || "Order placed successfully");
+        const executedPrice =
+          result?.data?.price !== undefined && !isNaN(parseFloat(result.data.price))
+            ? parseFloat(result.data.price)
+            : parsedPrice;
+
+        const successMsg = `${orderSide === "buy" ? "Buy" : "Sell"} executed: ${parsedAmount} ${baseAsset} @ ${executedPrice.toFixed(
+          2
+          )} ${quoteAsset}`;
+
+        toast.success(successMsg);
+        dispatch(
+          setAlertMessage({ type: "success", message: successMsg }),
+        );
+  
+        dispatch(
+          updateOrderForm({
+            price: executedPrice.toString(),
+            total: (parsedAmount * executedPrice).toFixed(2),
+          })
+        );
+  
         // Reset the form
         dispatch(resetOrderForm());
         // Refresh open orders
@@ -332,7 +357,15 @@ const OrderForm = ({
 
       {/* Success Message */}
       {showSuccess && alertMessage && (
-        <Alert type="success" message={alertMessage} className="mb-3" />
+        <Alert
+          type={alertMessage?.type || "success"}
+          message={
+            typeof alertMessage === "string"
+              ? alertMessage
+              : alertMessage?.message || ""
+          }
+          className="mb-3"
+        />
       )}
 
       {/* Error Message */}
@@ -344,21 +377,24 @@ const OrderForm = ({
           <div className="flex space-x-2 mb-2">
             <button
               type="button"
-              className={`flex-1 py-2 rounded-md ${orderType === "market" ? "bg-primary text-white" : "bg-card-light"}`}
+              aria-pressed={orderType === "market"}
+              className={`flex-1 py-2 rounded-md transition-all duration-150 ${orderType === "market" ? "bg-primary text-white ring-2 ring-offset-2 ring-primary-400" : "bg-card-light"}`}
               onClick={() => handleOrderTypeChange("market")}
             >
               Market
             </button>
             <button
               type="button"
-              className={`flex-1 py-2 rounded-md ${orderType === "limit" ? "bg-primary text-white" : "bg-card-light"}`}
+              aria-pressed={orderType === "limit"}
+              className={`flex-1 py-2 rounded-md transition-all duration-150 ${orderType === "limit" ? "bg-primary text-white ring-2 ring-offset-2 ring-primary-400" : "bg-card-light"}`}
               onClick={() => handleOrderTypeChange("limit")}
             >
               Limit
             </button>
             <button
               type="button"
-              className={`flex-1 py-2 rounded-md ${orderType === "stop" ? "bg-primary text-white" : "bg-card-light"}`}
+              aria-pressed={orderType === "stop"}
+              className={`flex-1 py-2 rounded-md transition-all duration-150 ${orderType === "stop" ? "bg-primary text-white ring-2 ring-offset-2 ring-primary-400" : "bg-card-light"}`}
               onClick={() => handleOrderTypeChange("stop")}
             >
               Stop
@@ -371,14 +407,16 @@ const OrderForm = ({
           <div className="flex space-x-2">
             <button
               type="button"
-              className={`flex-1 py-3 rounded-md font-medium ${orderSide === "buy" ? "bg-green-600 text-white" : "bg-card-light"}`}
+              aria-pressed={orderSide === "buy"}
+              className={`flex-1 py-3 rounded-md font-medium transition-all duration-150 ${orderSide === "buy" ? "bg-green-600 text-white ring-2 ring-offset-2 ring-green-400" : "bg-card-light"}`}
               onClick={() => handleOrderSideChange("buy")}
             >
               Buy
             </button>
             <button
               type="button"
-              className={`flex-1 py-3 rounded-md font-medium ${orderSide === "sell" ? "bg-red-600 text-white" : "bg-card-light"}`}
+              aria-pressed={orderSide === "sell"}
+              className={`flex-1 py-3 rounded-md font-medium transition-all duration-150 ${orderSide === "sell" ? "bg-red-600 text-white ring-2 ring-offset-2 ring-red-400" : "bg-card-light"}`}
               onClick={() => handleOrderSideChange("sell")}
             >
               Sell

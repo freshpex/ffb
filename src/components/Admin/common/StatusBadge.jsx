@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useDarkMode } from "../../../context/DarkModeContext";
 import {
   FaCheckCircle,
   FaExclamationCircle,
@@ -11,6 +12,8 @@ import {
 
 const StatusBadge = ({ status, type = "default", size = "medium" }) => {
   // Define color schemes for different status types
+  const { darkMode } = useDarkMode();
+
   const getColorScheme = () => {
     const colorSchemes = {
       default: {
@@ -69,9 +72,14 @@ const StatusBadge = ({ status, type = "default", size = "medium" }) => {
       },
     };
 
+    const safeStatus = (status || "pending").toString().toLowerCase();
+
+    // If caller didn't explicitly pass a type, switch to dark variant when dark mode is enabled
+    const effectiveType = type || (darkMode ? "dark" : "default");
+
     // Return default colors if status isn't explicitly defined
     return (
-      colorSchemes[type][status.toLowerCase()] || colorSchemes[type].pending
+      colorSchemes[effectiveType][safeStatus] || colorSchemes[effectiveType].pending
     );
   };
 
@@ -83,8 +91,9 @@ const StatusBadge = ({ status, type = "default", size = "medium" }) => {
   };
 
   // Format status text (capitalize first letter)
+  const statusText = (status || "Pending").toString();
   const formattedStatus =
-    status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    statusText.charAt(0).toUpperCase() + statusText.slice(1).toLowerCase();
 
   return (
     <span

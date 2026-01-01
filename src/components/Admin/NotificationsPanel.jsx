@@ -210,7 +210,7 @@ const NotificationsPanel = ({ isOpen, onClose }) => {
           )}
 
           {status === "succeeded" &&
-            notifications.map((notification) => (
+            (notifications || []).map((notification) => (
               <NotificationItem
                 key={notification._id}
                 notification={notification}

@@ -27,8 +27,8 @@ const AdminKyc = () => {
   const { darkMode } = useDarkMode();
   const dispatch = useDispatch();
 
-  const kycRequests = useSelector(selectKycRequests);
-  const pagination = useSelector(selectKycPagination);
+  const kycRequests = useSelector(selectKycRequests) || [];
+  const pagination = useSelector(selectKycPagination) || {};
   const status = useSelector(selectKycStatus);
 
   const [page, setPage] = useState(1);
