@@ -9,6 +9,7 @@ const FormInput = ({
   disabled = false,
   required = false,
   hint,
+  error,
   className = "",
   name,
 }) => {
@@ -28,10 +29,11 @@ const FormInput = ({
         placeholder={placeholder}
         disabled={disabled}
         required={required}
-        className={`w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100 ${
+        className={`w-full px-4 py-3 bg-gray-800 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100 ${
           disabled ? "opacity-60 cursor-not-allowed" : ""
-        } ${className}`}
+        } ${error ? "border-red-500 focus:ring-red-500" : "border-gray-700"} ${className}`}
       />
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
       {hint && <p className="mt-1 text-xs text-gray-400">{hint}</p>}
     </div>
   );
@@ -46,6 +48,7 @@ FormInput.propTypes = {
   disabled: PropTypes.bool,
   required: PropTypes.bool,
   hint: PropTypes.string,
+  error: PropTypes.string,
   className: PropTypes.string,
   name: PropTypes.string,
 };

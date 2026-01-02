@@ -4,6 +4,7 @@ import {
   selectUserProfile,
   selectUserLoading,
   selectUserError,
+  selectUserProfileUpdating,
   updateProfile,
   uploadProfileImage,
   fetchUserProfile,
@@ -18,6 +19,7 @@ const ProfileTab = () => {
   const userProfile = useSelector(selectUserProfile);
   console.log("ProfileTab", userProfile);
   const isLoading = useSelector(selectUserLoading);
+  const isSaving = useSelector(selectUserProfileUpdating);
   const error = useSelector(selectUserError);
 
   const [formData, setFormData] = useState({
@@ -38,6 +40,17 @@ const ProfileTab = () => {
     }
   }, [dispatch, userProfile]);
 
+  useEffect(() => {
+    if (!userProfile) return;
+    setFormData({
+      firstName: userProfile?.firstName || "",
+      lastName: userProfile?.lastName || "",
+      phoneNumber: userProfile?.phone || "",
+      address: userProfile?.address || "",
+      country: userProfile?.country || "",
+    });
+  }, [userProfile]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -47,8 +60,8 @@ const ProfileTab = () => {
     e.preventDefault();
 
     try {
-      const result = await dispatch(updateProfile(formData));
-      if (result.success) {
+      const action = await dispatch(updateProfile(formData));
+      if (action.type.endsWith("/fulfilled") && action.payload?.success) {
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       }
@@ -222,7 +235,7 @@ const ProfileTab = () => {
                 country: userProfile?.country || "",
               })
             }
-            disabled={isLoading}
+            disabled={isLoading || isSaving}
           >
             Cancel
           </Button>
@@ -230,16 +243,16 @@ const ProfileTab = () => {
           <Button
             type="submit"
             variant="primary"
-            disabled={isLoading}
+            disabled={isLoading || isSaving}
             icon={
-              isLoading ? (
+              isSaving ? (
                 <FaSpinner className="animate-spin mr-2" />
               ) : (
                 <FaCheck className="mr-2" />
               )
             }
           >
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>

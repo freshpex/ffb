@@ -14,7 +14,7 @@ const initialState = {
       id: "cryptocurrency",
       name: "Cryptocurrency",
       icon: "bitcoin",
-      minAmount: 20,
+      minAmount: 50,
       maxAmount: 100000,
       cryptoOptions: [
         {

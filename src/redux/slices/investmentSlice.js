@@ -344,12 +344,35 @@ export const allTheOnes = createSelector(
 
 export const selectInvestmentStatus = createSelector(
   [getInvestmentState, (_, operation) => operation],
-  (investments, operation) => investments?.status[operation] || "idle",
+  (investments, operation) => {
+    // Backward-compatible: if called without an operation, return overall loading
+    // based on the two main fetches.
+    if (!operation) {
+      const fetchPlans = investments?.status?.fetchPlans || "idle";
+      const fetchInvestments = investments?.status?.fetchInvestments || "idle";
+      return fetchPlans === "loading" || fetchInvestments === "loading"
+        ? "loading"
+        : fetchPlans === "failed" || fetchInvestments === "failed"
+          ? "failed"
+          : "idle";
+    }
+
+    return investments?.status?.[operation] || "idle";
+  },
 );
 
 export const selectInvestmentError = createSelector(
   [getInvestmentState, (_, operation) => operation],
-  (investments, operation) => investments?.error[operation],
+  (investments, operation) => {
+    if (!operation) {
+      return (
+        investments?.error?.fetchPlans ||
+        investments?.error?.fetchInvestments ||
+        null
+      );
+    }
+    return investments?.error?.[operation] || null;
+  },
 );
 
 export const selectInvestmentStatistics = createSelector(

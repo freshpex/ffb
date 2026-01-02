@@ -7,6 +7,7 @@ import {
   addPaymentMethod,
   removePaymentMethod,
   setDefaultPaymentMethod,
+  updatePaymentMethod,
 } from "../../../redux/slices/userSlice";
 import {
   FaCreditCard,
@@ -87,20 +88,19 @@ const PaymentMethodsTab = () => {
 
     try {
       // Format the card data for submission
+      const last4 = cardFormData.cardNumber.slice(-4);
       const formattedCardData = {
         type: "card",
-        name: `${cardFormData.cardholderName} (${cardFormData.cardNumber.slice(-4)})`,
+        nickname: `${cardFormData.cardholderName} •••• ${last4}`,
         cardholderName: cardFormData.cardholderName,
         cardNumber: cardFormData.cardNumber,
-        last4: cardFormData.cardNumber.slice(-4),
         expiryMonth: parseInt(cardFormData.expiryMonth),
         expiryYear: parseInt(cardFormData.expiryYear),
-        expiryDate: `${cardFormData.expiryMonth}/${cardFormData.expiryYear}`,
         cvv: cardFormData.cvv,
         isDefault: cardFormData.isDefault,
       };
 
-      const result = await dispatch(addPaymentMethod(formattedCardData));
+      const result = await dispatch(addPaymentMethod(formattedCardData)).unwrap();
 
       if (result.success) {
         setCardFormData({
@@ -125,18 +125,18 @@ const PaymentMethodsTab = () => {
 
     try {
       // Format the bank data for submission
+      const last4 = bankFormData.accountNumber.slice(-4);
       const formattedBankData = {
         type: "bank_account",
-        name: `${bankFormData.bankName} (${bankFormData.accountNumber.slice(-4)})`,
+        nickname: `${bankFormData.bankName} •••• ${last4}`,
         accountName: bankFormData.accountName,
         accountNumber: bankFormData.accountNumber,
-        last4: bankFormData.accountNumber.slice(-4),
         routingNumber: bankFormData.routingNumber,
         bankName: bankFormData.bankName,
         isDefault: bankFormData.isDefault,
       };
 
-      const result = await dispatch(addPaymentMethod(formattedBankData));
+      const result = await dispatch(addPaymentMethod(formattedBankData)).unwrap();
 
       if (result.success) {
         setBankFormData({
@@ -161,13 +161,13 @@ const PaymentMethodsTab = () => {
     try {
       const formattedCryptoData = {
         type: "crypto_wallet",
-        name: cryptoFormData.nickname || `${cryptoFormData.walletType} Wallet`,
+        nickname: cryptoFormData.nickname || `${cryptoFormData.walletType} Wallet`,
+        cryptocurrency: cryptoFormData.walletType,
         walletAddress: cryptoFormData.walletAddress,
-        walletType: cryptoFormData.walletType,
         isDefault: cryptoFormData.isDefault,
       };
 
-      const result = await dispatch(addPaymentMethod(formattedCryptoData));
+      const result = await dispatch(addPaymentMethod(formattedCryptoData)).unwrap();
 
       if (result.success) {
         setCryptoFormData({
@@ -209,6 +209,21 @@ const PaymentMethodsTab = () => {
     }
   };
 
+  const handleUpdate = async (paymentMethodId, updates) => {
+    try {
+      const result = await dispatch(
+        updatePaymentMethod({ paymentMethodId, updates }),
+      ).unwrap();
+
+      if (result.success) {
+        setSuccess("Payment method updated successfully");
+        setTimeout(() => setSuccess(""), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to update payment method:", err);
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-100 mb-6">
@@ -245,6 +260,7 @@ const PaymentMethodsTab = () => {
                 method={method}
                 onRemove={() => handleRemove(method.id)}
                 onSetDefault={() => handleSetDefault(method.id)}
+                onUpdate={(updates) => handleUpdate(method.id, updates)}
               />
             ))}
           </div>

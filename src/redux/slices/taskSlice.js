@@ -22,7 +22,6 @@ export const fetchUserTasks = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getUserTasks();
-      console.log("User tasks fetched:", response);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -37,7 +36,6 @@ export const fetchTaskStatistics = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getTaskStatistics();
-      console.log("Task statistics fetched:", response);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -93,7 +91,21 @@ const initialState = {
     difficulty: "all",
   },
   status: "idle",
+  statusByKey: {
+    available: "idle",
+    user: "idle",
+    statistics: "idle",
+    start: "idle",
+    claim: "idle",
+  },
   error: null,
+  errorByKey: {
+    available: null,
+    user: null,
+    statistics: null,
+    start: null,
+    claim: null,
+  },
   pagination: {
     currentPage: 1,
     totalPages: 1,
@@ -125,9 +137,12 @@ const taskSlice = createSlice({
       // fetchAvailableTasks
       .addCase(fetchAvailableTasks.pending, (state) => {
         state.status = "loading";
+        state.statusByKey.available = "loading";
+        state.errorByKey.available = null;
       })
       .addCase(fetchAvailableTasks.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.statusByKey.available = "succeeded";
         state.availableTasks = action.payload.data;
         if (action.payload.pagination) {
           state.pagination = action.payload.pagination;
@@ -135,15 +150,20 @@ const taskSlice = createSlice({
       })
       .addCase(fetchAvailableTasks.rejected, (state, action) => {
         state.status = "failed";
+        state.statusByKey.available = "failed";
         state.error = action.payload || action.error.message;
+        state.errorByKey.available = state.error;
       })
 
       // fetchUserTasks
       .addCase(fetchUserTasks.pending, (state) => {
         state.status = "loading";
+        state.statusByKey.user = "loading";
+        state.errorByKey.user = null;
       })
       .addCase(fetchUserTasks.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.statusByKey.user = "succeeded";
         state.userTasks = action.payload.data;
         if (action.payload.pagination) {
           state.pagination = action.payload.pagination;
@@ -151,15 +171,20 @@ const taskSlice = createSlice({
       })
       .addCase(fetchUserTasks.rejected, (state, action) => {
         state.status = "failed";
+        state.statusByKey.user = "failed";
         state.error = action.payload || action.error.message;
+        state.errorByKey.user = state.error;
       })
 
       // fetchTaskStatistics
       .addCase(fetchTaskStatistics.pending, (state) => {
         state.status = "loading";
+        state.statusByKey.statistics = "loading";
+        state.errorByKey.statistics = null;
       })
       .addCase(fetchTaskStatistics.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.statusByKey.statistics = "succeeded";
         // Map backend response to frontend state structure
         state.statistics = {
           totalCompleted: action.payload.data.completedTasks || 0,
@@ -171,15 +196,20 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTaskStatistics.rejected, (state, action) => {
         state.status = "failed";
+        state.statusByKey.statistics = "failed";
         state.error = action.payload || action.error.message;
+        state.errorByKey.statistics = state.error;
       })
 
       // startTask
       .addCase(startTask.pending, (state) => {
         state.status = "loading";
+        state.statusByKey.start = "loading";
+        state.errorByKey.start = null;
       })
       .addCase(startTask.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.statusByKey.start = "succeeded";
 
         // Update user tasks
         const index = state.availableTasks.findIndex((task) => {
@@ -207,15 +237,20 @@ const taskSlice = createSlice({
       })
       .addCase(startTask.rejected, (state, action) => {
         state.status = "failed";
+        state.statusByKey.start = "failed";
         state.error = action.payload || action.error.message;
+        state.errorByKey.start = state.error;
       })
 
       // claimTaskReward
       .addCase(claimTaskReward.pending, (state) => {
         state.status = "loading";
+        state.statusByKey.claim = "loading";
+        state.errorByKey.claim = null;
       })
       .addCase(claimTaskReward.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.statusByKey.claim = "succeeded";
 
         // Update task status in userTasks
         const userTaskIndex = state.userTasks.findIndex((task) => {
@@ -257,7 +292,9 @@ const taskSlice = createSlice({
       })
       .addCase(claimTaskReward.rejected, (state, action) => {
         state.status = "failed";
+        state.statusByKey.claim = "failed";
         state.error = action.payload || action.error.message;
+        state.errorByKey.claim = state.error;
       });
   },
 });
@@ -272,7 +309,11 @@ export const selectUserTasks = (state) => state.tasks.userTasks;
 export const selectTaskStatistics = (state) => state.tasks.statistics;
 export const selectTaskFilters = (state) => state.tasks.filters;
 export const selectTaskStatus = (state) => state.tasks.status;
+export const selectTaskStatusByKey = (key) => (state) =>
+  state.tasks.statusByKey?.[key] || "idle";
 export const selectTaskError = (state) => state.tasks.error;
+export const selectTaskErrorByKey = (key) => (state) =>
+  state.tasks.errorByKey?.[key] || null;
 export const selectTaskPagination = (state) => state.tasks.pagination;
 
 export const selectTasksByStatus = (status) => (state) => {

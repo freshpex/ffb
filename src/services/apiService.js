@@ -6,24 +6,21 @@ const API_URL = import.meta.env.VITE_API_URL;
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
-  // Don't force a global Content-Type.
-  // - For JSON requests, axios will set application/json automatically.
-  // - For FormData uploads, the browser/axios must set the multipart boundary.
   headers: {},
 });
 
 // Function to get the real token, not any mock tokens
 const getValidAuthToken = () => {
-  const adminToken = localStorage.getItem("ffb_admin_token");
+  const adminToken =
+    localStorage.getItem("ffb_admin_token") ||
+    sessionStorage.getItem("ffb_admin_token");
   if (adminToken && !adminToken.startsWith("mock_token_")) {
     return adminToken;
   }
 
-  const token = localStorage.getItem("ffb_auth_token");
-  if (token && token.startsWith("mock_token_")) {
-    console.log("Found a mock token - this will never work with the backend");
-    return null;
-  }
+  const token =
+    localStorage.getItem("ffb_auth_token") ||
+    sessionStorage.getItem("ffb_auth_token");
 
   return token;
 };
@@ -32,8 +29,6 @@ const getValidAuthToken = () => {
 api.interceptors.request.use(
   async (config) => {
     try {
-      // If we're sending FormData, ensure we don't force JSON headers.
-      // Let the browser/axios set the multipart boundary automatically.
       const isFormData =
         typeof FormData !== "undefined" && config.data instanceof FormData;
       if (isFormData && config.headers) {

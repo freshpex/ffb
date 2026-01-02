@@ -21,7 +21,9 @@ import Loader from "../../common/Loader";
 const InvestmentModal = ({ plan, onClose, userBalance }) => {
   const dispatch = useDispatch();
   const form = useSelector(selectInvestmentForm);
-  const status = useSelector(selectInvestmentStatus);
+  const status = useSelector((state) =>
+    selectInvestmentStatus(state, "investmentOperation"),
+  );
   const [errors, setErrors] = useState({});
 
   const handleAmountChange = (e) => {

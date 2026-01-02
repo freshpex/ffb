@@ -103,11 +103,15 @@ const Deposit = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    const minimumDeposit = 50;
+
     // Amount validation
     if (!formData.amount) {
       newErrors.amount = "Amount is required";
     } else if (isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
       newErrors.amount = "Please enter a valid amount";
+    } else if (parseFloat(formData.amount) < minimumDeposit) {
+      newErrors.amount = `Minimum deposit amount is $${minimumDeposit}`;
     } else if (
       activeMethod &&
       parseFloat(formData.amount) < activeMethod.minAmount
@@ -511,6 +515,7 @@ const Deposit = () => {
                     onChange={handleChange}
                     placeholder="Enter amount to deposit"
                     error={errors.amount}
+                    hint="Minimum deposit is $50"
                     required
                   />
 

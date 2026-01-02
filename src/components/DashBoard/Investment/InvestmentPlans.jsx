@@ -42,13 +42,28 @@ const InvestmentPlans = () => {
   const dispatch = useDispatch();
   const plans = useSelector(selectInvestmentPlans);
   const activeInvestments = useSelector(selectActiveInvestments);
-  console.log("activeInvestments", activeInvestments);
   const historyInvestments = useSelector(selectHistoryInvestments);
-  console.log("History", historyInvestments);
   const all = useSelector(allTheOnes);
-  console.log("All", all);
-  const status = useSelector(selectInvestmentStatus);
-  const error = useSelector(selectInvestmentError);
+  const plansStatus = useSelector((state) =>
+    selectInvestmentStatus(state, "fetchPlans"),
+  );
+  const investmentsStatus = useSelector((state) =>
+    selectInvestmentStatus(state, "fetchInvestments"),
+  );
+  const status =
+    plansStatus === "loading" || investmentsStatus === "loading"
+      ? "loading"
+      : plansStatus === "failed" || investmentsStatus === "failed"
+        ? "failed"
+        : "idle";
+
+  const plansError = useSelector((state) =>
+    selectInvestmentError(state, "fetchPlans"),
+  );
+  const investmentsError = useSelector((state) =>
+    selectInvestmentError(state, "fetchInvestments"),
+  );
+  const error = plansError || investmentsError;
   const stats = useSelector(selectInvestmentStatistics);
   const balance = useSelector(selectUserBalance);
 

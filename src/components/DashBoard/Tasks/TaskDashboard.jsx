@@ -19,6 +19,7 @@ import DashboardLayout from "../Layout/DashboardLayout";
 import Button from "../../common/Button";
 import Alert from "../../common/Alert";
 import Pagination from "../../common/Pagination";
+import CardLoader from "../../common/CardLoader";
 import {
   fetchAvailableTasks,
   fetchUserTasks,
@@ -32,6 +33,7 @@ import {
   selectTaskStatistics,
   selectTaskFilters,
   selectTaskStatus,
+  selectTaskStatusByKey,
   selectTaskError,
   selectTaskPagination,
   selectCompletableTasks,
@@ -47,6 +49,9 @@ const TaskDashboard = () => {
   const statistics = useSelector(selectTaskStatistics);
   const filters = useSelector(selectTaskFilters);
   const status = useSelector(selectTaskStatus);
+  const availableStatus = useSelector(selectTaskStatusByKey("available"));
+  const userStatus = useSelector(selectTaskStatusByKey("user"));
+  const statsStatus = useSelector(selectTaskStatusByKey("statistics"));
   const error = useSelector(selectTaskError);
   const pagination = useSelector(selectTaskPagination);
   const completableTasks = useSelector(selectCompletableTasks);
@@ -481,7 +486,7 @@ const TaskDashboard = () => {
         completionRate: statistics?.completionRate || 0,
         categoryBreakdown: statistics?.categoryBreakdown || {},
       }}
-      loading={status === "loading"}
+      loading={statsStatus === "loading"}
     />
   );
 
@@ -531,6 +536,14 @@ const TaskDashboard = () => {
             className="mb-6"
           />
         )}
+
+        {(availableStatus === "loading" ||
+          userStatus === "loading" ||
+          statsStatus === "loading") &&
+        allTasks.length === 0 &&
+        userTasks.length === 0 ? (
+          <CardLoader title="Tasks" height="h-96" />
+        ) : null}
 
         {/* Task stats summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6">

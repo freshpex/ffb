@@ -48,7 +48,7 @@ export const updateProfile = createAsyncThunk(
 // Async thunk for uploading profile image
 export const uploadProfileImage = createAsyncThunk(
   "user/uploadProfileImage",
-  async (formData, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
     try {
       const token = await getAuthToken();
 
@@ -56,11 +56,14 @@ export const uploadProfileImage = createAsyncThunk(
         return rejectWithValue("User not authenticated");
       }
 
-      const response = await apiClient.post("/users/profile/image", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const formData = payload instanceof FormData ? payload : new FormData();
+      if (!(payload instanceof FormData)) {
+        formData.append("image", payload);
+        }
+
+        // IMPORTANT: Don't set Content-Type manually. Axios will set the correct
+        // multipart boundary for FormData; setting it can cause "Boundary not found".
+      const response = await apiClient.post("/users/profile/image", formData);
       return response.data;
     } catch (error) {
       console.error("Error uploading profile image:", error);
@@ -192,12 +195,40 @@ export const fetchPaymentMethods = createAsyncThunk(
   },
 );
 
+export const updatePaymentMethod = createAsyncThunk(
+  "user/updatePaymentMethod",
+  async ({ paymentMethodId, updates }, { rejectWithValue }) => {
+    try {
+      const token = await getAuthToken();
+
+      if (!token) {
+        return rejectWithValue("User not authenticated");
+      }
+
+      const response = await apiClient.put(
+        `/users/payment-methods/${paymentMethodId}`,
+        updates,
+      );
+      return { ...response.data, paymentMethodId };
+    } catch (error) {
+      console.error("Error updating payment method:", error);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update payment method",
+      );
+    }
+  },
+);
+
 // Initial state
 const initialState = {
   profile: null,
   paymentMethods: [],
   status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
+  profileUploadStatus: "idle", // 'idle' | 'uploading' | 'succeeded' | 'failed'
+  profileUploadError: null,
+  profileUpdateStatus: "idle", // 'idle' | 'updating' | 'succeeded' | 'failed'
+  profileUpdateError: null,
 };
 
 // Create the user slice
@@ -224,7 +255,10 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.profile = action.payload.data;
+        // Avoid wiping an already-loaded profile due to a transient auth/init issue
+        if (action.payload?.data) {
+          state.profile = action.payload.data;
+        }
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.status = "failed";
@@ -233,32 +267,42 @@ const userSlice = createSlice({
 
       // Handle updateProfile
       .addCase(updateProfile.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
+        state.profileUpdateStatus = "updating";
+        state.profileUpdateError = null;
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.profile = action.payload.data;
+        state.profileUpdateStatus = "succeeded";
+
+        const updated = action.payload?.data;
+        if (updated) {
+          // Keep existing values (like profileImage) if backend omitted them
+          state.profile = {
+            ...(state.profile || {}),
+            ...updated,
+          };
+        }
       })
       .addCase(updateProfile.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
+        state.profileUpdateStatus = "failed";
+        state.profileUpdateError = action.payload;
       })
 
       // Handle uploadProfileImage
       .addCase(uploadProfileImage.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
+        state.profileUploadStatus = "uploading";
+        state.profileUploadError = null;
       })
       .addCase(uploadProfileImage.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        if (state.profile) {
-          state.profile.profileImage = action.payload.data.profileImage;
+        state.profileUploadStatus = "succeeded";
+        const payload = action.payload?.data || {};
+        const imageUrl = payload.imageUrl || payload.profileImage || payload.user?.profileImage;
+        if (state.profile && imageUrl) {
+          state.profile.profileImage = imageUrl;
         }
       })
       .addCase(uploadProfileImage.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload;
+        state.profileUploadStatus = "failed";
+        state.profileUploadError = action.payload;
       })
 
       // Handle fetchPaymentMethods
@@ -321,6 +365,25 @@ const userSlice = createSlice({
       .addCase(setDefaultPaymentMethod.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
+      })
+
+      // Handle updatePaymentMethod
+      .addCase(updatePaymentMethod.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updatePaymentMethod.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        const updated = action.payload.data;
+        const id = updated?.id || action.payload.paymentMethodId;
+        if (!id) return;
+        state.paymentMethods = state.paymentMethods.map((m) =>
+          m.id === id ? { ...m, ...updated } : m,
+        );
+      })
+      .addCase(updatePaymentMethod.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
       });
   },
 });
@@ -332,6 +395,15 @@ export const { resetUserState, clearUserError } = userSlice.actions;
 export const selectUserProfile = (state) => state.user.profile || null;
 
 export const selectUserLoading = (state) => state.user.status === "loading";
+
+export const selectUserProfileUpdating = (state) =>
+  state.user.profileUpdateStatus === "updating";
+
+export const selectUserProfileUploadStatus = (state) =>
+  state.user.profileUploadStatus;
+
+export const selectUserProfileUploadError = (state) =>
+  state.user.profileUploadError;
 
 export const selectUserError = (state) => state.user.error;
 
