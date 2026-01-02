@@ -7,7 +7,6 @@ export const fetchAvailableTasks = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.getTasks();
-      console.log("Available tasks fetched:", response);
       return response.data;
     } catch (error) {
       return rejectWithValue(

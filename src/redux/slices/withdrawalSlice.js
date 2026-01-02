@@ -55,8 +55,6 @@ export const submitWithdrawal = createAsyncThunk(
       } else if (withdrawalData.method === "paypal") {
         formattedData.paypalEmail = withdrawalData.paypalEmail;
       }
-
-      console.log("Sending withdrawal data:", formattedData);
       const response = await apiClient.post("/withdrawals", formattedData);
       return response.data;
     } catch (error) {
@@ -155,7 +153,8 @@ const withdrawalSlice = createSlice({
           state.error = payload.message || "Failed to process withdrawal";
           state.errorType = payload.type || null;
         } else {
-          state.error = payload || action.error?.message || "Failed to process withdrawal";
+          state.error =
+            payload || action.error?.message || "Failed to process withdrawal";
           state.errorType = null;
         }
       })
@@ -179,7 +178,10 @@ const withdrawalSlice = createSlice({
       })
       .addCase(fetchWithdrawalHistory.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error?.message || "Failed to fetch withdrawal history";
+        state.error =
+          action.payload ||
+          action.error?.message ||
+          "Failed to fetch withdrawal history";
         state.errorType = null;
       })
 
@@ -204,15 +206,22 @@ const withdrawalSlice = createSlice({
       })
       .addCase(cancelWithdrawal.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.payload || action.error?.message || "Failed to cancel withdrawal";
+        state.error =
+          action.payload ||
+          action.error?.message ||
+          "Failed to cancel withdrawal";
         state.errorType = null;
       });
   },
 });
 
 // Export actions
-export const { updateWithdrawalForm, resetWithdrawalForm, setCurrentPage, clearError } =
-  withdrawalSlice.actions;
+export const {
+  updateWithdrawalForm,
+  resetWithdrawalForm,
+  setCurrentPage,
+  clearError,
+} = withdrawalSlice.actions;
 
 // Selectors
 export const selectWithdrawalLimits = (state) => state.withdrawal.limits;

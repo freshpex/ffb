@@ -152,7 +152,7 @@ const SearchFilter = ({
         <button
           ref={filterButtonRef}
           onClick={() => setShowFilterMenu(!showFilterMenu)}
-          className={`px-4 py-2 rounded-md border flex items-center gap-2 transition-colors ${countActiveFilters() > 0 ? (darkMode ? "bg-blue-600 border-blue-500 text-white" : "bg-blue-600 border-blue-500 text-white") : (darkMode ? "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50")}`}
+          className={`px-4 py-2 rounded-md border flex items-center gap-2 transition-colors ${countActiveFilters() > 0 ? (darkMode ? "bg-blue-600 border-blue-500 text-white" : "bg-blue-600 border-blue-500 text-white") : darkMode ? "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
         >
           <FaFilter size={14} />
           <span>Filters</span>
@@ -164,26 +164,41 @@ const SearchFilter = ({
         </button>
 
         {/* Filter Dropdown Menu */}
-          {showFilterMenu && (
+        {showFilterMenu && (
           <div
             ref={filterMenuRef}
             className={`absolute right-0 mt-2 w-64 rounded-md shadow-lg z-10 overflow-hidden border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
           >
-            <div className={`p-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-              <h3 className={`${darkMode ? "text-white" : "text-gray-800"} font-medium`}>Filters</h3>
+            <div
+              className={`p-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+            >
+              <h3
+                className={`${darkMode ? "text-white" : "text-gray-800"} font-medium`}
+              >
+                Filters
+              </h3>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
               {/* Date Range Filters */}
               {showDateFilter && (
-                <div className={`p-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-                  <h4 className={`${darkMode ? "text-white" : "text-gray-800"} text-sm font-medium mb-2 flex items-center gap-2`}>
-                    <FaCalendarAlt size={14} className={darkMode ? "text-gray-400" : "text-gray-500"} />
+                <div
+                  className={`p-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+                >
+                  <h4
+                    className={`${darkMode ? "text-white" : "text-gray-800"} text-sm font-medium mb-2 flex items-center gap-2`}
+                  >
+                    <FaCalendarAlt
+                      size={14}
+                      className={darkMode ? "text-gray-400" : "text-gray-500"}
+                    />
                     Date Range
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <label className={`${darkMode ? "block text-gray-400" : "block text-gray-600"} text-xs mb-1`}>
+                      <label
+                        className={`${darkMode ? "block text-gray-400" : "block text-gray-600"} text-xs mb-1`}
+                      >
                         Start Date
                       </label>
                       <input
@@ -196,7 +211,9 @@ const SearchFilter = ({
                       />
                     </div>
                     <div>
-                      <label className={`${darkMode ? "block text-gray-400" : "block text-gray-600"} text-xs mb-1`}>
+                      <label
+                        className={`${darkMode ? "block text-gray-400" : "block text-gray-600"} text-xs mb-1`}
+                      >
                         End Date
                       </label>
                       <input
@@ -218,7 +235,9 @@ const SearchFilter = ({
                   key={category.name}
                   className={`p-3 border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
                 >
-                  <h4 className={`${darkMode ? "text-white" : "text-gray-800"} text-sm font-medium mb-2`}>
+                  <h4
+                    className={`${darkMode ? "text-white" : "text-gray-800"} text-sm font-medium mb-2`}
+                  >
                     {category.label}
                   </h4>
                   <div className="space-y-1">

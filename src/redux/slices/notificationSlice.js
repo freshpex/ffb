@@ -16,7 +16,6 @@ export const fetchNotifications = createAsyncThunk(
   async ({ limit = 10, page = 1 } = {}, { rejectWithValue, dispatch }) => {
     try {
       if (!checkAuthStatus()) {
-        console.log("Skipping notifications fetch - user not authenticated");
         return { data: [], unreadCount: 0 };
       }
 
@@ -27,7 +26,6 @@ export const fetchNotifications = createAsyncThunk(
     } catch (error) {
       // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
-        console.log("Not authenticated for notifications");
         return { data: [], unreadCount: 0 };
       }
 
@@ -45,7 +43,6 @@ export const markAsRead = createAsyncThunk(
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log("Skipping mark as read - user not authenticated");
         return { notificationId };
       }
 
@@ -73,7 +70,6 @@ export const markAllAsRead = createAsyncThunk(
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log("Skipping mark all as read - user not authenticated");
         return { success: true };
       }
 
@@ -100,7 +96,6 @@ export const deleteNotification = createAsyncThunk(
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log("Skipping delete notification - user not authenticated");
         return { notificationId };
       }
 

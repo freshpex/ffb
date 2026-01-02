@@ -71,7 +71,6 @@ const AdminSettings = () => {
   // When a category is selected, fetch its specific settings
   useEffect(() => {
     if (selectedCategory) {
-      console.log("Fetching settings for category:", selectedCategory);
       dispatch(fetchSettingsByCategory(selectedCategory));
     }
   }, [selectedCategory, dispatch]);
@@ -335,11 +334,7 @@ const AdminSettings = () => {
         );
     }
   };
-
-  console.log("Selected category:", selectedCategory);
-  console.log("Current category settings:", currentCategorySettings);
-  console.log("All settings:", allSettings);
-
+  
   return (
     <PageTransition>
       <div>

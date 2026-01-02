@@ -59,7 +59,6 @@ export const fetchAdminCards = createAsyncThunk(
   async (params, { rejectWithValue }) => {
     try {
       const response = await apiService.get("/admin/atm-cards/all", { params });
-      console.log("response Data", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -118,11 +117,6 @@ const adminCardSlice = createSlice({
         if (action.payload.data) {
           state.adminCards = action.payload.data.cards;
           state.adminPagination = action.payload.data.pagination;
-          console.log(
-            "Cards stored in Redux:",
-            state.adminCards.length,
-            state.adminCards,
-          );
         } else {
           state.adminPagination = null;
           console.warn("Invalid response format or no cards in response");

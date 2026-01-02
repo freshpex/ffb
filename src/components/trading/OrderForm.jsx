@@ -183,29 +183,29 @@ const OrderForm = ({
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     if (!isValid()) {
       toast.error("Please correct all errors before submitting");
       return;
     }
-  
+
     try {
       // Parse values to ensure they're valid numbers
       const parsedAmount = parseFloat(orderAmount);
       const parsedTotal = parseFloat(orderTotal);
-  
+
       // For market orders, use current market price; otherwise use entered price
       const parsedPrice =
         orderType === "market" ? currentPrice : parseFloat(orderPrice);
-  
+
       // Ensure all values are valid numbers
       if (isNaN(parsedAmount) || isNaN(parsedPrice) || isNaN(parsedTotal)) {
         toast.error("Invalid order values. Please check your inputs.");
         return;
       }
-  
+
       setSubmitting(true);
-  
+
       // Prepare the order data with properly formatted numbers
       const orderData = {
         symbol: selectedSymbol,
@@ -215,7 +215,7 @@ const OrderForm = ({
         total: parsedTotal.toString(),
         price: parsedPrice.toString(),
       };
-  
+
       if (orderType === "stop") {
         const parsedStopPrice = parseFloat(stopPrice);
         if (isNaN(parsedStopPrice)) {
@@ -224,31 +224,30 @@ const OrderForm = ({
         }
         orderData.stopPrice = parsedStopPrice.toString();
       }
-  
+
       const result = await dispatch(placeOrder(orderData)).unwrap();
-  
+
       if (result.success) {
         const executedPrice =
-          result?.data?.price !== undefined && !isNaN(parseFloat(result.data.price))
+          result?.data?.price !== undefined &&
+          !isNaN(parseFloat(result.data.price))
             ? parseFloat(result.data.price)
             : parsedPrice;
 
         const successMsg = `${orderSide === "buy" ? "Buy" : "Sell"} executed: ${parsedAmount} ${baseAsset} @ ${executedPrice.toFixed(
-          2
-          )} ${quoteAsset}`;
+          2,
+        )} ${quoteAsset}`;
 
         toast.success(successMsg);
-        dispatch(
-          setAlertMessage({ type: "success", message: successMsg }),
-        );
-  
+        dispatch(setAlertMessage({ type: "success", message: successMsg }));
+
         dispatch(
           updateOrderForm({
             price: executedPrice.toString(),
             total: (parsedAmount * executedPrice).toFixed(2),
-          })
+          }),
         );
-  
+
         // Reset the form
         dispatch(resetOrderForm());
         // Refresh open orders

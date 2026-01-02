@@ -8,7 +8,6 @@ const LiveOrderbook = ({ symbol }) => {
   const [sortedAsks, setSortedAsks] = useState([]);
   const [sortedBids, setSortedBids] = useState([]);
   const [maxTotal, setMaxTotal] = useState(0);
-  console.log("Order book", orderBook);
 
   useEffect(() => {
     if (orderBook && orderBook.asks && orderBook.bids) {

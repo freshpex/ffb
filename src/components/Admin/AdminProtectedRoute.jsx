@@ -34,7 +34,6 @@ const AdminProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    console.log("Admin not authenticated, redirecting to login");
     return <Navigate to="/admin/login" replace />;
   }
 

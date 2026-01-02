@@ -130,7 +130,10 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault, onUpdate }) => {
     }
 
     if (isBank) {
-      if (typeof editData.accountName === "string" && editData.accountName.trim()) {
+      if (
+        typeof editData.accountName === "string" &&
+        editData.accountName.trim()
+      ) {
         updates.accountName = editData.accountName.trim();
       }
       if (typeof editData.bankName === "string" && editData.bankName.trim()) {
@@ -145,7 +148,10 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault, onUpdate }) => {
     }
 
     if (isCrypto) {
-      if (typeof editData.walletType === "string" && editData.walletType.trim()) {
+      if (
+        typeof editData.walletType === "string" &&
+        editData.walletType.trim()
+      ) {
         updates.walletType = editData.walletType.trim();
       }
       if (
@@ -299,7 +305,9 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault, onUpdate }) => {
         <div className="mt-4 border-t border-gray-700 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Nickname</label>
+              <label className="block text-sm text-gray-400 mb-1">
+                Nickname
+              </label>
               <input
                 name="nickname"
                 value={editData.nickname ?? ""}
@@ -368,7 +376,9 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault, onUpdate }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Bank name</label>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Bank name
+                  </label>
                   <input
                     name="bankName"
                     value={editData.bankName ?? ""}
@@ -422,7 +432,9 @@ const PaymentMethodCard = ({ method, onRemove, onSetDefault, onUpdate }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Network</label>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Network
+                  </label>
                   <input
                     name="network"
                     value={editData.network ?? ""}

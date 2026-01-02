@@ -82,8 +82,6 @@ const UserEdit = () => {
   // Populate form when user data is loaded
   useEffect(() => {
     if (user) {
-      console.log("Loading user data into form:", user);
-
       setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",

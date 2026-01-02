@@ -79,7 +79,8 @@ const StatusBadge = ({ status, type = "default", size = "medium" }) => {
 
     // Return default colors if status isn't explicitly defined
     return (
-      colorSchemes[effectiveType][safeStatus] || colorSchemes[effectiveType].pending
+      colorSchemes[effectiveType][safeStatus] ||
+      colorSchemes[effectiveType].pending
     );
   };
 

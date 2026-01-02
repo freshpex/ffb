@@ -39,9 +39,6 @@ const AdminUsers = () => {
 
   useEffect(() => {
     document.title = "User Management | Admin Dashboard";
-    if (users.length > 0) {
-      console.log("User object structure:", users[0]);
-    }
     loadUsers();
   }, [page, limit]);
 

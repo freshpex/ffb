@@ -47,7 +47,6 @@ import VisitorDetails from "./VisitorDetails";
 const VisitorAnalytics = () => {
   const dispatch = useDispatch();
   const visitorData = useSelector(selectVisitorAnalytics);
-  console.log("Visitor Data", visitorData);
   const status = useSelector((state) =>
     selectVisitorAnalyticsStatus(state, "visitors"),
   );
@@ -81,11 +80,6 @@ const VisitorAnalytics = () => {
       };
     }
 
-    console.log("Dispatch query Data", queryParams);
-    console.log(
-      "Dispatch data Data",
-      dispatch(fetchVisitorAnalytics(queryParams)),
-    );
     dispatch(fetchVisitorAnalytics(queryParams));
   };
 

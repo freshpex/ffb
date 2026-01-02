@@ -267,7 +267,8 @@ const AdminKycDetail = () => {
                 Submitted Documents
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(!kycRequest.documents || kycRequest.documents.length === 0) && (
+                {(!kycRequest.documents ||
+                  kycRequest.documents.length === 0) && (
                   <div
                     className={`col-span-full text-sm ${
                       darkMode ? "text-gray-400" : "text-gray-600"

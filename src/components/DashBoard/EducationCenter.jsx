@@ -30,6 +30,7 @@ import {
   selectCourses,
   selectBookmarks,
   selectEducationStatus,
+  selectEducationFilters,
 } from "../../redux/slices/educationSlice";
 
 const EducationCenter = () => {
@@ -41,10 +42,7 @@ const EducationCenter = () => {
   const courses = useSelector(selectCourses);
   const bookmarks = useSelector(selectBookmarks);
   const status = useSelector(selectEducationStatus);
-
-  console.log("Education resources:", resources);
-  console.log("Education status:", status);
-  console.log("Resources loaded:", resources.length);
+  const filters = useSelector(selectEducationFilters);
 
   // Local state
   const [activeTab, setActiveTab] = useState("all"); // "all" | "courses" | "bookmarks"
@@ -52,19 +50,24 @@ const EducationCenter = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedResourceId, setSelectedResourceId] = useState(null);
 
-  // Load resources on component mount
-  useEffect(() => {
-    dispatch(fetchResources());
-  }, [dispatch]);
-
   // Handle search input
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      dispatch(setFilters({ search: searchQuery }));
+      const normalized = searchQuery.trim();
+      dispatch(setFilters({ search: normalized.length ? normalized : null }));
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, dispatch]);
+
+  // Fetch resources whenever filters change (category, type, search, etc.)
+  useEffect(() => {
+    dispatch(fetchResources(filters));
+  }, [dispatch, filters]);
+
+  const handleRefresh = () => {
+    dispatch(fetchResources(filters));
+  };
 
   const handleSetFilter = (type, value) => {
     dispatch(setFilters({ [type]: value }));
@@ -235,7 +238,11 @@ const EducationCenter = () => {
               <div className="h-40 bg-gray-700 relative overflow-hidden">
                 {resource.image ? (
                   <img
-                    src={`https://source.unsplash.com/800x600/?${resource.image.split(".")[0]}`}
+                    src={
+                      String(resource.image).startsWith("http")
+                        ? resource.image
+                        : `https://source.unsplash.com/800x600/?${String(resource.image).split(".")[0]}`
+                    }
                     alt={resource.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
@@ -459,6 +466,12 @@ const EducationCenter = () => {
               All Resources
             </button>
             <button
+              onClick={handleRefresh}
+              className="ml-3 px-4 py-2 rounded text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600"
+            >
+              Refresh
+            </button>
+            <button
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                 activeTab === "courses"
                   ? "bg-primary-500 text-white"
@@ -515,7 +528,7 @@ const EducationCenter = () => {
               </Button>
 
               <Button
-                variant={activeTab === "all" ? "ghost" : "outline"}
+                variant={!filters.type ? "ghost" : "outline"}
                 size="xs"
                 onClick={() => handleSetFilter("type", null)}
                 className="flex items-center"
@@ -524,7 +537,7 @@ const EducationCenter = () => {
               </Button>
 
               <Button
-                variant={activeTab === "all" && "article" ? "ghost" : "outline"}
+                variant={filters.type === "article" ? "ghost" : "outline"}
                 size="xs"
                 onClick={() => handleSetFilter("type", "article")}
                 className="flex items-center"
@@ -533,7 +546,7 @@ const EducationCenter = () => {
               </Button>
 
               <Button
-                variant={activeTab === "all" && "video" ? "ghost" : "outline"}
+                variant={filters.type === "video" ? "ghost" : "outline"}
                 size="xs"
                 onClick={() => handleSetFilter("type", "video")}
                 className="flex items-center"
@@ -542,7 +555,7 @@ const EducationCenter = () => {
               </Button>
 
               <Button
-                variant={activeTab === "all" && "webinar" ? "ghost" : "outline"}
+                variant={filters.type === "webinar" ? "ghost" : "outline"}
                 size="xs"
                 onClick={() => handleSetFilter("type", "webinar")}
                 className="flex items-center"
@@ -578,6 +591,7 @@ const EducationCenter = () => {
                       </label>
                       <select
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white"
+                        value={filters.category || "all"}
                         onChange={(e) =>
                           handleSetFilter(
                             "category",
@@ -589,9 +603,11 @@ const EducationCenter = () => {
                         <option value="beginner">Beginner</option>
                         <option value="intermediate">Intermediate</option>
                         <option value="advanced">Advanced</option>
-                        <option value="trading">Trading</option>
-                        <option value="investment">Investment</option>
-                        <option value="crypto">Cryptocurrency</option>
+                        <option value="market-analysis">Market Analysis</option>
+                        <option value="trading-strategies">
+                          Trading Strategies
+                        </option>
+                        <option value="risk-management">Risk Management</option>
                       </select>
                     </div>
 

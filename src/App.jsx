@@ -43,6 +43,8 @@ const ReferralProgram = lazy(
 const EducationCenter = lazy(
   () => import("./components/DashBoard/EducationCenter"),
 );
+const ModuleList = lazy(() => import("./pages/Education/ModuleList"));
+const ModuleDetail = lazy(() => import("./pages/Education/ModuleDetail"));
 const ATMCardsPage = lazy(
   () => import("./components/DashBoard/ATMCards/ATMCardsPage"),
 );
@@ -87,6 +89,9 @@ const AdminNotifications = lazy(
   () => import("./components/Admin/AdminNotifications"),
 );
 const AdminProfile = lazy(() => import("./components/Admin/AdminProfile"));
+const AdminEducationImporter = lazy(
+  () => import("./components/Admin/AdminEducationImporter"),
+);
 const AnalyticsOverview = lazy(
   () => import("./components/Admin/analytics/AnalyticsOverview"),
 );
@@ -218,7 +223,15 @@ function App() {
             path="/login/education"
             element={
               <ProtectedRoute>
-                <EducationCenter />
+                <ModuleList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/education/:id"
+            element={
+              <ProtectedRoute>
+                <ModuleDetail />
               </ProtectedRoute>
             }
           />
@@ -314,6 +327,7 @@ function App() {
             <Route path="settings" element={<AdminSettings />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="profile" element={<AdminProfile />} />
+            <Route path="education" element={<AdminEducationImporter />} />
           </Route>
 
           {/* Error route */}

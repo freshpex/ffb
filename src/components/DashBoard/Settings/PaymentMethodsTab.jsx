@@ -100,7 +100,9 @@ const PaymentMethodsTab = () => {
         isDefault: cardFormData.isDefault,
       };
 
-      const result = await dispatch(addPaymentMethod(formattedCardData)).unwrap();
+      const result = await dispatch(
+        addPaymentMethod(formattedCardData),
+      ).unwrap();
 
       if (result.success) {
         setCardFormData({
@@ -136,7 +138,9 @@ const PaymentMethodsTab = () => {
         isDefault: bankFormData.isDefault,
       };
 
-      const result = await dispatch(addPaymentMethod(formattedBankData)).unwrap();
+      const result = await dispatch(
+        addPaymentMethod(formattedBankData),
+      ).unwrap();
 
       if (result.success) {
         setBankFormData({
@@ -161,13 +165,16 @@ const PaymentMethodsTab = () => {
     try {
       const formattedCryptoData = {
         type: "crypto_wallet",
-        nickname: cryptoFormData.nickname || `${cryptoFormData.walletType} Wallet`,
+        nickname:
+          cryptoFormData.nickname || `${cryptoFormData.walletType} Wallet`,
         cryptocurrency: cryptoFormData.walletType,
         walletAddress: cryptoFormData.walletAddress,
         isDefault: cryptoFormData.isDefault,
       };
 
-      const result = await dispatch(addPaymentMethod(formattedCryptoData)).unwrap();
+      const result = await dispatch(
+        addPaymentMethod(formattedCryptoData),
+      ).unwrap();
 
       if (result.success) {
         setCryptoFormData({

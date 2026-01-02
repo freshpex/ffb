@@ -9,7 +9,6 @@ export const fetchVisitorAnalytics = createAsyncThunk(
   "analytics/fetchVisitorAnalytics",
   async (params = {}, { rejectWithValue }) => {
     try {
-      console.log("About to make the request");
       const { period, startDate, endDate } = params;
 
       let queryParams = "";
@@ -33,7 +32,6 @@ export const fetchVisitorAnalytics = createAsyncThunk(
           },
         },
       );
-      console.log("fetchVisitorsAnalytics", response);
 
       return response.data.data;
     } catch (error) {
@@ -71,7 +69,6 @@ export const fetchAllVisitors = createAsyncThunk(
         },
       );
 
-      console.log("fetchAllVisitors", response);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -98,7 +95,6 @@ export const fetchVisitorDetails = createAsyncThunk(
         },
       });
 
-      console.log("fetchVisitorDetails", response);
       return response.data.visitor;
     } catch (error) {
       return rejectWithValue(

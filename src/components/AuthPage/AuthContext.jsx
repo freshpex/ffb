@@ -389,16 +389,6 @@ export function AuthContextProvider({ children }) {
     return userData?.role === "admin" || userData?.role === "superadmin";
   };
 
-  // Debug auth state
-  // useEffect(() => {
-  //   console.log("Auth state updated:", {
-  //     userExists: !!user,
-  //     userDataExists: !!userData,
-  //     hasToken: !!token,
-  //     isLoading: loading
-  //   });
-  // }, [user, userData, token, loading]);
-
   const value = {
     user,
     userData,

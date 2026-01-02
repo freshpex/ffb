@@ -106,7 +106,9 @@ const VisitorDetails = () => {
   const Pagination = () => (
     <div className="flex flex-wrap justify-between items-center my-4">
       <div className="mb-4 md:mb-0">
-        <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+        <p
+          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+        >
           Showing {visitors.length} of {pagination.total} visitors
         </p>
         <select
@@ -145,7 +147,7 @@ const VisitorDetails = () => {
 
   // Mobile view - card layout
   const VisitorCards = () => (
-        <div className="space-y-4">
+    <div className="space-y-4">
       {visitors.map((visitor) => (
         <div
           key={visitor._id}
@@ -155,7 +157,9 @@ const VisitorDetails = () => {
             <div className="grid grid-cols-4 gap-3">
               <div className="col-span-1">
                 <div className="flex flex-col items-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center overflow-hidden ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}
+                  >
                     {visitor.locationInfo?.countryCode ? (
                       <img
                         src={`https://flagcdn.com/48x36/${visitor.locationInfo.countryCode.toLowerCase()}.png`}
@@ -174,21 +178,31 @@ const VisitorDetails = () => {
                 </div>
               </div>
               <div className="col-span-3">
-                <p className={`font-bold ${darkMode ? "text-white" : "text-gray-900"} truncate`}>
+                <p
+                  className={`font-bold ${darkMode ? "text-white" : "text-gray-900"} truncate`}
+                >
                   ID: {visitor.visitorId.substring(0, 8)}...
                 </p>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}>
+                <p
+                  className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}
+                >
                   {getDeviceIcon(visitor.browserInfo?.deviceType)}{" "}
                   {visitor.browserInfo?.browser} on {visitor.browserInfo?.os}
                 </p>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}>
+                <p
+                  className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}
+                >
                   📍 {visitor.locationInfo?.city || "Unknown"},{" "}
                   {visitor.locationInfo?.country || "Unknown"}
                 </p>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}>
+                <p
+                  className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}
+                >
                   Last visit: {formatDate(visitor.lastVisit)}
                 </p>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}>
+                <p
+                  className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}
+                >
                   Visits: {visitor.totalVisits}
                 </p>
                 <button
@@ -301,10 +315,17 @@ const VisitorDetails = () => {
             </th>
           </tr>
         </thead>
-        <tbody className={`${darkMode ? "bg-gray-800 divide-y divide-gray-700" : "bg-white divide-y divide-gray-200"}`}>
+        <tbody
+          className={`${darkMode ? "bg-gray-800 divide-y divide-gray-700" : "bg-white divide-y divide-gray-200"}`}
+        >
           {visitors.map((visitor) => (
-            <tr key={visitor._id} className={darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"}>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>
+            <tr
+              key={visitor._id}
+              className={darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"}
+            >
+              <td
+                className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-white" : "text-gray-900"}`}
+              >
                 <span title={visitor.visitorId}>
                   {visitor.visitorId.substring(0, 10)}...
                 </span>
@@ -334,10 +355,14 @@ const VisitorDetails = () => {
                   </span>
                 </div>
               </td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <td
+                className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
                 {formatDate(visitor.lastVisit)}
               </td>
-              <td className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <td
+                className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
                 {visitor.totalVisits}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -368,7 +393,9 @@ const VisitorDetails = () => {
     <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <h1 className={`text-2xl font-bold mb-4 sm:mb-0 ${darkMode ? "text-white" : "text-gray-900"}`}>
+          <h1
+            className={`text-2xl font-bold mb-4 sm:mb-0 ${darkMode ? "text-white" : "text-gray-900"}`}
+          >
             Visitor Analytics
           </h1>
           <button
@@ -456,10 +483,14 @@ const VisitorDetails = () => {
             </svg>
           </div>
         ) : visitors.length > 0 ? (
-          <div className={`${darkMode ? "bg-gray-800 shadow-none rounded-lg overflow-hidden border border-gray-700" : "bg-white shadow-sm rounded-lg overflow-hidden"}`}>
+          <div
+            className={`${darkMode ? "bg-gray-800 shadow-none rounded-lg overflow-hidden border border-gray-700" : "bg-white shadow-sm rounded-lg overflow-hidden"}`}
+          >
             <div className="hidden md:block">{<VisitorTable />}</div>
             <div className="md:hidden">{<VisitorCards />}</div>
-            <div className={`px-4 py-3 ${darkMode ? "bg-gray-800 border-t border-gray-700" : "bg-gray-50 border-t border-gray-200"}`}>
+            <div
+              className={`px-4 py-3 ${darkMode ? "bg-gray-800 border-t border-gray-700" : "bg-gray-50 border-t border-gray-200"}`}
+            >
               <Pagination />
             </div>
           </div>

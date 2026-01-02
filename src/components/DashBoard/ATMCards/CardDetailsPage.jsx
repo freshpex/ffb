@@ -68,7 +68,6 @@ const CardDetailsPage = () => {
   const navigate = useNavigate();
 
   const card = useSelector((state) => selectCardById(state, cardId));
-  console.log("Card", card);
   const transactions = useSelector((state) =>
     selectCardTransactions(state, cardId),
   );

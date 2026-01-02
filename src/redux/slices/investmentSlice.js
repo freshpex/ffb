@@ -66,8 +66,6 @@ export const fetchInvestmentPlans = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiClient.get("/investments/plans");
-      console.log("Investment plans response:", response.data);
-      console.log("Investment plans data:", response.data.data);
       return response.data.data || [];
     } catch (error) {
       console.error("Error fetching investment plans:", error);
@@ -83,7 +81,6 @@ export const fetchUserInvestments = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await apiClient.get("/investments/user");
-      console.log("User investments response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching user investments:", error);

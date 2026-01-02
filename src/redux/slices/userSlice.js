@@ -59,10 +59,10 @@ export const uploadProfileImage = createAsyncThunk(
       const formData = payload instanceof FormData ? payload : new FormData();
       if (!(payload instanceof FormData)) {
         formData.append("image", payload);
-        }
+      }
 
-        // IMPORTANT: Don't set Content-Type manually. Axios will set the correct
-        // multipart boundary for FormData; setting it can cause "Boundary not found".
+      // IMPORTANT: Don't set Content-Type manually. Axios will set the correct
+      // multipart boundary for FormData; setting it can cause "Boundary not found".
       const response = await apiClient.post("/users/profile/image", formData);
       return response.data;
     } catch (error) {
@@ -81,7 +81,6 @@ export const fetchUserProfile = createAsyncThunk(
     try {
       // Skip request entirely if we know we're not authenticated
       if (!checkAuthStatus()) {
-        console.log("Skipping profile fetch - user not authenticated");
         return { data: null };
       }
 
@@ -90,7 +89,6 @@ export const fetchUserProfile = createAsyncThunk(
     } catch (error) {
       // If this is an auth error, don't show error to user
       if (error.isAuthError || error.response?.status === 401) {
-        console.log("Not authenticated for profile fetch");
         return { data: null };
       }
 
@@ -180,7 +178,6 @@ export const fetchPaymentMethods = createAsyncThunk(
       const token = await getAuthToken();
 
       if (!token) {
-        console.log("User not authenticated, skipping payment methods fetch");
         return { data: [] };
       }
 
@@ -295,7 +292,10 @@ const userSlice = createSlice({
       .addCase(uploadProfileImage.fulfilled, (state, action) => {
         state.profileUploadStatus = "succeeded";
         const payload = action.payload?.data || {};
-        const imageUrl = payload.imageUrl || payload.profileImage || payload.user?.profileImage;
+        const imageUrl =
+          payload.imageUrl ||
+          payload.profileImage ||
+          payload.user?.profileImage;
         if (state.profile && imageUrl) {
           state.profile.profileImage = imageUrl;
         }

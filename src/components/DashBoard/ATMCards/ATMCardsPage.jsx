@@ -27,7 +27,6 @@ const ATMCardsPage = () => {
   const dispatch = useDispatch();
   const cards = useSelector(selectCards);
   const requests = useSelector(selectCardRequests);
-  console.log("Requests", requests);
   const status = useSelector(selectATMCardsStatus);
   const error = useSelector(selectATMCardsError);
 

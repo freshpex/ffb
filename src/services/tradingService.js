@@ -19,7 +19,6 @@ const tradingService = {
   getTradingPairs: async () => {
     try {
       const response = await api.get("/trading/market/pairs");
-      console.log("trading pairs", response);
       return response.data.data;
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -37,7 +36,6 @@ const tradingService = {
         const response = await api.get(
           `/trading/market/price?symbol=${symbol}`,
         );
-        console.log("Market data", response);
         return response.data.data;
       } else {
         const response = await api.get("/trading/market/prices");
@@ -201,7 +199,6 @@ const tradingService = {
       const response = await api.get(
         `/trading/market/candlesticks?${params.toString()}`,
       );
-      console.log("Chart Data", response);
       return response.data.data.candlesticks;
     } catch (error) {
       return handleApiError(
@@ -227,7 +224,6 @@ const tradingService = {
   getTicker: async (symbol) => {
     try {
       const response = await api.get(`/trading/market/price?symbol=${symbol}`);
-      console.log("Ticker", response);
       return response.data.data;
     } catch (error) {
       return handleApiError(error, {

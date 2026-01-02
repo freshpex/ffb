@@ -32,8 +32,6 @@ export const fetchDashboardData = createAsyncThunk(
       });
 
       const data = await handleApiError(response);
-
-      console.log("Dashboard Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch dashboard data");
@@ -241,7 +239,6 @@ export const createPriceAlert = createAsyncThunk(
 
       const data = await handleApiError(response);
 
-      console.log("Create Alerts Response:", data);
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to create price alert");

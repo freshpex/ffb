@@ -17,7 +17,6 @@ import Alert from "../../common/Alert";
 const ProfileTab = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector(selectUserProfile);
-  console.log("ProfileTab", userProfile);
   const isLoading = useSelector(selectUserLoading);
   const isSaving = useSelector(selectUserProfileUpdating);
   const error = useSelector(selectUserError);

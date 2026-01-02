@@ -31,8 +31,6 @@ const AssetCards = ({
   const navigate = useNavigate();
   const { positions = [], balances = {} } = useSelector(selectPortfolio);
   const [isLoading, setIsLoading] = useState(true);
-  console.log("Positions", positions);
-  console.log("Balances", balances);
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
@@ -153,7 +151,6 @@ const AssetCards = ({
         });
       } catch (err) {
         console.error("Error processing position:", err, position);
-        console.log("Error", error);
         // Skip this position if it has invalid data
       }
     }

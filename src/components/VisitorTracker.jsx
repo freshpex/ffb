@@ -3,7 +3,6 @@ import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 import axios from "axios";
 
 const API = import.meta.env.VITE_API_URL;
-console.log("import.meta.env.VITE_API_URL", API);
 
 const VisitorTracker = () => {
   useEffect(() => {

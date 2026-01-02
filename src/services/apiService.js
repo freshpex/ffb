@@ -59,7 +59,6 @@ api.interceptors.request.use(
         return config;
       }
 
-      console.log(`No valid auth token available for request to ${config.url}`);
       return Promise.reject({
         response: {
           status: 401,
@@ -166,6 +165,16 @@ export const adminService = {
     api.post(`/admin/kyc/${userId}/approve`, { docType }),
   rejectKYC: (userId, docType, reason) =>
     api.post(`/admin/kyc/${userId}/reject`, { docType, reason }),
+  syncYoutubePlaylist: (data) =>
+    api.post(`/admin/education/sync-youtube`, data),
+  listImports: (params) => api.get(`/admin/education/imports`, { params }),
+  getImportById: (id) => api.get(`/admin/education/imports/${id}`),
+};
+export const educationService = {
+  getResources: (params) => api.get(`/education`, { params }),
+  getFeatured: () => api.get(`/education/featured`),
+  getCategories: () => api.get(`/education/categories`),
+  getById: (id) => api.get(`/education/${id}`),
 };
 
 // Add proxy functions for external APIs

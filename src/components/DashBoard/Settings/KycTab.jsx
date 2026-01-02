@@ -63,10 +63,7 @@ const KycTab = () => {
       state: prev.state || profile.address?.state || "",
       postalCode: prev.postalCode || profile.address?.postalCode || "",
       country:
-        prev.country ||
-        profile.address?.country ||
-        profile.country ||
-        "",
+        prev.country || profile.address?.country || profile.country || "",
     }));
   }, [dispatch, profile]);
 
@@ -495,7 +492,8 @@ const KycTab = () => {
               Proof of Address *
             </label>
             <p className="text-xs text-gray-400 mb-2">
-              Upload a utility bill / bank statement / government letter (recent)
+              Upload a utility bill / bank statement / government letter
+              (recent)
             </p>
             <div className="relative">
               <input
