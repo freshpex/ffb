@@ -20,6 +20,7 @@ import {
   FaQuestionCircle,
   FaTachometerAlt,
   FaTasks,
+  FaStore,
 } from "react-icons/fa";
 import { toggleSidebar } from "../../../redux/slices/layoutSlice";
 import {
@@ -43,7 +44,6 @@ const navigationGroups = [
         label: "Dashboard",
         icon: <FaTachometerAlt />,
         path: "/login/dashboardpage",
-        badge: "New",
       },
       {
         id: "invest",
@@ -98,9 +98,16 @@ const navigationGroups = [
     ],
   },
   {
-    id: "other",
-    label: "Other",
-    items: [
+      id: "other",
+      label: "Other",
+      items: [
+      {
+        id: "shop",
+        label: "Shop",
+        icon: <FaStore />,
+        path: "/login/shop",
+        badge: "New",
+      },
       {
         id: "education",
         label: "Education",

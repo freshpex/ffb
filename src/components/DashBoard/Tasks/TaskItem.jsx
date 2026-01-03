@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import Button from "../../common/Button";
 
-const TaskItem = ({ task, onStart, onClaim }) => {
+const TaskItem = ({ task, onStart, onClaim, actionLoading }) => {
   const [expanded, setExpanded] = useState(false);
 
   // Check if the task is in progress
@@ -115,6 +115,7 @@ const TaskItem = ({ task, onStart, onClaim }) => {
         <Button
           variant="success"
           onClick={handleActionClick}
+          isLoading={actionLoading}
           className="flex items-center"
         >
           <FaCoins className="mr-2" /> Claim Reward
@@ -142,6 +143,7 @@ const TaskItem = ({ task, onStart, onClaim }) => {
       <Button
         variant="primary"
         onClick={handleActionClick}
+        isLoading={actionLoading}
         className="flex items-center"
       >
         <FaPlay className="mr-2" /> Start Task
@@ -276,6 +278,7 @@ TaskItem.propTypes = {
   task: PropTypes.object.isRequired,
   onStart: PropTypes.func.isRequired,
   onClaim: PropTypes.func.isRequired,
+  actionLoading: PropTypes.bool,
 };
 
 export default TaskItem;

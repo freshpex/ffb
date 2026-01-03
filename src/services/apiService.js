@@ -177,6 +177,36 @@ export const educationService = {
   getById: (id) => api.get(`/education/${id}`),
 };
 
+// Shop endpoints
+export const shopService = {
+  // Products
+  searchProducts: (params) => api.get("/products/search", { params }),
+  getCachedProducts: (params) => api.get("/products/cached", { params }),
+  getProductById: (id) => api.get(`/products/${id}`),
+  getCategories: () => api.get("/products/categories"),
+  getTrending: (limit = 10) => api.get(`/products/trending?limit=${limit}`),
+
+  // Cart
+  getCart: () => api.get("/cart"),
+  addToCart: (data) => api.post("/cart/add", data),
+  updateCartItem: (data) => api.put("/cart/update", data),
+  removeFromCart: (productId) => api.delete(`/cart/remove/${productId}`),
+  clearCart: () => api.delete("/cart/clear"),
+
+  // Orders
+  createOrder: (data) => api.post("/shop/orders", data),
+  getOrders: (params) => api.get("/shop/orders", { params }),
+  getOrderById: (orderId) => api.get(`/shop/orders/${orderId}`),
+  cancelOrder: (orderId, reason) =>
+    api.post(`/shop/orders/${orderId}/cancel`, { reason }),
+  getOrderStats: () => api.get("/shop/orders/stats"),
+
+  // Admin
+  getAllOrders: (params) => api.get("/shop/orders/admin/all", { params }),
+  updateOrderStatus: (orderId, data) =>
+    api.put(`/shop/orders/admin/${orderId}`, data),
+};
+
 // Add proxy functions for external APIs
 export const proxyService = {
   async getCoinGeckoData(endpoint, params = {}) {

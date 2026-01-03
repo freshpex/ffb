@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthContextProvider } from "./components/AuthPage/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
 import ProtectedRoute from "./components/AuthPage/ProtectedRoute";
 import VisitorTracker from "./components/VisitorTracker";
 import Loader from "./components/Loader";
@@ -45,6 +46,13 @@ const EducationCenter = lazy(
 );
 const ModuleList = lazy(() => import("./pages/Education/ModuleList"));
 const ModuleDetail = lazy(() => import("./pages/Education/ModuleDetail"));
+const ShopList = lazy(() => import("./pages/Shop/ShopList"));
+const ShopProductDetail = lazy(() => import("./pages/Shop/ProductDetail"));
+const CartPage = lazy(() => import("./pages/Shop/CartPage"));
+const Checkout = lazy(() => import("./pages/Shop/Checkout"));
+const ShopOrders = lazy(() => import("./pages/Shop/Orders"));
+const ShopOrderDetail = lazy(() => import("./pages/Shop/OrderDetail"));
+const CartDrawer = lazy(() => import("./components/Shop/CartDrawer"));
 const ATMCardsPage = lazy(
   () => import("./components/DashBoard/ATMCards/ATMCardsPage"),
 );
@@ -125,6 +133,7 @@ const AdminProtectedRoute = lazy(
 function App() {
   return (
     <AuthContextProvider>
+      <ToastProvider>
       <Suspense fallback={<Loader />}>
         <Routes>
           {/* Public routes */}
@@ -236,6 +245,54 @@ function App() {
             }
           />
           <Route
+            path="/login/shop"
+            element={
+              <ProtectedRoute>
+                <ShopList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/shop/:id"
+            element={
+              <ProtectedRoute>
+                <ShopProductDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/shop/orders"
+            element={
+              <ProtectedRoute>
+                <ShopOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login/shop/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <ShopOrderDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/login/cards"
             element={
               <ProtectedRoute>
@@ -334,7 +391,9 @@ function App() {
           <Route path="*" element={<ErrorPage />} />
         </Routes>
         <VisitorTracker />
+        <CartDrawer />
       </Suspense>
+      </ToastProvider>
     </AuthContextProvider>
   );
 }
