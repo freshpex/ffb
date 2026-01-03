@@ -13,6 +13,7 @@ import educationSlice from "./slices/educationSlice";
 import layoutSlice from "./slices/layoutSlice";
 import atmCardsSlice from "./slices/atmCardsSlice";
 import taskSlice from "./slices/taskSlice";
+import shopSlice from "./slices/shopSlice";
 
 // Admin slices
 import adminAuthSlice from "./slices/adminAuthSlice";
@@ -40,6 +41,7 @@ const store = configureStore({
     referral: referralSlice,
     trading: tradingSlice,
     education: educationSlice,
+    shop: shopSlice,
     layout: layoutSlice,
     atmCards: atmCardsSlice,
     tasks: taskSlice,

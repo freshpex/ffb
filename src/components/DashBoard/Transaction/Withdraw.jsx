@@ -19,6 +19,7 @@ import {
 import DashboardLayout from "../Layout/DashboardLayout";
 import FormInput from "../../common/FormInput";
 import Button from "../../common/Button";
+import { useToast } from "../../../context/ToastContext";
 import Alert from "../../common/Alert";
 import { selectUserBalance } from "../../../redux/slices/userSlice";
 import {
@@ -41,6 +42,7 @@ const Withdraw = () => {
   const withdrawalError = useSelector(selectWithdrawalError);
   const pendingWithdrawal = useSelector(selectPendingWithdrawal);
   const [isSubmitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   // Local state
   const [errors, setErrors] = useState({});
@@ -68,7 +70,7 @@ const Withdraw = () => {
       name: "Bank Transfer",
       description: "Withdraw directly to your bank account",
       processingTime: "1-3 business days",
-      minAmount: 100,
+      minAmount: 150,
       maxAmount: 50000,
       fee: "1%",
       status: "active",
@@ -78,8 +80,8 @@ const Withdraw = () => {
       name: "Cryptocurrency",
       description: "Withdraw via Bitcoin, Ethereum, or USDT",
       processingTime: "10-60 minutes",
-      minAmount: 50,
-      maxAmount: 500000,
+      minAmount: 200,
+      maxAmount: 50000000,
       fee: "1%",
       status: "active",
       cryptoOptions: [
@@ -93,8 +95,8 @@ const Withdraw = () => {
       name: "PayPal",
       description: "Withdraw to your PayPal account",
       processingTime: "1-24 hours",
-      minAmount: 10,
-      maxAmount: 10000,
+      minAmount: 100,
+      maxAmount: 100000,
       fee: "1%",
       status: "active",
     },
@@ -260,7 +262,7 @@ const Withdraw = () => {
       }
 
       await dispatch(submitWithdrawal(withdrawalData)).unwrap();
-
+      showToast('Withdrawal submitted successfully', { type: 'success' });
       // Success will be handled by useEffect when pendingWithdrawal is updated
     } catch (error) {
       const errorData = error || {};
@@ -280,6 +282,7 @@ const Withdraw = () => {
         type: "error",
         message: errorMessage,
       });
+      showToast(errorMessage, { type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -698,7 +701,7 @@ const Withdraw = () => {
                   <Button
                     type="submit"
                     disabled={withdrawalStatus === "loading" || isSubmitting}
-                    loading={isSubmitting}
+                    isLoading={isSubmitting}
                   >
                     <FaArrowRight className="mr-2" /> Submit Withdrawal
                   </Button>

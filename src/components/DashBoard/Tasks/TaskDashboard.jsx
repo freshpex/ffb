@@ -17,6 +17,7 @@ import {
 } from "react-icons/fa";
 import DashboardLayout from "../Layout/DashboardLayout";
 import Button from "../../common/Button";
+import { useToast } from "../../../context/ToastContext";
 import Alert from "../../common/Alert";
 import Pagination from "../../common/Pagination";
 import CardLoader from "../../common/CardLoader";
@@ -57,6 +58,9 @@ const TaskDashboard = () => {
   const completableTasks = useSelector(selectCompletableTasks);
 
   const [activeTab, setActiveTab] = useState("available");
+  const [startLoadingMap, setStartLoadingMap] = useState({});
+  const [claimLoadingMap, setClaimLoadingMap] = useState({});
+  const { showToast } = useToast();
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState({ type: "", message: "" });
   const [searchQuery, setSearchQuery] = useState("");
@@ -117,22 +121,19 @@ const TaskDashboard = () => {
       return;
     }
 
-    dispatch(startTask(taskId))
+    // set loading state for this task
+    setStartLoadingMap((s) => ({ ...s, [taskId]: true }));
+
+    return dispatch(startTask(taskId))
       .unwrap()
       .then(() => {
-        setAlertMessage({
-          type: "success",
-          message: "Task started successfully!",
-        });
-        setShowAlert(true);
+        showToast("Task started successfully", { type: "success" });
       })
       .catch((error) => {
-        setAlertMessage({
-          type: "error",
-          message: `Failed to start task: ${error}`,
-        });
-        setShowAlert(true);
-      });
+        const msg = error?.message || error || "Failed to start task";
+        showToast(msg, { type: "error" });
+      })
+      .finally(() => setStartLoadingMap((s) => ({ ...s, [taskId]: false })));
   };
 
   // Handler for claiming a reward
@@ -147,22 +148,18 @@ const TaskDashboard = () => {
       return;
     }
 
-    dispatch(claimTaskReward(taskId))
+    setClaimLoadingMap((s) => ({ ...s, [taskId]: true }));
+
+    return dispatch(claimTaskReward(taskId))
       .unwrap()
       .then((result) => {
-        setAlertMessage({
-          type: "success",
-          message: `Reward of ${result.data.reward.amount} ${result.data.reward.type} claimed successfully!`,
-        });
-        setShowAlert(true);
+        showToast(`Reward of ${result.data.reward.amount} ${result.data.reward.type} claimed successfully!`, { type: "success" });
       })
       .catch((error) => {
-        setAlertMessage({
-          type: "error",
-          message: `Failed to claim reward: ${error}`,
-        });
-        setShowAlert(true);
-      });
+        const msg = error?.message || error || "Failed to claim reward";
+        showToast(msg, { type: "error" });
+      })
+      .finally(() => setClaimLoadingMap((s) => ({ ...s, [taskId]: false })));
   };
 
   // Handler for filter changes
@@ -390,6 +387,9 @@ const TaskDashboard = () => {
                 task={task}
                 onStart={handleStartTask}
                 onClaim={handleClaimReward}
+                actionLoading={
+                  startLoadingMap[task._id || task.id] || claimLoadingMap[task._id || task.id]
+                }
               />
             ))
           ) : (
@@ -443,8 +443,11 @@ const TaskDashboard = () => {
                       userTask._id || userTask.id || `usertask-${Math.random()}`
                     }
                     task={{ ...task, userProgress: userTask }}
-                    onStart={handleStartTask}
-                    onClaim={handleClaimReward}
+                      onStart={handleStartTask}
+                      onClaim={handleClaimReward}
+                      actionLoading={
+                        startLoadingMap[userTask._id || userTask.id || userTask.task] || claimLoadingMap[userTask._id || userTask.id || userTask.task]
+                      }
                   />
                 ) : null;
               })
