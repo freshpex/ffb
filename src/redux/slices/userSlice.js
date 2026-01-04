@@ -61,8 +61,6 @@ export const uploadProfileImage = createAsyncThunk(
         formData.append("image", payload);
       }
 
-      // IMPORTANT: Don't set Content-Type manually. Axios will set the correct
-      // multipart boundary for FormData; setting it can cause "Boundary not found".
       const response = await apiClient.post("/users/profile/image", formData);
       return response.data;
     } catch (error) {
@@ -95,6 +93,46 @@ export const fetchUserProfile = createAsyncThunk(
       console.error("Error fetching profile:", error);
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch profile",
+      );
+    }
+  },
+);
+
+export const fetchBonusConversionStatus = createAsyncThunk(
+  "user/fetchBonusConversionStatus",
+  async (_, { rejectWithValue }) => {
+    try {
+      if (!checkAuthStatus()) {
+        return { data: null };
+      }
+
+      const response = await apiClient.get("/users/bonus/status");
+      return response.data;
+    } catch (error) {
+      if (error.isAuthError || error.response?.status === 401) {
+        return { data: null };
+      }
+
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch bonus status",
+      );
+    }
+  },
+);
+
+export const convertBonusBalance = createAsyncThunk(
+  "user/convertBonusBalance",
+  async ({ amount } = {}, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post("/users/bonus/convert", {
+        ...(amount !== undefined && amount !== null && amount !== ""
+          ? { amount }
+          : {}),
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to convert bonus balance",
       );
     }
   },
@@ -226,6 +264,11 @@ const initialState = {
   profileUploadError: null,
   profileUpdateStatus: "idle", // 'idle' | 'updating' | 'succeeded' | 'failed'
   profileUpdateError: null,
+  bonusStatus: null,
+  bonusStatusLoading: false,
+  bonusStatusError: null,
+  bonusConvertLoading: false,
+  bonusConvertError: null,
 };
 
 // Create the user slice
@@ -260,6 +303,50 @@ const userSlice = createSlice({
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
+      })
+
+      // Bonus conversion status
+      .addCase(fetchBonusConversionStatus.pending, (state) => {
+        state.bonusStatusLoading = true;
+        state.bonusStatusError = null;
+      })
+      .addCase(fetchBonusConversionStatus.fulfilled, (state, action) => {
+        state.bonusStatusLoading = false;
+        state.bonusStatus = action.payload?.data || null;
+      })
+      .addCase(fetchBonusConversionStatus.rejected, (state, action) => {
+        state.bonusStatusLoading = false;
+        state.bonusStatusError = action.payload;
+      })
+
+      // Convert bonus balance
+      .addCase(convertBonusBalance.pending, (state) => {
+        state.bonusConvertLoading = true;
+        state.bonusConvertError = null;
+      })
+      .addCase(convertBonusBalance.fulfilled, (state, action) => {
+        state.bonusConvertLoading = false;
+        const data = action.payload?.data;
+        if (state.profile && data) {
+          state.profile.balance = data.balance;
+          state.profile.bonusBalance = data.bonusBalance;
+        }
+        state.bonusStatus = {
+          ...(state.bonusStatus || {}),
+          ...(data
+            ? {
+                balance: data.balance,
+                bonusBalance: data.bonusBalance,
+                depositTotal: data.depositTotal,
+                minDepositRequired: data.minDepositRequired,
+                eligible: data.eligible,
+              }
+            : {}),
+        };
+      })
+      .addCase(convertBonusBalance.rejected, (state, action) => {
+        state.bonusConvertLoading = false;
+        state.bonusConvertError = action.payload;
       })
 
       // Handle updateProfile
@@ -427,9 +514,21 @@ export const selectUserBalance = (state) => {
   );
 };
 
+export const selectUserBonusBalance = (state) => {
+  const profile = state.user.profile;
+  if (!profile) return 0;
+  return profile.bonusBalance ?? 0;
+};
+
 export const selectUserEmail = (state) => {
   const profile = state.user.profile;
   return profile ? profile.email || "" : "";
 };
+
+export const selectBonusStatus = (state) => state.user.bonusStatus;
+export const selectBonusStatusLoading = (state) => state.user.bonusStatusLoading;
+export const selectBonusConvertLoading = (state) => state.user.bonusConvertLoading;
+export const selectBonusError = (state) =>
+  state.user.bonusConvertError || state.user.bonusStatusError;
 
 export default userSlice.reducer;
