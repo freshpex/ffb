@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useAuth } from "../../AuthPage/AuthContext";
 import FormInput from "../../common/FormInput";
 import Button from "../../common/Button";
-import { FaLock, FaShieldAlt, FaCheck, FaTimes } from "react-icons/fa";
+import { FaLock, FaShieldAlt, FaCheck, FaTimes, FaEnvelope } from "react-icons/fa";
 import {
   updatePassword,
   selectSecurityStatus,
 } from "../../../redux/slices/securitySlice";
+import { useToast } from "../../../context/ToastContext";
 
 const SecurityTab = () => {
   const dispatch = useDispatch();
   const status = useSelector(selectSecurityStatus);
+  const { resetPassword, user } = useAuth();
+  const [showResetOption, setShowResetOption] = useState(false);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -45,17 +49,49 @@ const SecurityTab = () => {
     });
   };
 
+  const { showToast } = useToast();
+
+  const handlePasswordReset = async () => {
+    try {
+      if (!user?.email) {
+        showToast("No email found for password reset", { type: "error" });
+        return;
+      }
+      await resetPassword(user.email);
+      showToast(
+        `Password reset email sent to ${user.email}. Please check your inbox.`,
+        { type: "success", duration: 6000 }
+      );
+      setShowResetOption(false);
+    } catch (err) {
+      showToast(
+        err?.message || "Failed to send password reset email",
+        { type: "error" }
+      );
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       // Show error - passwords don't match
+      showToast("New passwords do not match", { type: "error" });
       return;
     }
 
-    const result = await dispatch(updatePassword(passwordData));
+    try {
+      const response = await dispatch(
+        updatePassword({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      ).unwrap();
 
-    if (result.success) {
+      showToast(response?.message || "Password changed successfully", {
+        type: "success",
+      });
+
       // Reset form
       setPasswordData({
         currentPassword: "",
@@ -69,6 +105,14 @@ const SecurityTab = () => {
         number: false,
         special: false,
       });
+    } catch (err) {
+      const errorMsg = err || "Failed to change password";
+      showToast(errorMsg, { type: "error" });
+      
+      // If password is incorrect, show reset option
+      if (errorMsg.includes("incorrect") || errorMsg.includes("wrong")) {
+        setShowResetOption(true);
+      }
     }
   };
 
@@ -198,6 +242,22 @@ const SecurityTab = () => {
         >
           Update Password
         </Button>
+
+        {showResetOption && (
+          <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/50 rounded-lg">
+            <p className="text-sm text-blue-300 mb-3">
+              Having trouble with your current password? You can reset it via email instead.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePasswordReset}
+              className="flex items-center gap-2"
+            >
+              <FaEnvelope /> Send Password Reset Email
+            </Button>
+          </div>
+        )}
       </form>
 
       <div className="border-t border-gray-700 pt-6">

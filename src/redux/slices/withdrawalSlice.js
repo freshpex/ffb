@@ -75,6 +75,35 @@ export const submitWithdrawal = createAsyncThunk(
   },
 );
 
+export const submitInternalTransfer = createAsyncThunk(
+  "withdrawal/submitInternalTransfer",
+  async ({ toAccountNumber, amount, description } = {}, { rejectWithValue }) => {
+    try {
+      const payload = {
+        toAccountNumber,
+        amount: parseFloat(amount),
+        ...(description ? { description } : {}),
+      };
+      const response = await apiClient.post("/withdrawals/transfer", payload);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Internal transfer error:",
+        error.response?.data || error.message,
+      );
+      const apiErr = error?.response?.data?.error;
+      return rejectWithValue({
+        message:
+          apiErr?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to transfer funds",
+        type: apiErr?.type || error?.response?.data?.type,
+      });
+    }
+  },
+);
+
 export const fetchWithdrawalHistory = createAsyncThunk(
   "withdrawal/fetchHistory",
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
@@ -155,6 +184,28 @@ const withdrawalSlice = createSlice({
         } else {
           state.error =
             payload || action.error?.message || "Failed to process withdrawal";
+          state.errorType = null;
+        }
+      })
+
+      // Handle submitInternalTransfer
+      .addCase(submitInternalTransfer.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.errorType = null;
+      })
+      .addCase(submitInternalTransfer.fulfilled, (state) => {
+        state.status = "succeeded";
+      })
+      .addCase(submitInternalTransfer.rejected, (state, action) => {
+        state.status = "failed";
+        const payload = action.payload;
+        if (payload && typeof payload === "object") {
+          state.error = payload.message || "Failed to transfer funds";
+          state.errorType = payload.type || null;
+        } else {
+          state.error =
+            payload || action.error?.message || "Failed to transfer funds";
           state.errorType = null;
         }
       })

@@ -6,7 +6,7 @@ import {
   checkAdminAuth,
   selectAdminStatus,
 } from "../../redux/slices/adminAuthSlice";
-import Loader from "../Loader";
+import Loader from "../common/Loader";
 
 const AdminProtectedRoute = ({ children }) => {
   const dispatch = useDispatch();
@@ -30,7 +30,11 @@ const AdminProtectedRoute = ({ children }) => {
   }, [dispatch, isAuthenticated]);
 
   if (isChecking || status === "loading") {
-    return <Loader />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <Loader size="large" color="primary" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

@@ -114,12 +114,12 @@ const ContactSection2 = () => {
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"} mb-1`}
                   >
-                    support@fidelityfirstbrokers.com
+                    support@ffbroker.cam
                   </p>
                   <p
                     className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}
                   >
-                    info@fidelityfirstbrokers.com
+                    info@ffbroker.cam
                   </p>
                 </div>
               </div>

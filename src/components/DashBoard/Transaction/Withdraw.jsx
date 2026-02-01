@@ -8,6 +8,7 @@ import {
   FaEthereum,
   FaUniversity,
   FaInfoCircle,
+  FaExchangeAlt,
   FaArrowRight,
   FaCheckCircle,
   FaHistory,
@@ -21,13 +22,14 @@ import FormInput from "../../common/FormInput";
 import Button from "../../common/Button";
 import { useToast } from "../../../context/ToastContext";
 import Alert from "../../common/Alert";
-import { selectUserBalance } from "../../../redux/slices/userSlice";
+import { fetchUserProfile, selectUserBalance } from "../../../redux/slices/userSlice";
 import {
   selectWithdrawalStatus,
   selectWithdrawalError,
   selectPendingWithdrawal,
   updateWithdrawalForm,
   submitWithdrawal,
+  submitInternalTransfer,
   resetWithdrawalForm,
   clearError,
 } from "../../../redux/slices/withdrawalSlice";
@@ -53,6 +55,7 @@ const Withdraw = () => {
     amount: "",
     method: "",
     walletAddress: "",
+    transferAccountNumber: "",
     bankDetails: {
       accountName: "",
       accountNumber: "",
@@ -98,6 +101,16 @@ const Withdraw = () => {
       minAmount: 100,
       maxAmount: 100000,
       fee: "1%",
+      status: "active",
+    },
+    {
+      id: "transfer",
+      name: "Transfer",
+      description: "Send funds to another FFB user by account number",
+      processingTime: "Instant",
+      minAmount: 1,
+      maxAmount: 50000000,
+      fee: "0%",
       status: "active",
     },
   ];
@@ -212,6 +225,16 @@ const Withdraw = () => {
       newErrors.paypalEmail = "Please enter a valid email address";
     }
 
+    // Transfer recipient validation
+    if (activeMethod?.id === "transfer") {
+      const digits = String(formData.transferAccountNumber || "").replace(/\s+/g, "");
+      if (!digits) {
+        newErrors.transferAccountNumber = "Recipient account number is required";
+      } else if (!/^\d{6,}$/.test(digits)) {
+        newErrors.transferAccountNumber = "Enter a valid account number";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -242,7 +265,10 @@ const Withdraw = () => {
         method: activeMethod.id,
         amount: parseFloat(formData.amount),
         description:
-          formData.description || `Withdrawal via ${activeMethod.name}`,
+          formData.description ||
+          (activeMethod.id === "transfer"
+            ? `Transfer to ${String(formData.transferAccountNumber || "").replace(/\s+/g, "")}`
+            : `Withdrawal via ${activeMethod.name}`),
       };
       setSubmitting(true);
 
@@ -259,10 +285,32 @@ const Withdraw = () => {
         };
       } else if (activeMethod.id === "paypal") {
         withdrawalData.paypalEmail = formData.paypalEmail;
+      } else if (activeMethod.id === "transfer") {
+        withdrawalData.toAccountNumber = String(
+          formData.transferAccountNumber || "",
+        ).replace(/\s+/g, "");
       }
 
-      await dispatch(submitWithdrawal(withdrawalData)).unwrap();
-      showToast('Withdrawal submitted successfully', { type: 'success' });
+      if (activeMethod.id === "transfer") {
+        await dispatch(
+          submitInternalTransfer({
+            toAccountNumber: withdrawalData.toAccountNumber,
+            amount: withdrawalData.amount,
+            description: withdrawalData.description,
+          }),
+        ).unwrap();
+        showToast("Transfer completed successfully", { type: "success" });
+        dispatch(fetchUserProfile());
+        setFormData({
+          ...formData,
+          amount: "",
+          transferAccountNumber: "",
+          description: "",
+        });
+      } else {
+        await dispatch(submitWithdrawal(withdrawalData)).unwrap();
+        showToast("Withdrawal submitted successfully", { type: "success" });
+      }
       // Success will be handled by useEffect when pendingWithdrawal is updated
     } catch (error) {
       const errorData = error || {};
@@ -300,6 +348,8 @@ const Withdraw = () => {
         return <FaUniversity className="text-blue-400" />;
       case "paypal":
         return <FaPaypal className="text-blue-500" />;
+      case "transfer":
+        return <FaExchangeAlt className="text-purple-400" />;
       default:
         return <FaWallet className="text-green-500" />;
     }
@@ -318,15 +368,16 @@ const Withdraw = () => {
     }
   };
 
-  const calculateFee = (amount) => {
+  const calculateFee = (amount, methodId = activeMethod?.id) => {
     if (!amount || isNaN(amount)) return 0;
+    if (methodId === "transfer") return 0;
     // Assuming 1% fee
     return parseFloat(amount) * 0.01;
   };
 
-  const calculateTotal = (amount) => {
+  const calculateTotal = (amount, methodId = activeMethod?.id) => {
     if (!amount || isNaN(amount)) return 0;
-    const fee = calculateFee(amount);
+    const fee = calculateFee(amount, methodId);
     return parseFloat(amount) + fee;
   };
 
@@ -488,7 +539,7 @@ const Withdraw = () => {
               <h2 className="text-lg font-medium text-white mb-4">
                 Select Withdrawal Method
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 {withdrawalMethods.map((method) => (
                   <div
                     key={method.id}
@@ -564,12 +615,12 @@ const Withdraw = () => {
                 transition={{ delay: 0.2 }}
               >
                 <FormInput
-                  label="Withdrawal Amount ($)"
+                  label={activeMethod.id === "transfer" ? "Transfer Amount ($)" : "Withdrawal Amount ($)"}
                   name="amount"
                   type="number"
                   value={formData.amount}
                   onChange={handleChange}
-                  placeholder="Enter amount to withdraw"
+                  placeholder={activeMethod.id === "transfer" ? "Enter amount to transfer" : "Enter amount to withdraw"}
                   error={errors.amount}
                   required
                 />
@@ -642,6 +693,18 @@ const Withdraw = () => {
                   />
                 )}
 
+                {activeMethod.id === "transfer" && (
+                  <FormInput
+                    label="Recipient Account Number"
+                    name="transferAccountNumber"
+                    value={formData.transferAccountNumber}
+                    onChange={handleChange}
+                    placeholder="Enter recipient account number"
+                    error={errors.transferAccountNumber}
+                    required
+                  />
+                )}
+
                 <FormInput
                   label="Description (Optional)"
                   name="description"
@@ -656,7 +719,7 @@ const Withdraw = () => {
                   parseFloat(formData.amount) > 0 && (
                     <div className="bg-gray-800 p-4 rounded-lg my-6">
                       <h4 className="text-white font-medium mb-3">
-                        Withdrawal Summary
+                        {activeMethod.id === "transfer" ? "Transfer Summary" : "Withdrawal Summary"}
                       </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -674,15 +737,17 @@ const Withdraw = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Fee (1%):</span>
+                          <span className="text-gray-400">
+                            Fee ({activeMethod.id === "transfer" ? "0%" : "1%"}):
+                          </span>
                           <span className="text-white">
-                            ${calculateFee(formData.amount).toFixed(2)}
+                            ${calculateFee(formData.amount, activeMethod.id).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between font-medium">
                           <span className="text-gray-300">Total:</span>
                           <span className="text-white">
-                            ${calculateTotal(formData.amount).toFixed(2)}
+                            ${calculateTotal(formData.amount, activeMethod.id).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between pt-2 border-t border-gray-700">
@@ -703,7 +768,7 @@ const Withdraw = () => {
                     disabled={withdrawalStatus === "loading" || isSubmitting}
                     isLoading={isSubmitting}
                   >
-                    <FaArrowRight className="mr-2" /> Submit Withdrawal
+                    <FaArrowRight className="mr-2" /> {activeMethod.id === "transfer" ? "Send Transfer" : "Submit Withdrawal"}
                   </Button>
                 </div>
               </motion.form>

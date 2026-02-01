@@ -103,7 +103,7 @@ const Deposit = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    const minimumDeposit = 50;
+    const minimumDeposit = 5;
 
     // Amount validation
     if (!formData.amount) {
@@ -515,7 +515,7 @@ const Deposit = () => {
                     onChange={handleChange}
                     placeholder="Enter amount to deposit"
                     error={errors.amount}
-                    hint="Minimum deposit is $50"
+                    hint="Minimum deposit is $5"
                     required
                   />
 

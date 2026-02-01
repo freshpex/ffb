@@ -494,7 +494,7 @@ const PrivacyPolicy = () => {
                 </p>
                 <div className="mt-2 bg-gray-700/50 p-4 rounded-lg">
                   <p>Fidelity First Brokers</p>
-                  <p>Email: privacy@fidelityfirstbrokers.com</p>
+                  <p>Email: privacy@ffbroker.cam</p>
                   <p>Address: 123 Financial Street, Suite 4500</p>
                   <p>New York, NY 10001</p>
                   <p>United States</p>

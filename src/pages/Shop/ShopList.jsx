@@ -43,6 +43,32 @@ export default function ShopList(){
   const handleConvert = async () => {
     try {
       const amount = convertAmount?.trim() ? Number(convertAmount) : undefined;
+
+      const eligibleNow = bonusStatus?.eligible ?? false;
+      const minBonusConversionAmount = Number(bonusStatus?.minBonusConversionAmount || 0) || 0;
+      const hasConvertedBefore = !!bonusStatus?.hasConvertedBefore;
+
+      // If user is deposit-eligible, enforce/communicate the tiered minimum after they click convert.
+      if (eligibleNow && minBonusConversionAmount > 0) {
+        const planned =
+          amount === undefined || amount === null || amount === ""
+            ? Number(bonusBalance || 0)
+            : Number(amount);
+
+        if (!Number.isFinite(planned) || planned <= 0) {
+          showToast("Enter a valid conversion amount", { type: "error" });
+          return;
+        }
+
+        if (planned < minBonusConversionAmount) {
+          showToast(
+            `Minimum bonus conversion is $${minBonusConversionAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${hasConvertedBefore ? " (subsequent conversions)" : " (first conversion)"}`,
+            { type: "info" },
+          );
+          return;
+        }
+      }
+
       await dispatch(convertBonusBalance({ amount })).unwrap();
       setConvertAmount("");
       showToast("Bonus converted to balance", { type: "success" });
@@ -55,6 +81,8 @@ export default function ShopList(){
   const eligible = bonusStatus?.eligible ?? false;
   const minDepositRequired = bonusStatus?.minDepositRequired ?? 300;
   const depositTotal = bonusStatus?.depositTotal ?? 0;
+  const minBonusConversionAmount = bonusStatus?.minBonusConversionAmount ?? 0;
+  const hasConvertedBefore = !!bonusStatus?.hasConvertedBefore;
 
   return (
     <DashboardLayout>
@@ -63,9 +91,9 @@ export default function ShopList(){
           <div>
             <h2 className="text-2xl font-bold">Shop</h2>
             <div className="mt-1 text-sm text-gray-400">
-              Balance: <span className="text-gray-100 font-semibold">${Number(balance || 0).toFixed(2)}</span>
+              Balance: <span className="text-gray-100 font-semibold">${Number(balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               <span className="mx-2 text-gray-600">|</span>
-              Bonus: <span className="text-primary-200 font-semibold">${Number(bonusBalance || 0).toFixed(2)}</span>
+              Bonus: <span className="text-primary-200 font-semibold">${Number(bonusBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="mt-3 bg-gray-800/60 border border-gray-700 rounded-lg p-3">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -75,8 +103,8 @@ export default function ShopList(){
                     {bonusStatusLoading
                       ? "Checking eligibility..."
                       : eligible
-                      ? `You can convert your bonus to account balance`
-                      : `Not eligible yet: deposit at least $${Number(minDepositRequired).toFixed(2)} (Deposits: $${Number(depositTotal || 0).toFixed(2)})`}
+                      ? `You can convert your bonus to account balance${Number(minBonusConversionAmount) > 0 ? ` (min $${Number(minBonusConversionAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${hasConvertedBefore ? ' after first conversion' : ' for first conversion'})` : ""}`
+                      : `Not eligible yet: deposit at least $${Number(minDepositRequired).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Deposits: $${Number(depositTotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`}
                   </div>
                 </div>
 

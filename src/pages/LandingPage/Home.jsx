@@ -9,6 +9,7 @@ import TradingPlan from "./TradingPlan";
 import HomeFooter from "./HomeFooter";
 import { Suspense } from "react";
 import TradingViewChart from "./TradingViewChart";
+import "../../css/animations.css";
 
 const Home = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);

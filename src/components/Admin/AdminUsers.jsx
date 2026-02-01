@@ -21,6 +21,7 @@ import ComponentLoader from "../common/ComponentLoader";
 import Pagination from "./common/Pagination";
 import StatusBadge from "./common/StatusBadge";
 import SearchFilter from "./common/SearchFilter";
+import { adminService } from "../../services/apiService";
 
 const AdminUsers = () => {
   const { darkMode } = useDarkMode();
@@ -98,6 +99,89 @@ const AdminUsers = () => {
       currency: "USD",
       minimumFractionDigits: 2,
     }).format(amount);
+  };
+
+  const handleImpersonate = async (user) => {
+    try {
+      const userId = user?._id || user?.id;
+      if (!userId) return;
+
+      const masterKey = window.prompt(
+        `Enter master key to impersonate ${user?.email || "this user"}:`,
+      );
+      if (!masterKey) return;
+
+      const reason = window.prompt(
+        "Reason for impersonation (optional):",
+        "Support session",
+      );
+
+      const resp = await adminService.impersonateUser(userId, {
+        masterKey,
+        reason,
+      });
+
+      const token = resp?.data?.token;
+      const logId = resp?.data?.logId;
+      const userInfo = resp?.data?.user;
+
+      if (!token) {
+        throw new Error("Impersonation token was not returned");
+      }
+
+      const w = window.open("/impersonate", "_blank");
+      if (!w) {
+        throw new Error(
+          "Popup was blocked. Please allow popups for this site and try again.",
+        );
+      }
+
+      const payload = {
+        type: "FFB_IMPERSONATE",
+        token,
+        logId,
+        user: userInfo,
+      };
+
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts += 1;
+        try {
+          // Log for debugging if messages don't arrive
+          // eslint-disable-next-line no-console
+          console.debug("Impersonation: posting message attempt", attempts, {
+            targetOrigin: window.location.origin,
+            payloadType: payload.type,
+          });
+          w.postMessage(payload, window.location.origin);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn("Impersonation postMessage failed on attempt", attempts, e);
+        }
+        if (attempts > 50) {
+          clearInterval(interval);
+          // eslint-disable-next-line no-console
+          console.error("Impersonation: giving up after multiple attempts");
+        }
+      }, 250);
+
+      const onAck = (event) => {
+        if (event.origin !== window.location.origin) return;
+        if (event.data?.type === "FFB_IMPERSONATE_ACK") {
+          clearInterval(interval);
+          window.removeEventListener("message", onAck);
+        }
+      };
+      window.addEventListener("message", onAck);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to impersonate user";
+      // eslint-disable-next-line no-alert
+      alert(msg);
+    }
   };
 
   return (
@@ -341,6 +425,18 @@ const AdminUsers = () => {
                               >
                                 <FaLock size={14} />
                               </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleImpersonate(user)}
+                                className={`p-1.5 rounded-full ${
+                                  darkMode
+                                    ? "bg-gray-700 text-green-400 hover:bg-gray-600"
+                                    : "bg-green-50 text-green-700 hover:bg-green-100"
+                                }`}
+                                title="Impersonate user"
+                              >
+                                <FaArrowRight size={14} />
+                              </button>
                             </div>
                           </td>
                         </tr>

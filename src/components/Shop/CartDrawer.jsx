@@ -17,6 +17,11 @@ export default function CartDrawer() {
   const { showToast } = useToast();
   const [qtyLoading, setQtyLoading] = useState({});
   const [payLoading, setPayLoading] = useState(false);
+  const [payMethod, setPayMethod] = useState("balance");
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   useEffect(() => {
     if (open) dispatch(fetchCart());
@@ -76,7 +81,7 @@ export default function CartDrawer() {
   };
 
   const CartItem = ({ it }) => {
-    const pid = it.productId?._id || it.productId;
+    const pid = String(it.productId?._id || it.productId);
     const loadingPid = !!qtyLoading[pid];
 
     const changeQty = async (nextQty) => {
@@ -94,7 +99,7 @@ export default function CartDrawer() {
     const remove = async () => {
       setQtyLoading((s) => ({ ...s, [pid]: true }));
       try {
-        await dispatch(removeFromCart({ productId: pid })).unwrap();
+        await dispatch(removeFromCart(pid)).unwrap();
         showToast("Item removed", { type: "success" });
       } catch (err) {
         console.error(err);
@@ -166,6 +171,15 @@ export default function CartDrawer() {
         aria-expanded={open}
       >
         🛒
+        {/* Item count badge */}
+        {((cart?.summary?.itemCount ?? cart?.items?.length ?? 0) || 0) > 0 && (
+          <span
+            className="absolute -top-1 -right-1 inline-flex items-center justify-center bg-red-500 text-white text-xs font-semibold rounded-full w-6 h-6"
+            aria-live="polite"
+          >
+            {String((cart?.summary?.itemCount ?? cart?.items?.length ?? 0) || 0)}
+          </span>
+        )}
       </button>
 
       {/* overlay */}
@@ -214,7 +228,7 @@ export default function CartDrawer() {
           ) : (
             <div className="text-center text-gray-400">
               <div className="mb-2">Your cart is empty</div>
-              <Button onClick={() => { setOpen(false); navigate("/shop"); }}>
+              <Button onClick={() => { setOpen(false); navigate("/login/shop"); }}>
                 Continue shopping
               </Button>
             </div>
@@ -230,7 +244,24 @@ export default function CartDrawer() {
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm text-gray-400">Potential Reward</div>
             <div className="font-semibold text-green-400">
-              {format(cart.summary?.potentialReward)}
+              {format(payMethod === "balance" ? cart.summary?.potentialReward : 0)}
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <div className="text-xs text-gray-400 mb-1">Pay with</div>
+            <select
+              value={payMethod}
+              onChange={(e) => setPayMethod(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100"
+            >
+              <option value="balance">Balance</option>
+              <option value="bonus">Bonus Balance</option>
+            </select>
+            <div className="mt-1 text-xs text-gray-500">
+              {payMethod === "balance"
+                ? "Cashback reward is credited to your BONUS balance."
+                : "No cashback reward when paying with Bonus balance."}
             </div>
           </div>
 
@@ -265,8 +296,13 @@ export default function CartDrawer() {
                     return;
                   }
 
-                  const res = await dispatch(createOrder({ shippingAddress, paymentMethod: "balance" })).unwrap();
-                  showToast("Payment successful — reward credited", { type: "success" });
+                  const res = await dispatch(createOrder({ shippingAddress, paymentMethod: payMethod })).unwrap();
+                  showToast(
+                    payMethod === "balance"
+                      ? "Payment successful — reward credited to bonus"
+                      : "Payment successful",
+                    { type: "success" }
+                  );
                   setOpen(false);
                   navigate(`/login/shop/orders/${res.data.order._id}`);
                 } catch (err) {

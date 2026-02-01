@@ -17,6 +17,7 @@ import {
   FaDollarSign,
   FaGlobe,
   FaCreditCard,
+  FaEnvelope,
 } from "react-icons/fa";
 import { useDarkMode } from "../../context/DarkModeContext";
 
@@ -145,6 +146,11 @@ const AdminSidebar = ({ isOpen, isMinimized, toggleSidebar }) => {
       name: "Support Tickets",
       path: "/admin/support",
       icon: FaTicketAlt,
+    },
+    {
+      name: "Email",
+      path: "/admin/emails",
+      icon: FaEnvelope,
     },
     {
       name: "Settings",

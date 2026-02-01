@@ -114,7 +114,9 @@ export const fetchBonusConversionStatus = createAsyncThunk(
       }
 
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch bonus status",
+        error.response?.data?.message ||
+          error.response?.data?.error?.message ||
+          "Failed to fetch bonus status",
       );
     }
   },
@@ -132,7 +134,9 @@ export const convertBonusBalance = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to convert bonus balance",
+        error.response?.data?.message ||
+          error.response?.data?.error?.message ||
+          "Failed to convert bonus balance",
       );
     }
   },

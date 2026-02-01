@@ -97,6 +97,7 @@ const AdminNotifications = lazy(
   () => import("./components/Admin/AdminNotifications"),
 );
 const AdminProfile = lazy(() => import("./components/Admin/AdminProfile"));
+const AdminEmailCenter = lazy(() => import("./components/Admin/AdminEmailCenter"));
 const AdminEducationImporter = lazy(
   () => import("./components/Admin/AdminEducationImporter"),
 );
@@ -122,6 +123,11 @@ const VisitorAnalytics = lazy(
   () => import("./components/Admin/analytics/VisitorAnalytics"),
 );
 
+// Admin impersonation receiver (opens in a new tab)
+const ImpersonationReceiver = lazy(
+  () => import("./components/Admin/ImpersonationReceiver"),
+);
+
 // Error page
 const ErrorPage = lazy(() => import("./components/ErrorPage"));
 
@@ -144,6 +150,7 @@ function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/impersonate" element={<ImpersonationReceiver />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
 
@@ -381,6 +388,7 @@ function App() {
             <Route path="support/:ticketId" element={<SupportTicketDetail />} />
 
             {/* Admin settings and profile routes */}
+            <Route path="emails" element={<AdminEmailCenter />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="profile" element={<AdminProfile />} />

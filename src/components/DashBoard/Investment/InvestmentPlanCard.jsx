@@ -10,7 +10,8 @@ import {
 
 const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
   // Check if user has enough balance to invest in this plan
-  const canInvest = userBalance >= plan.minAmount;
+  const isActive = plan.isActive !== false;
+  const canInvest = isActive && userBalance >= plan.minAmount;
 
   // Determine risk color - Added null check for riskLevel
   const getRiskColor = (planId) => {
@@ -40,6 +41,12 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
         </div>
       )}
 
+      {!isActive && (
+        <div className="bg-yellow-600 text-white text-xs font-bold px-3 py-1 text-center">
+          TEMPORARILY UNAVAILABLE
+        </div>
+      )}
+
       <div className="p-5">
         <div className="flex justify-between items-start">
           <h3 className="text-xl font-bold text-gray-100">{plan.name}</h3>
@@ -51,6 +58,12 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
         </div>
 
         <p className="text-gray-400 mt-2 text-sm">{plan.description}</p>
+
+        {!isActive && plan.deactivationReason && (
+          <div className="mt-3 rounded-md border border-yellow-500/40 bg-yellow-900/20 p-3 text-xs text-yellow-200">
+            {plan.deactivationReason}
+          </div>
+        )}
 
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="bg-gray-700/50 rounded-lg p-3">
@@ -132,11 +145,11 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
               <FaArrowRight className="ml-2" size={14} />
             </>
           ) : (
-            <span>Insufficient Balance</span>
+            <span>{isActive ? "Insufficient Balance" : "Plan Unavailable"}</span>
           )}
         </button>
 
-        {!canInvest && (
+        {!canInvest && isActive && (
           <p className="text-xs text-red-400 mt-2 text-center">
             You need at least ${plan.minAmount.toLocaleString()} to invest in
             this plan
@@ -159,6 +172,8 @@ InvestmentPlanCard.propTypes = {
     features: PropTypes.arrayOf(PropTypes.string),
     riskLevel: PropTypes.string,
     recommended: PropTypes.bool,
+    isActive: PropTypes.bool,
+    deactivationReason: PropTypes.string,
   }).isRequired,
   userBalance: PropTypes.number.isRequired,
   onClick: PropTypes.func.isRequired,

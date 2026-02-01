@@ -11,6 +11,11 @@ const api = axios.create({
 
 // Function to get the real token, not any mock tokens
 const getValidAuthToken = () => {
+  const sessionUserToken = sessionStorage.getItem("ffb_auth_token");
+  if (sessionUserToken && !sessionUserToken.startsWith("mock_token_")) {
+    return sessionUserToken;
+  }
+
   const adminToken =
     localStorage.getItem("ffb_admin_token") ||
     sessionStorage.getItem("ffb_admin_token");
@@ -79,12 +84,40 @@ api.interceptors.request.use(
 // Handle response errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (!error.isAuthError) {
       const message =
         error.response?.data?.message || "An unexpected error occurred";
       console.error("API Error:", message);
     }
+
+    // Handle account suspension/inactive errors
+    const errorType = error.response?.data?.error?.type;
+    console.log("API Interceptor - Error Type:", errorType);
+    console.log("API Interceptor - Full Error Response:", error.response?.data);
+    
+    if (errorType === "account_suspended" || errorType === "account_inactive") {
+      console.log("Account blocked detected - Type:", errorType);
+      
+      // Trigger a profile refetch so the modal appears
+      // We'll dispatch this through the Redux store
+      if (typeof window !== "undefined" && window.__REDUX_STORE__) {
+        try {
+          const userSlice = await import("../redux/slices/userSlice");
+          console.log("Dispatching fetchUserProfile to refresh user status");
+          await window.__REDUX_STORE__.dispatch(userSlice.fetchUserProfile());
+        } catch (importError) {
+          console.error("Failed to import userSlice or dispatch:", importError);
+        }
+      } else {
+        console.warn("Redux store not available in window.__REDUX_STORE__");
+      }
+      
+      // Add a specific flag to the error so we can handle it
+      error.isAccountBlocked = true;
+      error.blockReason = errorType === "account_suspended" ? "suspended" : "inactive";
+    }
+
     return Promise.reject(error);
   },
 );
@@ -169,6 +202,11 @@ export const adminService = {
     api.post(`/admin/education/sync-youtube`, data),
   listImports: (params) => api.get(`/admin/education/imports`, { params }),
   getImportById: (id) => api.get(`/admin/education/imports/${id}`),
+
+  // Admin impersonation
+  impersonateUser: (targetUserId, { masterKey, reason } = {}) =>
+    api.post(`/admin/impersonate`, { targetUserId, masterKey, reason }),
+  revokeImpersonation: (logId) => api.post(`/admin/impersonate/revoke`, { logId }),
 };
 export const educationService = {
   getResources: (params) => api.get(`/education`, { params }),

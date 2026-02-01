@@ -9,7 +9,7 @@ import {
 
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardHeader from "./DashboardHeader";
-import Loader from "../../common/Loader";
+import AccountSuspensionModal from "../../common/AccountSuspensionModal";
 
 const DashboardLayout = ({ children }) => {
   const location = useLocation();
@@ -17,7 +17,6 @@ const DashboardLayout = ({ children }) => {
 
   const isSidebarOpen = useSelector(selectSidebarOpen);
 
-  const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Handle responsive behavior
@@ -54,16 +53,6 @@ const DashboardLayout = ({ children }) => {
     };
   }, [isMobile, isSidebarOpen, dispatch]);
 
-  // Simulate loading on route change
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
-
   // Toggle sidebar handler
   const handleToggleSidebar = () => {
     dispatch(toggleSidebar());
@@ -71,19 +60,8 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
-      {/* Loading overlay */}
-      <AnimatePresence>
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-50 flex items-center justify-center"
-          >
-            <Loader size="large" color="primary" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Account Suspension/Inactive Modal - highest priority */}
+      <AccountSuspensionModal />
 
       {/* Sidebar Backdrop (Mobile) */}
       {isMobile && (

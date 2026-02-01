@@ -51,6 +51,7 @@ const navigationGroups = [
         label: "Invest",
         icon: <FaChartLine />,
         path: "/login/investmentplans",
+        badge: "Rich",
       },
     ],
   },

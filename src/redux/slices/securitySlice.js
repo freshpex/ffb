@@ -1,20 +1,62 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../../services/apiService";
+import { auth } from "../../firebase";
+import { updatePassword as firebaseUpdatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 
 // Async thunk for updating password
 export const updatePassword = createAsyncThunk(
   "security/updatePassword",
   async (passwordData, { rejectWithValue }) => {
     try {
+      const { currentPassword, newPassword } = passwordData;
+      const user = auth.currentUser;
+
+      if (!user || !user.email) {
+        return rejectWithValue("No authenticated user found");
+      }
+
+      let firebaseUpdateSuccessful = false;
+
+      try {
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await firebaseUpdatePassword(user, newPassword);
+        firebaseUpdateSuccessful = true;
+      } catch (authError) {
+        if (authError.code === "auth/wrong-password" || authError.code === "auth/invalid-credential") {
+          console.warn("Firebase re-authentication failed, will attempt MongoDB update only");
+        } else if (authError.code === "auth/weak-password") {
+          return rejectWithValue("New password is too weak. Please use at least 8 characters with uppercase, lowercase, numbers, and special characters.");
+        } else if (authError.code === "auth/requires-recent-login") {
+          return rejectWithValue("For security, please log out and log in again before changing password");
+        } else {
+          throw authError; // Re-throw unexpected errors
+        }
+      }
+
+      // Update in backend MongoDB
       const response = await apiClient.put(
-        "/api/users/security/password",
+        "/users/security/password",
         passwordData,
       );
+
+      // If Firebase update failed but MongoDB succeeded, inform the user
+      if (!firebaseUpdateSuccessful && response.data) {
+        return {
+          ...response.data,
+          message: "Password updated in database, but Firebase authentication may be out of sync. Please use 'Password Reset via Email' to sync properly.",
+          partialSuccess: true
+        };
+      }
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to update password",
-      );
+      const message =
+        error.response?.data?.error?.message ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update password";
+      return rejectWithValue(message);
     }
   },
 );
@@ -24,7 +66,7 @@ export const enable2FA = createAsyncThunk(
   "security/enable2FA",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post("/api/users/security/2fa/setup");
+      const response = await apiClient.post("/users/security/2fa/setup");
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -40,7 +82,7 @@ export const verify2FA = createAsyncThunk(
   async (verificationData, { rejectWithValue }) => {
     try {
       const response = await apiClient.post(
-        "/api/users/security/2fa/verify",
+        "/users/security/2fa/verify",
         verificationData,
       );
       return response.data;
@@ -58,7 +100,7 @@ export const disable2FA = createAsyncThunk(
   async (verificationData, { rejectWithValue }) => {
     try {
       const response = await apiClient.post(
-        "/api/users/security/2fa/disable",
+        "/users/security/2fa/disable",
         verificationData,
       );
       return response.data;
@@ -75,7 +117,7 @@ export const fetchSecuritySettings = createAsyncThunk(
   "security/fetchSecuritySettings",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get("/api/users/security/settings");
+      const response = await apiClient.get("/users/security/settings");
       return response.data;
     } catch (error) {
       return rejectWithValue(

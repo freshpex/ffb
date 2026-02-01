@@ -59,7 +59,7 @@ const AccountSummary = () => {
   }
 
   // Add proper null/undefined checks using optional chaining and default values
-  const accountNumber = userProfile?.accountNumber || "XXXX-XXXX-XXXX";
+  const accountNumber = userProfile?.accountNumber || "Not Assigned";
   const userName = userProfile?.firstName
     ? `${userProfile.firstName} ${userProfile.lastName || ""}`.trim()
     : "User";

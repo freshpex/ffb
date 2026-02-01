@@ -4,6 +4,9 @@ import { createSelector } from "reselect";
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+const getStoredAuthToken = () =>
+  sessionStorage.getItem("ffb_auth_token") || localStorage.getItem("ffb_auth_token");
+
 // Helper function to handle API errors
 const handleApiError = async (response) => {
   if (!response.ok) {
@@ -18,7 +21,7 @@ export const fetchDashboardData = createAsyncThunk(
   "dashboard/fetchDashboardData",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -44,7 +47,7 @@ export const fetchAccountSummary = createAsyncThunk(
   "dashboard/fetchAccountSummary",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -74,7 +77,7 @@ export const fetchRecentTransactions = createAsyncThunk(
     try {
       const { limit = 5 } = params;
 
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -110,7 +113,7 @@ export const fetchFinancialHighlights = createAsyncThunk(
   "dashboard/fetchFinancialHighlights",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -141,7 +144,7 @@ export const fetchMarketPulse = createAsyncThunk(
   "dashboard/fetchMarketPulse",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -190,7 +193,7 @@ export const fetchPriceAlerts = createAsyncThunk(
     try {
       const { page = 1, limit = 10, active } = params;
 
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -222,7 +225,7 @@ export const createPriceAlert = createAsyncThunk(
   "dashboard/createPriceAlert",
   async (alertData, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -253,7 +256,7 @@ export const updatePriceAlert = createAsyncThunk(
   "dashboard/updatePriceAlert",
   async ({ id, ...updates }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");
@@ -281,7 +284,7 @@ export const deletePriceAlert = createAsyncThunk(
   "dashboard/deletePriceAlert",
   async (id, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("ffb_auth_token");
+      const token = getStoredAuthToken();
 
       if (!token) {
         return rejectWithValue("Authentication required");

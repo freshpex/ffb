@@ -81,6 +81,9 @@ const InvestmentPlans = () => {
   }, [dispatch]);
 
   const handlePlanClick = (plan) => {
+    if (plan?.isActive === false) {
+      return;
+    }
     setSelectedPlanForModal(plan);
     setShowInvestModal(true);
   };
@@ -275,6 +278,16 @@ const InvestmentPlans = () => {
             {/* Investment Plans Tab */}
             {activeTab === "plans" && (
               <div className="mt-6">
+                {plans.some((plan) => plan.isActive === false) && (
+                  <div className="mb-6 rounded-lg border border-yellow-500/40 bg-yellow-900/20 p-4 text-sm text-yellow-200">
+                    <p className="font-semibold text-yellow-100">
+                      Some plans are temporarily unavailable.
+                    </p>
+                    <p className="mt-1 text-yellow-200">
+                      Due to high-risk market conditions, the Mini Saver and Mini Boost plans are paused. Existing investors remain protected and their funds are safe.
+                    </p>
+                  </div>
+                )}
                 {/* Filters and Sorting */}
                 <div className="flex flex-col md:flex-row justify-between mb-6 gap-3">
                   <div className="flex flex-col sm:flex-row gap-3">
