@@ -10,6 +10,7 @@ import HomeFooter from "./HomeFooter";
 import { Suspense } from "react";
 import TradingViewChart from "./TradingViewChart";
 import "../../css/animations.css";
+import WithdrawDummy from "./WithdrawDummy";
 
 const Home = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -50,6 +51,7 @@ const Home = () => {
     >
       <Header />
       <div className={isDarkMode ? "landing-dark" : "landing-light"}>
+        <WithdrawDummy theme={isDarkMode ? "dark" : "light"} />
         <Homepage theme={isDarkMode ? "dark" : "light"} />
         <HomePageSection2 theme={isDarkMode ? "dark" : "light"} />
         <HomePageSection3 theme={isDarkMode ? "dark" : "light"} />

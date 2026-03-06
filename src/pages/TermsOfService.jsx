@@ -471,6 +471,12 @@ const TermsOfService = () => {
               Privacy Policy
             </Link>
             <Link
+              to="/disclaimer"
+              className="text-primary-400 hover:underline mx-2"
+            >
+              Disclaimer
+            </Link>
+            <Link
               to="/contact"
               className="text-primary-400 hover:underline mx-2"
             >

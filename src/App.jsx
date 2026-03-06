@@ -72,6 +72,7 @@ const TradingDashboard = lazy(
 // Legal pages
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Disclaimer = lazy(() => import("./pages/Disclaimer"));
 
 // Admin components
 const AdminLogin = lazy(() => import("./components/Admin/AdminLogin"));
@@ -153,6 +154,7 @@ function App() {
           <Route path="/impersonate" element={<ImpersonationReceiver />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
 
           {/* Protected Dashboard routes*/}
           <Route
