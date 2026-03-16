@@ -112,6 +112,25 @@ export const disable2FA = createAsyncThunk(
   },
 );
 
+export const setWithdrawalPin = createAsyncThunk(
+  "security/setWithdrawalPin",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post(
+        "/users/security/withdrawal-pin",
+        payload,
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to set withdrawal PIN",
+      );
+    }
+  },
+);
+
 // Async thunk for fetching security settings
 export const fetchSecuritySettings = createAsyncThunk(
   "security/fetchSecuritySettings",
@@ -223,6 +242,19 @@ const securitySlice = createSlice({
         state.settings.twoFactorEnabled = false;
       })
       .addCase(disable2FA.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+
+      // Handle setWithdrawalPin
+      .addCase(setWithdrawalPin.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(setWithdrawalPin.fulfilled, (state) => {
+        state.status = "succeeded";
+      })
+      .addCase(setWithdrawalPin.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       });

@@ -22,12 +22,16 @@ import FormInput from "../../common/FormInput";
 import Button from "../../common/Button";
 import { useToast } from "../../../context/ToastContext";
 import Alert from "../../common/Alert";
-import { fetchUserProfile, selectUserBalance } from "../../../redux/slices/userSlice";
+import {
+  fetchUserProfile,
+  selectUserBalance,
+  selectUserProfile,
+} from "../../../redux/slices/userSlice";
 import {
   selectWithdrawalStatus,
   selectWithdrawalError,
   selectPendingWithdrawal,
-  updateWithdrawalForm,
+  requestWithdrawalOtp,
   submitWithdrawal,
   submitInternalTransfer,
   resetWithdrawalForm,
@@ -43,12 +47,19 @@ const Withdraw = () => {
   const withdrawalStatus = useSelector(selectWithdrawalStatus);
   const withdrawalError = useSelector(selectWithdrawalError);
   const pendingWithdrawal = useSelector(selectPendingWithdrawal);
+  const profile = useSelector(selectUserProfile);
   const [isSubmitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
 
   // Local state
   const [errors, setErrors] = useState({});
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingSubmissionData, setPendingSubmissionData] = useState(null);
+  const [verificationData, setVerificationData] = useState({
+    otpCode: "",
+    withdrawalPin: "",
+  });
   const [alert, setAlert] = useState(null);
   const [activeMethod, setActiveMethod] = useState(null);
   const [formData, setFormData] = useState({
@@ -131,6 +142,10 @@ const Withdraw = () => {
       setShowConfirmation(true);
     }
   }, [pendingWithdrawal]);
+
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
 
   const handleMethodSelect = (method) => {
     setActiveMethod(method);
@@ -308,8 +323,20 @@ const Withdraw = () => {
           description: "",
         });
       } else {
-        await dispatch(submitWithdrawal(withdrawalData)).unwrap();
-        showToast("Withdrawal submitted successfully", { type: "success" });
+        if (!profile?.hasWithdrawalPin) {
+          showToast(
+            "Please set your withdrawal PIN in Settings > Security before making a withdrawal.",
+            { type: "info" },
+          );
+          navigate("/login/accountsettings?tab=security&section=withdrawal-pin");
+          return;
+        }
+
+        await dispatch(requestWithdrawalOtp()).unwrap();
+        setPendingSubmissionData(withdrawalData);
+        setVerificationData({ otpCode: "", withdrawalPin: "" });
+        setShowVerificationModal(true);
+        showToast("Verification code sent to your email", { type: "success" });
       }
       // Success will be handled by useEffect when pendingWithdrawal is updated
     } catch (error) {
@@ -331,6 +358,86 @@ const Withdraw = () => {
         message: errorMessage,
       });
       showToast(errorMessage, { type: 'error' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerificationChange = (e) => {
+    const { name, value } = e.target;
+    const cleanedValue = name === "otpCode"
+      ? value.replace(/\D/g, "").slice(0, 6)
+      : value.replace(/\D/g, "").slice(0, 6);
+    setVerificationData((prev) => ({
+      ...prev,
+      [name]: cleanedValue,
+    }));
+  };
+
+  const handleConfirmWithdrawal = async () => {
+    if (!pendingSubmissionData) return;
+
+    if (!/^\d{6}$/.test(verificationData.otpCode)) {
+      showToast("Please enter the 6-digit OTP sent to your email", {
+        type: "error",
+      });
+      return;
+    }
+
+    if (!/^\d{4,6}$/.test(verificationData.withdrawalPin)) {
+      showToast("Please enter your 4-6 digit withdrawal PIN", {
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await dispatch(
+        submitWithdrawal({
+          ...pendingSubmissionData,
+          otpCode: verificationData.otpCode,
+          withdrawalPin: verificationData.withdrawalPin,
+        }),
+      ).unwrap();
+
+      setShowVerificationModal(false);
+      setPendingSubmissionData(null);
+      setVerificationData({ otpCode: "", withdrawalPin: "" });
+      showToast("Withdrawal submitted successfully", { type: "success" });
+    } catch (error) {
+      const errorData = error || {};
+      const errorMessage =
+        typeof errorData === "string"
+          ? errorData
+          : errorData.message || "Failed to verify and submit withdrawal";
+
+      if (errorData.type === "withdrawal_pin_not_set") {
+        setShowVerificationModal(false);
+        showToast(errorMessage, { type: "error" });
+        navigate("/login/accountsettings?tab=security&section=withdrawal-pin");
+        return;
+      }
+
+      showToast(errorMessage, { type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      setSubmitting(true);
+      await dispatch(requestWithdrawalOtp()).unwrap();
+      showToast("A new verification code has been sent to your email", {
+        type: "success",
+      });
+    } catch (error) {
+      const message =
+        (typeof error === "object" && error?.message) ||
+        error ||
+        "Failed to resend OTP";
+      showToast(message, { type: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -462,6 +569,89 @@ const Withdraw = () => {
             </Button>
             <Button type="button" fullWidth onClick={handleViewTransactions}>
               View Transactions
+            </Button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
+  const renderVerificationModal = () => {
+    if (!showVerificationModal) return null;
+
+    return (
+      <motion.div
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="bg-gray-800 rounded-lg p-6 w-full max-w-md"
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+        >
+          <h3 className="text-xl font-medium text-white mb-2">
+            Confirm Withdrawal
+          </h3>
+          <p className="text-gray-400 mb-4 text-sm">
+            Enter the OTP sent to your email and your withdrawal PIN to confirm this withdrawal.
+          </p>
+
+          <div className="space-y-4">
+            <FormInput
+              label="Email OTP"
+              name="otpCode"
+              value={verificationData.otpCode}
+              onChange={handleVerificationChange}
+              placeholder="Enter 6-digit OTP"
+              required
+            />
+
+            <FormInput
+              label="Withdrawal PIN"
+              name="withdrawalPin"
+              type="password"
+              value={verificationData.withdrawalPin}
+              onChange={handleVerificationChange}
+              placeholder="Enter 4-6 digit PIN"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              onClick={() => {
+                setShowVerificationModal(false);
+                setPendingSubmissionData(null);
+                setVerificationData({ otpCode: "", withdrawalPin: "" });
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              onClick={handleResendOtp}
+              disabled={isSubmitting}
+            >
+              Resend OTP
+            </Button>
+
+            <Button
+              type="button"
+              fullWidth
+              onClick={handleConfirmWithdrawal}
+              disabled={isSubmitting}
+              isLoading={isSubmitting}
+            >
+              Confirm
             </Button>
           </div>
         </motion.div>
@@ -781,6 +971,9 @@ const Withdraw = () => {
       <AnimatePresence>
         {showConfirmation && renderWithdrawalConfirmation()}
       </AnimatePresence>
+
+      {/* Verification modal */}
+      <AnimatePresence>{renderVerificationModal()}</AnimatePresence>
     </DashboardLayout>
   );
 };

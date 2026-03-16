@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import DashboardLayout from "../Layout/DashboardLayout";
 import ProfileTab from "./ProfileTab";
 import SecurityTab from "./SecurityTab";
@@ -7,7 +8,15 @@ import KycTab from "./KycTab";
 import { FaUserCircle, FaLock, FaCreditCard, FaIdCard } from "react-icons/fa";
 
 const AccountSettings = () => {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (["profile", "security", "kyc", "payment"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const tabs = [
     { id: "profile", label: "Personal Information", icon: <FaUserCircle /> },
@@ -21,7 +30,7 @@ const AccountSettings = () => {
       case "profile":
         return <ProfileTab />;
       case "security":
-        return <SecurityTab />;
+        return <SecurityTab section={searchParams.get("section")} />;
       case "kyc":
         return <KycTab />;
       case "payment":
