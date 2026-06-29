@@ -1,6 +1,18 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../../services/apiService";
 
+const normalizeReferralLink = (link) => {
+  if (typeof link !== "string") return "";
+
+  const trimmedLink = link.trim();
+  if (!trimmedLink) return "";
+
+  return trimmedLink.replace(
+    /^(https?:\/\/)?(www\.)?ffbroker\.cam/i,
+    "https://ffbroker.cam",
+  );
+};
+
 // Async thunk to fetch user referrals
 export const fetchReferrals = createAsyncThunk(
   "referral/fetchReferrals",
@@ -117,7 +129,9 @@ const referralSlice = createSlice({
       .addCase(fetchReferrals.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.referrals = action.payload.data.referrals || [];
-        state.referralLink = action.payload.data.referralLink || "";
+        state.referralLink = normalizeReferralLink(
+          action.payload.data.referralLink,
+        );
         state.referralCode = action.payload.data.referralCode || "";
         state.statistics = {
           totalReferrals: action.payload.data.stats?.totalReferrals || 0,
@@ -164,7 +178,9 @@ const referralSlice = createSlice({
       })
       .addCase(generateNewReferralLink.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.referralLink = action.payload.data.referralLink || "";
+        state.referralLink = normalizeReferralLink(
+          action.payload.data.referralLink,
+        );
         state.referralCode = action.payload.data.referralCode || "";
       })
       .addCase(generateNewReferralLink.rejected, (state, action) => {

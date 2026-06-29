@@ -6,7 +6,6 @@ import {
   FaBell,
   FaUser,
   FaSignOutAlt,
-  FaSearch,
   FaCog,
 } from "react-icons/fa";
 import { logoutAdmin } from "../../redux/slices/adminAuthSlice";
@@ -81,6 +80,15 @@ const AdminHeader = ({ toggleSidebar }) => {
               onClose={() => setIsNotificationsOpen(false)}
             />
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="hidden lg:flex items-center ml-3 px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-red-600/20 focus:outline-none focus:ring-2 focus:ring-red-500"
+            title="Logout"
+          >
+            <FaSignOutAlt className="h-4 w-4 mr-2" />
+            Logout
+          </button>
 
           {/* Profile dropdown */}
           <div className="relative ml-3">

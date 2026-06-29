@@ -10,11 +10,12 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../../firebase";
+import { API_BASE_URL } from "../../utils/apiConfig";
 
 const AuthContext = createContext();
 const CURRENT_USER_KEY = "ffb_current_user";
 const AUTH_TOKEN_KEY = "ffb_auth_token";
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = API_BASE_URL;
 
 const getStoredToken = () =>
   sessionStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(AUTH_TOKEN_KEY);

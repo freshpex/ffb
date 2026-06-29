@@ -1,11 +1,10 @@
 import axios from "axios";
 import { auth } from "../firebase";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { API_BASE_URL } from "../utils/apiConfig";
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {},
 });
 
@@ -16,18 +15,22 @@ const getValidAuthToken = () => {
     return sessionUserToken;
   }
 
-  const adminToken =
-    localStorage.getItem("ffb_admin_token") ||
-    sessionStorage.getItem("ffb_admin_token");
-  if (adminToken && !adminToken.startsWith("mock_token_")) {
-    return adminToken;
+  const localUserToken = localStorage.getItem("ffb_auth_token");
+  if (localUserToken && !localUserToken.startsWith("mock_token_")) {
+    return localUserToken;
   }
 
-  const token =
-    localStorage.getItem("ffb_auth_token") ||
-    sessionStorage.getItem("ffb_auth_token");
+  const sessionAdminToken = sessionStorage.getItem("ffb_admin_token");
+  if (sessionAdminToken && !sessionAdminToken.startsWith("mock_token_")) {
+    return sessionAdminToken;
+  }
 
-  return token;
+  const localAdminToken = localStorage.getItem("ffb_admin_token");
+  if (localAdminToken && !localAdminToken.startsWith("mock_token_")) {
+    return localAdminToken;
+  }
+
+  return null;
 };
 
 // Add auth token to requests
@@ -129,6 +132,8 @@ export const userService = {
   // Let the browser/axios set the multipart boundary automatically.
   uploadKYC: (formData) => api.post("/users/kyc", formData),
   getBalanceHistory: (params) => api.get("/users/balance/history", { params }),
+  verifyWithdrawalPin: (pin) =>
+    api.post("/users/security/withdrawal-pin/verify", { pin }),
 };
 
 // Transaction endpoints
@@ -207,6 +212,23 @@ export const adminService = {
   impersonateUser: (targetUserId, { masterKey, reason } = {}) =>
     api.post(`/admin/impersonate`, { targetUserId, masterKey, reason }),
   revokeImpersonation: (logId) => api.post(`/admin/impersonate/revoke`, { logId }),
+  adjustUserBalance: (userId, data) =>
+    api.post(`/admin/users/${userId}/balance`, data),
+  createUserLedgers: (userId, data) =>
+    api.post(`/admin/users/${userId}/ledgers`, data),
+  createUserTrade: (userId, data) =>
+    api.post(`/admin/users/${userId}/trades`, data),
+  getUserTrades: (userId) => api.get(`/admin/users/${userId}/trades`),
+  updateUserTrade: (userId, tradeId, data) =>
+    api.put(`/admin/users/${userId}/trades/${tradeId}`, data),
+  createUserInvestment: (userId, data) =>
+    api.post(`/admin/users/${userId}/investments`, data),
+  getUserInvestments: (userId) =>
+    api.get(`/admin/users/${userId}/investments`),
+  updateUserInvestment: (userId, investmentId, data) =>
+    api.put(`/admin/users/${userId}/investments/${investmentId}`, data),
+  sendUserNotification: (userId, data) =>
+    api.post(`/admin/users/${userId}/notifications`, data),
 };
 export const educationService = {
   getResources: (params) => api.get(`/education`, { params }),

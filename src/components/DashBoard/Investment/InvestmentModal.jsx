@@ -17,6 +17,7 @@ import {
   FaExclamationCircle,
 } from "react-icons/fa";
 import Loader from "../../common/Loader";
+import { formatExpectedReturn } from "../../../utils/investmentReturns";
 
 const InvestmentModal = ({ plan, onClose, userBalance }) => {
   const dispatch = useDispatch();
@@ -54,11 +55,6 @@ const InvestmentModal = ({ plan, onClose, userBalance }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const calculateReturns = () => {
-    const amount = parseFloat(form.amount) || 0;
-    return ((amount * plan.roi) / 100).toFixed(2);
   };
 
   const handleSubmit = async (e) => {
@@ -103,9 +99,11 @@ const InvestmentModal = ({ plan, onClose, userBalance }) => {
                   <div>
                     <p className="text-gray-400 text-xs mb-1 flex items-center">
                       <FaPercent className="mr-1" size={10} />
-                      RETURN
+                      ROI
                     </p>
-                    <p className="text-primary-500 font-bold">{plan.roi}%</p>
+                    <p className="text-primary-500 font-bold">
+                      {formatExpectedReturn(plan.minAmount, plan)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs mb-1 flex items-center">
@@ -192,7 +190,7 @@ const InvestmentModal = ({ plan, onClose, userBalance }) => {
                 <div className="flex justify-between text-gray-300 mt-2">
                   <span>Expected Return:</span>
                   <span className="font-medium text-green-500">
-                    +${calculateReturns()}
+                    +{formatExpectedReturn(form.amount, plan)}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-300 mt-2">
@@ -266,6 +264,9 @@ InvestmentModal.propTypes = {
     minAmount: PropTypes.number.isRequired,
     maxAmount: PropTypes.number,
     roi: PropTypes.number.isRequired,
+    roiAmount: PropTypes.number,
+    baseAmount: PropTypes.number,
+    returnRate: PropTypes.number,
     duration: PropTypes.number.isRequired,
   }).isRequired,
   onClose: PropTypes.func.isRequired,

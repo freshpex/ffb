@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { API_BASE_URL } from "./apiConfig";
 
 // Utility function to check if the admin token is valid
 export const checkAdminToken = createAsyncThunk(
@@ -14,10 +15,7 @@ export const checkAdminToken = createAsyncThunk(
         });
       }
 
-      const apiUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-      const response = await fetch(`${apiUrl}/admin/profile`, {
+      const response = await fetch(`${API_BASE_URL}/admin/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

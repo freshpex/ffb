@@ -70,7 +70,7 @@ const InvestmentPlans = () => {
   const [showInvestModal, setShowInvestModal] = useState(false);
   const [selectedPlanForModal, setSelectedPlanForModal] = useState(null);
   const [activeTab, setActiveTab] = useState("plans");
-  const [sortField, setSortField] = useState("name");
+  const [sortField, setSortField] = useState("minAmount");
   const [sortDirection, setSortDirection] = useState("asc");
   const [riskFilter, setRiskFilter] = useState("all");
   const [durationFilter, setDurationFilter] = useState("all");
@@ -135,7 +135,9 @@ const InvestmentPlans = () => {
   const filteredAndSortedPlans = [...plans]
     .filter((plan) => {
       if (riskFilter === "all") return true;
-      return plan.riskLevel.toLowerCase() === riskFilter.toLowerCase();
+      // Safe check for riskLevel - use plan.id as fallback
+      const riskLevel = plan.riskLevel || plan.id || "low";
+      return riskLevel.toLowerCase() === riskFilter.toLowerCase();
     })
     .filter((plan) => {
       if (durationFilter === "all") return true;

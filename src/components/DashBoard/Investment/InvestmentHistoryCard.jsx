@@ -9,6 +9,7 @@ import {
   FaMoneyBillAlt,
 } from "react-icons/fa";
 import { format, isValid } from "date-fns";
+import { formatExpectedReturn } from "../../../utils/investmentReturns";
 
 const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
   // Helper to format dates with validation
@@ -22,6 +23,31 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
     } catch (error) {
       console.error("Date formatting error:", error);
       return "Invalid date";
+    }
+  };
+
+  // Check if investment period is complete
+  const isInvestmentComplete = () => {
+    try {
+      const endDate = new Date(investment.endDate);
+      const now = new Date();
+      return now >= endDate;
+    } catch (error) {
+      console.error("Date comparison error:", error);
+      return false;
+    }
+  };
+
+  const canWithdraw = isInvestmentComplete();
+  const daysRemaining = () => {
+    try {
+      const endDate = new Date(investment.endDate);
+      const now = new Date();
+      const diff = endDate - now;
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return days > 0 ? days : 0;
+    } catch (error) {
+      return 0;
     }
   };
 
@@ -92,7 +118,7 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
               <span>ROI</span>
             </div>
             <div className="text-base font-bold text-primary-500">
-              {(investment?.roi || investment?.returnRate) + "%"}
+              {formatExpectedReturn(investment?.amount, investment)}
             </div>
           </div>
 
@@ -189,26 +215,49 @@ const InvestmentHistoryCard = ({ investment, type, onCancel, onWithdraw }) => {
         )}
 
         {type === "active" && (
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <button
-              onClick={onWithdraw}
-              className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center"
-            >
-              <FaMoneyBillAlt className="mr-2 hidden sm:inline" />
-              <span className="whitespace-nowrap text-sm sm:text-base">
-                Withdraw Now
-              </span>
-            </button>
-            <button
-              onClick={onCancel}
-              className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center"
-            >
-              <FaBan className="mr-2 hidden sm:inline" />
-              <span className="whitespace-nowrap text-sm sm:text-base">
-                Cancel
-              </span>
-            </button>
-          </div>
+          <>
+            {!canWithdraw && (
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 mb-3">
+                <div className="flex items-start">
+                  <FaCalendarCheck className="text-yellow-400 mr-2 mt-0.5 flex-shrink-0" size={14} />
+                  <div>
+                    <p className="text-yellow-300 text-sm font-medium mb-1">
+                      Investment Period Not Complete
+                    </p>
+                    <p className="text-yellow-200/80 text-xs">
+                      You can withdraw after the investment period ends. {daysRemaining()} days remaining.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <button
+                onClick={canWithdraw ? onWithdraw : null}
+                disabled={!canWithdraw}
+                className={`px-3 py-2 rounded-lg flex items-center justify-center transition-all ${
+                  canWithdraw
+                    ? "bg-primary-600 hover:bg-primary-700 text-white cursor-pointer"
+                    : "bg-gray-700 text-gray-500 cursor-not-allowed opacity-50"
+                }`}
+                title={!canWithdraw ? "Investment period must be complete to withdraw" : ""}
+              >
+                <FaMoneyBillAlt className="mr-2 hidden sm:inline" />
+                <span className="whitespace-nowrap text-sm sm:text-base">
+                  Withdraw Now
+                </span>
+              </button>
+              <button
+                onClick={onCancel}
+                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center"
+              >
+                <FaBan className="mr-2 hidden sm:inline" />
+                <span className="whitespace-nowrap text-sm sm:text-base">
+                  Cancel
+                </span>
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -225,6 +274,8 @@ InvestmentHistoryCard.propTypes = {
     endDate: PropTypes.string.isRequired,
     status: PropTypes.string.isRequired,
     roi: PropTypes.number.isRequired,
+    roiAmount: PropTypes.number,
+    returnRate: PropTypes.number,
     duration: PropTypes.number.isRequired,
 
     // Active investment properties

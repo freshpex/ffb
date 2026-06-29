@@ -5,6 +5,7 @@ import {
 } from "../../../redux/slices/investmentSlice";
 import { FaCheckCircle, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatExpectedReturn } from "../../../utils/investmentReturns";
 
 const InvestmentSuccessModal = () => {
   const dispatch = useDispatch();
@@ -74,11 +75,10 @@ const InvestmentSuccessModal = () => {
                   <div className="flex justify-between text-gray-300 mb-2">
                     <span>Expected Return:</span>
                     <span className="text-green-500 font-medium">
-                      $
-                      {(
-                        successModal.investmentData?.amount *
-                        (successModal.investmentData?.returnRate / 100)
-                      ).toFixed(2)}
+                      {formatExpectedReturn(
+                        successModal.investmentData?.amount,
+                        successModal.investmentData,
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-300">

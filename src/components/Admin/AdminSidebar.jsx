@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   FaTachometerAlt,
   FaUsers,
@@ -18,12 +19,15 @@ import {
   FaGlobe,
   FaCreditCard,
   FaEnvelope,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { useDarkMode } from "../../context/DarkModeContext";
+import { logoutAdmin } from "../../redux/slices/adminAuthSlice";
 
 const AdminSidebar = ({ isOpen, isMinimized, toggleSidebar }) => {
   const { darkMode } = useDarkMode();
   const location = useLocation();
+  const dispatch = useDispatch();
   const sidebarRef = useRef();
 
   // Track expanded state for menu items with submenus
@@ -36,6 +40,11 @@ const AdminSidebar = ({ isOpen, isMinimized, toggleSidebar }) => {
       ...prev,
       [menu]: !prev[menu],
     }));
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutAdmin());
+    window.location.href = "/admin/login";
   };
 
   // Check if a route is active
@@ -291,6 +300,22 @@ const AdminSidebar = ({ isOpen, isMinimized, toggleSidebar }) => {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="border-t border-gray-200 dark:border-gray-800 p-3">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`flex items-center w-full ${isMinimized ? "justify-center" : ""} px-3 py-2 text-sm font-medium rounded-md ${
+                darkMode
+                  ? "text-red-300 hover:bg-red-900/30 hover:text-red-200"
+                  : "text-red-600 hover:bg-red-50"
+              }`}
+              title={isMinimized ? "Logout" : ""}
+            >
+              <FaSignOutAlt className={`h-5 w-5 ${isMinimized ? "" : "mr-3"}`} />
+              {!isMinimized && <span>Logout</span>}
+            </button>
           </div>
         </div>
       </div>

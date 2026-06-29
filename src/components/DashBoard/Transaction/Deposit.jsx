@@ -49,10 +49,12 @@ const Deposit = () => {
   // Local state
   const [errors, setErrors] = useState({});
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showTransactionIdModal, setShowTransactionIdModal] = useState(false);
   const [alert, setAlert] = useState(null);
   const [selectedCrypto, setSelectedCrypto] = useState(null);
   const [copySuccess, setCopySuccess] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
+  const [pendingDepositData, setPendingDepositData] = useState(null);
 
   // Clear alerts after 5 seconds
   useEffect(() => {
@@ -100,7 +102,7 @@ const Deposit = () => {
     });
   };
 
-  const validateForm = () => {
+  const validateForm = (requireTransactionId = false) => {
     const newErrors = {};
 
     const minimumDeposit = 5;
@@ -119,8 +121,8 @@ const Deposit = () => {
       newErrors.amount = `Minimum deposit amount is $${activeMethod.minAmount}`;
     }
 
-    // Transaction ID validation for crypto deposits
-    if (activeMethod?.id === "cryptocurrency" && !formData.transactionId) {
+    // Transaction ID validation for crypto deposits (only when required)
+    if (requireTransactionId && activeMethod?.id === "cryptocurrency" && !formData.transactionId) {
       newErrors.transactionId = "Transaction ID is required";
     }
 
@@ -147,28 +149,56 @@ const Deposit = () => {
       return;
     }
 
-    if (!validateForm()) return;
+    if (!validateForm(false)) return;
 
+    // For cryptocurrency, show transaction ID modal first
+    if (activeMethod.id === "cryptocurrency") {
+      const depositData = {
+        method: activeMethod.id,
+        amount: parseFloat(formData.amount),
+        note: formData.note,
+        cryptoType: selectedCrypto.id,
+        cryptoAddress: selectedCrypto.address,
+        networkType: selectedCrypto.networkType,
+      };
+      setPendingDepositData(depositData);
+      setShowTransactionIdModal(true);
+      return;
+    }
+
+    // For non-crypto deposits, submit directly
     try {
       const depositData = {
         method: activeMethod.id,
         amount: parseFloat(formData.amount),
-        transactionId: formData.transactionId,
         note: formData.note,
       };
 
       setSubmitting(true);
+      await dispatch(submitDeposit(depositData));
+    } catch (error) {
+      setAlert({
+        type: "error",
+        message: error.message || "Failed to process deposit",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-      // Add crypto-specific details if applicable
-      if (activeMethod.id === "cryptocurrency" && selectedCrypto) {
-        depositData.cryptoType = selectedCrypto.id;
-        depositData.cryptoAddress = selectedCrypto.address;
-        depositData.networkType = selectedCrypto.networkType;
-      }
+  const handleConfirmWithTransactionId = async () => {
+    if (!validateForm(true)) return;
+
+    try {
+      setSubmitting(true);
+      const depositData = {
+        ...pendingDepositData,
+        transactionId: formData.transactionId,
+      };
 
       await dispatch(submitDeposit(depositData));
-
-      // Success will be handled by useEffect when pendingDeposit is updated
+      setShowTransactionIdModal(false);
+      setPendingDepositData(null);
     } catch (error) {
       setAlert({
         type: "error",
@@ -519,18 +549,6 @@ const Deposit = () => {
                     required
                   />
 
-                  {activeMethod.id === "cryptocurrency" && (
-                    <FormInput
-                      label="Transaction ID/Hash"
-                      name="transactionId"
-                      value={formData.transactionId}
-                      onChange={handleChange}
-                      placeholder="Enter the transaction ID from your wallet"
-                      error={errors.transactionId}
-                      required
-                    />
-                  )}
-
                   <FormInput
                     label="Note (Optional)"
                     name="note"
@@ -576,7 +594,8 @@ const Deposit = () => {
                       disabled={depositStatus === "loading" || isSubmitting}
                       loading={isSubmitting}
                     >
-                      <FaArrowRight className="mr-2" /> Submit Deposit
+                      <FaArrowRight className="mr-2" /> 
+                      {activeMethod.id === "cryptocurrency" ? "Confirm & Continue" : "Submit Deposit"}
                     </Button>
                   </div>
                 </form>
@@ -584,6 +603,77 @@ const Deposit = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Transaction ID Modal */}
+      <AnimatePresence>
+        {showTransactionIdModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-gray-800 rounded-lg p-6 w-full max-w-md"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+            >
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Enter Transaction ID
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  After sending {selectedCrypto?.name} to the address above, please enter your transaction ID/hash to complete the deposit.
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <FormInput
+                  label="Transaction ID/Hash"
+                  name="transactionId"
+                  value={formData.transactionId}
+                  onChange={handleChange}
+                  placeholder="Enter the transaction ID from your wallet"
+                  error={errors.transactionId}
+                  required
+                />
+              </div>
+
+              <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <FaInfoCircle className="text-blue-400 mr-2 mt-1 flex-shrink-0" />
+                  <p className="text-sm text-blue-300">
+                    You can find the transaction ID in your wallet after completing the transfer. It usually starts with "0x" for Ethereum or a long string for Bitcoin.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  fullWidth
+                  onClick={() => {
+                    setShowTransactionIdModal(false);
+                    setPendingDepositData(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  fullWidth 
+                  onClick={handleConfirmWithTransactionId}
+                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                >
+                  <FaCheckCircle className="mr-2" /> Confirm Deposit
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Deposit confirmation modal */}
       <AnimatePresence>

@@ -20,8 +20,16 @@ const getAuthToken = async () => {
 const checkAuthStatus = () => {
   return (
     !!localStorage.getItem("ffb_auth_token") ||
-    !!sessionStorage.getItem("ffb_auth_token")
+    !!sessionStorage.getItem("ffb_auth_token") ||
+    !!localStorage.getItem("ffb_admin_token") ||
+    !!sessionStorage.getItem("ffb_admin_token")
   );
+};
+
+const requireStoredAuth = () => {
+  if (!checkAuthStatus()) {
+    throw new Error("User not authenticated");
+  }
 };
 
 // Async thunk for updating user profile
@@ -147,11 +155,7 @@ export const addPaymentMethod = createAsyncThunk(
   "user/addPaymentMethod",
   async (paymentMethodData, { rejectWithValue }) => {
     try {
-      const token = await getAuthToken();
-
-      if (!token) {
-        return rejectWithValue("User not authenticated");
-      }
+      requireStoredAuth();
 
       const response = await apiClient.post(
         "/users/payment-methods",
@@ -173,11 +177,7 @@ export const removePaymentMethod = createAsyncThunk(
   "user/removePaymentMethod",
   async (paymentMethodId, { rejectWithValue }) => {
     try {
-      const token = await getAuthToken();
-
-      if (!token) {
-        return rejectWithValue("User not authenticated");
-      }
+      requireStoredAuth();
 
       const response = await apiClient.delete(
         `/users/payment-methods/${paymentMethodId}`,
@@ -198,11 +198,7 @@ export const setDefaultPaymentMethod = createAsyncThunk(
   "user/setDefaultPaymentMethod",
   async (paymentMethodId, { rejectWithValue }) => {
     try {
-      const token = await getAuthToken();
-
-      if (!token) {
-        return rejectWithValue("User not authenticated");
-      }
+      requireStoredAuth();
 
       const response = await apiClient.put(
         `/users/payment-methods/${paymentMethodId}/default`,
@@ -223,11 +219,7 @@ export const fetchPaymentMethods = createAsyncThunk(
   "user/fetchPaymentMethods",
   async (_, { rejectWithValue }) => {
     try {
-      const token = await getAuthToken();
-
-      if (!token) {
-        return { data: [] };
-      }
+      if (!checkAuthStatus()) return { data: [] };
 
       const response = await apiClient.get("/users/payment-methods");
       return response.data;
@@ -246,11 +238,7 @@ export const updatePaymentMethod = createAsyncThunk(
   "user/updatePaymentMethod",
   async ({ paymentMethodId, updates }, { rejectWithValue }) => {
     try {
-      const token = await getAuthToken();
-
-      if (!token) {
-        return rejectWithValue("User not authenticated");
-      }
+      requireStoredAuth();
 
       const response = await apiClient.put(
         `/users/payment-methods/${paymentMethodId}`,

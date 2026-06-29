@@ -3,8 +3,9 @@ import { FaEnvelope, FaPaperPlane, FaSave, FaSyncAlt } from "react-icons/fa";
 import { useDarkMode } from "../../context/DarkModeContext";
 import PageTransition from "../common/PageTransition";
 import ComponentLoader from "../common/ComponentLoader";
+import { API_BASE_URL } from "../../utils/apiConfig";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = API_BASE_URL;
 
 const safeJsonParse = (value) => {
   try {
@@ -37,7 +38,7 @@ const AdminEmailCenter = () => {
     JSON.stringify(
       {
         name: "User",
-        kycLink: "https://ffbroker.cam/login/accountsettings",
+        kycLink: "https://ffbroker.com/login/accountsettings",
         suspiciousDetails: "Multiple login locations",
       },
       null,

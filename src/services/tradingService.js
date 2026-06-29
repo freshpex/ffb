@@ -77,7 +77,7 @@ const tradingService = {
   },
 
   // Get user's open orders
-  getOrders: async ({ symbol = null, status = null, page = 1, limit = 50 }) => {
+  getOrders: async ({ symbol = null, status = null, page = 1, limit = 50 } = {}) => {
     try {
       const params = new URLSearchParams();
       if (symbol) params.append("symbol", symbol);
@@ -115,7 +115,7 @@ const tradingService = {
   },
 
   // Get user's order history and executed trades
-  getTradingHistory: async ({ symbol = null, page = 1, limit = 50 }) => {
+  getTradingHistory: async ({ symbol = null, page = 1, limit = 50 } = {}) => {
     try {
       const params = new URLSearchParams();
       if (symbol) params.append("symbol", symbol);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectPaymentMethods,
@@ -8,6 +8,7 @@ import {
   removePaymentMethod,
   setDefaultPaymentMethod,
   updatePaymentMethod,
+  fetchPaymentMethods,
 } from "../../../redux/slices/userSlice";
 import {
   FaCreditCard,
@@ -59,6 +60,10 @@ const PaymentMethodsTab = () => {
     nickname: "",
     isDefault: false,
   });
+
+  useEffect(() => {
+    dispatch(fetchPaymentMethods());
+  }, [dispatch]);
 
   const handleCardChange = (e) => {
     const { name, value, type, checked } = e.target;
