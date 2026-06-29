@@ -161,7 +161,9 @@ export const addPaymentMethod = createAsyncThunk(
     } catch (error) {
       console.error("Error adding payment method:", error);
       return rejectWithValue(
-        error.response?.data?.message || "Failed to add payment method",
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to add payment method",
       );
     }
   },
@@ -184,7 +186,9 @@ export const removePaymentMethod = createAsyncThunk(
     } catch (error) {
       console.error("Error removing payment method:", error);
       return rejectWithValue(
-        error.response?.data?.message || "Failed to remove payment method",
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to remove payment method",
       );
     }
   },
@@ -207,7 +211,9 @@ export const setDefaultPaymentMethod = createAsyncThunk(
     } catch (error) {
       console.error("Error setting default payment method:", error);
       return rejectWithValue(
-        error.response?.data?.message || "Failed to set default payment method",
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to set default payment method",
       );
     }
   },
@@ -228,7 +234,9 @@ export const fetchPaymentMethods = createAsyncThunk(
     } catch (error) {
       console.error("Error fetching payment methods:", error);
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch payment methods",
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to fetch payment methods",
       );
     }
   },
@@ -252,7 +260,9 @@ export const updatePaymentMethod = createAsyncThunk(
     } catch (error) {
       console.error("Error updating payment method:", error);
       return rejectWithValue(
-        error.response?.data?.message || "Failed to update payment method",
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to update payment method",
       );
     }
   },

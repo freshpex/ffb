@@ -2,14 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useDarkMode } from "../../context/DarkModeContext";
 
 const PAYMENT_TYPES = ["BTC", "USDT", "ETH", "Bank"];
-const FIRST_NAMES = [
-    "Oliver","Charlotte","Liam","Amelia","Noah","Olivia","Elijah","Ava",
-    "William","Sophia","James","Isabella","Benjamin","Mia","Lucas","Harper"
-];
-const LAST_NAMES = [
-    "Smith","Johnson","Brown","Taylor","Anderson","Thomas","Jackson","White",
-    "Harris","Martin","Thompson","Garcia","Martinez","Robinson"
-];
+const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const usedMaskedNames = new Set();
 
 function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -19,14 +13,39 @@ function pick(arr) {
     return arr[randInt(0, arr.length - 1)];
 }
 
-function randomName() {
-    const first = pick(FIRST_NAMES);
-    const last = pick(LAST_NAMES);
-    return `${first} ${last.charAt(0)}.`; // masked-ish: first name + last initial
+function randomLetters(length) {
+    return Array.from({ length }, () => ALPHABET[randInt(0, ALPHABET.length - 1)]).join("");
+}
+
+function maskAlphabetName(raw) {
+    const first = raw.charAt(0).toUpperCase();
+    const last = raw.charAt(raw.length - 1);
+    const stars = "*".repeat(Math.max(2, raw.length - 2));
+    const styledLast = Math.random() > 0.5 ? last.toUpperCase() : last.toLowerCase();
+    return `${first}${stars}${styledLast}`;
+}
+
+function nextUniqueName() {
+    let attempts = 0;
+    while (attempts < 5000) {
+        const raw = randomLetters(randInt(4, 10));
+        const masked = maskAlphabetName(raw);
+        if (!usedMaskedNames.has(masked)) {
+            usedMaskedNames.add(masked);
+            return masked;
+        }
+        attempts += 1;
+    }
+
+    // Extremely unlikely fallback: force uniqueness while keeping alphabet + mask format.
+    const forceA = randomLetters(1).toUpperCase();
+    const forceB = randomLetters(1);
+    const forced = `${forceA}${"*".repeat(randInt(5, 10))}${forceB}`;
+    usedMaskedNames.add(forced);
+    return forced;
 }
 
 function randomAmount(type) {
-    // amounts in approximate realistic ranges
     switch (type) {
         case "BTC": return `${(Math.random() * 0.5 + 0.01).toFixed(4)} BTC`;
         case "ETH": return `${(Math.random() * 5 + 0.05).toFixed(3)} ETH`;
@@ -61,7 +80,7 @@ function makeItem() {
     const type = pick(PAYMENT_TYPES);
     return {
         id: Math.random().toString(36).slice(2, 9),
-        name: randomName(),
+        name: nextUniqueName(),
         type,
         amount: randomAmount(type),
         dest: randomAddress(type),
@@ -87,8 +106,11 @@ export default function WithdrawDummy({ compact = false, className = "" }) {
         return () => clearInterval(t);
     }, []);
 
-    // Duplicate items to allow seamless CSS marquee loop
-    const display = [...items, ...items];
+    // Extend with fresh items so names remain unique in visible stream
+    const display = useMemo(() => {
+        const extraItems = Array.from({ length: items.length }, () => makeItem());
+        return [...items, ...extraItems];
+    }, [items]);
 
     // theme-aware colors
     const outerBg = darkMode ? "#FFFFFF" : "rgba(0,0,0,0.04)";

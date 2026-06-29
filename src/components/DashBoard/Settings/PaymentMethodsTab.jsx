@@ -41,6 +41,7 @@ const PaymentMethodsTab = () => {
     expiryMonth: "",
     expiryYear: "",
     cvv: "",
+    stripePaymentMethodId: "",
     isDefault: false,
   });
 
@@ -97,6 +98,7 @@ const PaymentMethodsTab = () => {
         expiryMonth: parseInt(cardFormData.expiryMonth),
         expiryYear: parseInt(cardFormData.expiryYear),
         cvv: cardFormData.cvv,
+        stripePaymentMethodId: cardFormData.stripePaymentMethodId || undefined,
         isDefault: cardFormData.isDefault,
       };
 
@@ -111,6 +113,7 @@ const PaymentMethodsTab = () => {
           expiryMonth: "",
           expiryYear: "",
           cvv: "",
+          stripePaymentMethodId: "",
           isDefault: false,
         });
         setShowAddForm(false);
@@ -397,6 +400,14 @@ const PaymentMethodsTab = () => {
                     />
                   </div>
                 </div>
+
+                <FormInput
+                  label="Stripe PaymentMethod ID (optional)"
+                  name="stripePaymentMethodId"
+                  value={cardFormData.stripePaymentMethodId}
+                  onChange={handleCardChange}
+                  placeholder="pm_..."
+                />
 
                 <div className="flex items-center">
                   <input
