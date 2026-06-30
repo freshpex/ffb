@@ -210,7 +210,7 @@ const HomeFooter = () => {
                 <span
                   className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}
                 >
-                  info@fidelityfirstbrokers.com
+                  info@ffbroker.cam
                 </span>
               </li>
             </ul>

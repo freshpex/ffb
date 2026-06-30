@@ -1,8 +1,83 @@
 import { motion } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
 import { useDarkMode } from "../../context/DarkModeContext";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+// Animated Counter Component
+const AnimatedCounter = ({ value, suffix = "" }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  const ref = useRef(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const numericValue = parseInt(value.toString().replace(/[^0-9]/g, ""));
+          const startTime = performance.now();
+          const duration = 2500;
+
+          const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+
+          const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeOutExpo(progress);
+            const currentValue = Math.floor(easedProgress * numericValue);
+            
+            setDisplayValue(currentValue);
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            }
+          };
+
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [value]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      {displayValue}{suffix}
+    </span>
+  );
+};
 
 const AboutSection1 = () => {
   const { darkMode } = useDarkMode();
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".about-stat-card",
+        { opacity: 0, y: 30, scale: 0.9 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "back.out(1.7)",
+          scrollTrigger: {
+            trigger: ".about-stat-card",
+            start: "top 85%",
+          },
+        }
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <section
@@ -12,16 +87,21 @@ const AboutSection1 = () => {
     >
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div
+        <div className="grid-background opacity-20" />
+        <motion.div
           className={`absolute top-1/4 left-1/4 w-64 h-64 ${
             darkMode ? "bg-primary-600/10" : "bg-primary-300/20"
           } rounded-full blur-3xl`}
-        ></div>
-        <div
+          animate={{ scale: [1, 1.2, 1], x: [0, 20, 0] }}
+          transition={{ duration: 8, repeat: Infinity }}
+        />
+        <motion.div
           className={`absolute bottom-1/3 right-1/4 w-80 h-80 ${
             darkMode ? "bg-blue-600/10" : "bg-blue-300/20"
           } rounded-full blur-3xl`}
-        ></div>
+          animate={{ scale: [1.2, 1, 1.2], y: [0, -20, 0] }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
       </div>
 
       <div className="container mx-auto max-w-6xl relative z-10">
@@ -37,7 +117,7 @@ const AboutSection1 = () => {
                 darkMode ? "text-white" : "text-gray-900"
               }`}
             >
-              About <span className="text-primary-500">Fidelity First</span>{" "}
+              About <span className="gradient-text-animated">Fidelity First</span>{" "}
               Brokers
             </h1>
             <p
@@ -51,42 +131,45 @@ const AboutSection1 = () => {
               financial expertise to deliver exceptional results.
             </p>
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <div
-                className={`flex items-center px-4 py-3 rounded-lg border ${
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className={`about-stat-card flex items-center px-4 py-3 rounded-lg border transition-all duration-300 ${
                   darkMode
-                    ? "bg-gray-800/50 border-gray-700 text-gray-400"
-                    : "bg-gray-200 border-gray-300 text-gray-700"
+                    ? "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-primary-500/50"
+                    : "bg-gray-200 border-gray-300 text-gray-700 hover:border-primary-500/50"
                 }`}
               >
                 <span className="text-primary-500 text-3xl font-bold mr-2">
-                  12+
+                  <AnimatedCounter value={12} suffix="+" />
                 </span>
                 <span className="text-sm">Years of Experience</span>
-              </div>
-              <div
-                className={`flex items-center px-4 py-3 rounded-lg border ${
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className={`about-stat-card flex items-center px-4 py-3 rounded-lg border transition-all duration-300 ${
                   darkMode
-                    ? "bg-gray-800/50 border-gray-700 text-gray-400"
-                    : "bg-gray-200 border-gray-300 text-gray-700"
+                    ? "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-primary-500/50"
+                    : "bg-gray-200 border-gray-300 text-gray-700 hover:border-primary-500/50"
                 }`}
               >
                 <span className="text-primary-500 text-3xl font-bold mr-2">
-                  25k+
+                  <AnimatedCounter value={25} suffix="k+" />
                 </span>
                 <span className="text-sm">Happy Clients</span>
-              </div>
-              <div
-                className={`flex items-center px-4 py-3 rounded-lg border ${
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className={`about-stat-card flex items-center px-4 py-3 rounded-lg border transition-all duration-300 ${
                   darkMode
-                    ? "bg-gray-800/50 border-gray-700 text-gray-400"
-                    : "bg-gray-200 border-gray-300 text-gray-700"
+                    ? "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-primary-500/50"
+                    : "bg-gray-200 border-gray-300 text-gray-700 hover:border-primary-500/50"
                 }`}
               >
                 <span className="text-primary-500 text-3xl font-bold mr-2">
-                  97%
+                  <AnimatedCounter value={97} suffix="%" />
                 </span>
                 <span className="text-sm">Client Satisfaction</span>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
 

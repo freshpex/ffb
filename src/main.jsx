@@ -8,6 +8,7 @@ import { AuthContextProvider } from "./components/AuthPage/AuthContext";
 import { DarkModeProvider } from "./context/DarkModeContext";
 import "./css/tailwind.css";
 import "./css/darkmode.css";
+import "./css/animations.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

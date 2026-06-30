@@ -8,6 +8,7 @@ import {
   FaEthereum,
   FaUniversity,
   FaInfoCircle,
+  FaExchangeAlt,
   FaArrowRight,
   FaCheckCircle,
   FaHistory,
@@ -21,13 +22,18 @@ import FormInput from "../../common/FormInput";
 import Button from "../../common/Button";
 import { useToast } from "../../../context/ToastContext";
 import Alert from "../../common/Alert";
-import { selectUserBalance } from "../../../redux/slices/userSlice";
+import {
+  fetchUserProfile,
+  selectUserBalance,
+  selectUserProfile,
+} from "../../../redux/slices/userSlice";
 import {
   selectWithdrawalStatus,
   selectWithdrawalError,
   selectPendingWithdrawal,
-  updateWithdrawalForm,
+  requestWithdrawalOtp,
   submitWithdrawal,
+  submitInternalTransfer,
   resetWithdrawalForm,
   clearError,
 } from "../../../redux/slices/withdrawalSlice";
@@ -41,18 +47,26 @@ const Withdraw = () => {
   const withdrawalStatus = useSelector(selectWithdrawalStatus);
   const withdrawalError = useSelector(selectWithdrawalError);
   const pendingWithdrawal = useSelector(selectPendingWithdrawal);
+  const profile = useSelector(selectUserProfile);
   const [isSubmitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
 
   // Local state
   const [errors, setErrors] = useState({});
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingSubmissionData, setPendingSubmissionData] = useState(null);
+  const [verificationData, setVerificationData] = useState({
+    otpCode: "",
+    withdrawalPin: "",
+  });
   const [alert, setAlert] = useState(null);
   const [activeMethod, setActiveMethod] = useState(null);
   const [formData, setFormData] = useState({
     amount: "",
     method: "",
     walletAddress: "",
+    transferAccountNumber: "",
     bankDetails: {
       accountName: "",
       accountNumber: "",
@@ -100,6 +114,16 @@ const Withdraw = () => {
       fee: "1%",
       status: "active",
     },
+    {
+      id: "transfer",
+      name: "Transfer",
+      description: "Send funds to another FFB user by account number",
+      processingTime: "Instant",
+      minAmount: 1,
+      maxAmount: 50000000,
+      fee: "0%",
+      status: "active",
+    },
   ];
 
   // Clear alerts after 5 seconds
@@ -118,6 +142,10 @@ const Withdraw = () => {
       setShowConfirmation(true);
     }
   }, [pendingWithdrawal]);
+
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
 
   const handleMethodSelect = (method) => {
     setActiveMethod(method);
@@ -212,6 +240,16 @@ const Withdraw = () => {
       newErrors.paypalEmail = "Please enter a valid email address";
     }
 
+    // Transfer recipient validation
+    if (activeMethod?.id === "transfer") {
+      const digits = String(formData.transferAccountNumber || "").replace(/\s+/g, "");
+      if (!digits) {
+        newErrors.transferAccountNumber = "Recipient account number is required";
+      } else if (!/^\d{6,}$/.test(digits)) {
+        newErrors.transferAccountNumber = "Enter a valid account number";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -242,7 +280,10 @@ const Withdraw = () => {
         method: activeMethod.id,
         amount: parseFloat(formData.amount),
         description:
-          formData.description || `Withdrawal via ${activeMethod.name}`,
+          formData.description ||
+          (activeMethod.id === "transfer"
+            ? `Transfer to ${String(formData.transferAccountNumber || "").replace(/\s+/g, "")}`
+            : `Withdrawal via ${activeMethod.name}`),
       };
       setSubmitting(true);
 
@@ -259,10 +300,44 @@ const Withdraw = () => {
         };
       } else if (activeMethod.id === "paypal") {
         withdrawalData.paypalEmail = formData.paypalEmail;
+      } else if (activeMethod.id === "transfer") {
+        withdrawalData.toAccountNumber = String(
+          formData.transferAccountNumber || "",
+        ).replace(/\s+/g, "");
       }
 
-      await dispatch(submitWithdrawal(withdrawalData)).unwrap();
-      showToast('Withdrawal submitted successfully', { type: 'success' });
+      if (activeMethod.id === "transfer") {
+        await dispatch(
+          submitInternalTransfer({
+            toAccountNumber: withdrawalData.toAccountNumber,
+            amount: withdrawalData.amount,
+            description: withdrawalData.description,
+          }),
+        ).unwrap();
+        showToast("Transfer completed successfully", { type: "success" });
+        dispatch(fetchUserProfile());
+        setFormData({
+          ...formData,
+          amount: "",
+          transferAccountNumber: "",
+          description: "",
+        });
+      } else {
+        if (!profile?.hasWithdrawalPin) {
+          showToast(
+            "Please set your withdrawal PIN in Settings > Security before making a withdrawal.",
+            { type: "info" },
+          );
+          navigate("/login/accountsettings?tab=security&section=withdrawal-pin");
+          return;
+        }
+
+        await dispatch(requestWithdrawalOtp()).unwrap();
+        setPendingSubmissionData(withdrawalData);
+        setVerificationData({ otpCode: "", withdrawalPin: "" });
+        setShowVerificationModal(true);
+        showToast("Verification code sent to your email", { type: "success" });
+      }
       // Success will be handled by useEffect when pendingWithdrawal is updated
     } catch (error) {
       const errorData = error || {};
@@ -288,6 +363,86 @@ const Withdraw = () => {
     }
   };
 
+  const handleVerificationChange = (e) => {
+    const { name, value } = e.target;
+    const cleanedValue = name === "otpCode"
+      ? value.replace(/\D/g, "").slice(0, 6)
+      : value.replace(/\D/g, "").slice(0, 6);
+    setVerificationData((prev) => ({
+      ...prev,
+      [name]: cleanedValue,
+    }));
+  };
+
+  const handleConfirmWithdrawal = async () => {
+    if (!pendingSubmissionData) return;
+
+    if (!/^\d{6}$/.test(verificationData.otpCode)) {
+      showToast("Please enter the 6-digit OTP sent to your email", {
+        type: "error",
+      });
+      return;
+    }
+
+    if (!/^\d{4,6}$/.test(verificationData.withdrawalPin)) {
+      showToast("Please enter your 4-6 digit withdrawal PIN", {
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await dispatch(
+        submitWithdrawal({
+          ...pendingSubmissionData,
+          otpCode: verificationData.otpCode,
+          withdrawalPin: verificationData.withdrawalPin,
+        }),
+      ).unwrap();
+
+      setShowVerificationModal(false);
+      setPendingSubmissionData(null);
+      setVerificationData({ otpCode: "", withdrawalPin: "" });
+      showToast("Withdrawal submitted successfully", { type: "success" });
+    } catch (error) {
+      const errorData = error || {};
+      const errorMessage =
+        typeof errorData === "string"
+          ? errorData
+          : errorData.message || "Failed to verify and submit withdrawal";
+
+      if (errorData.type === "withdrawal_pin_not_set") {
+        setShowVerificationModal(false);
+        showToast(errorMessage, { type: "error" });
+        navigate("/login/accountsettings?tab=security&section=withdrawal-pin");
+        return;
+      }
+
+      showToast(errorMessage, { type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      setSubmitting(true);
+      await dispatch(requestWithdrawalOtp()).unwrap();
+      showToast("A new verification code has been sent to your email", {
+        type: "success",
+      });
+    } catch (error) {
+      const message =
+        (typeof error === "object" && error?.message) ||
+        error ||
+        "Failed to resend OTP";
+      showToast(message, { type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleViewTransactions = () => {
     navigate("/login/withdrawtransaction");
   };
@@ -300,6 +455,8 @@ const Withdraw = () => {
         return <FaUniversity className="text-blue-400" />;
       case "paypal":
         return <FaPaypal className="text-blue-500" />;
+      case "transfer":
+        return <FaExchangeAlt className="text-purple-400" />;
       default:
         return <FaWallet className="text-green-500" />;
     }
@@ -318,15 +475,16 @@ const Withdraw = () => {
     }
   };
 
-  const calculateFee = (amount) => {
+  const calculateFee = (amount, methodId = activeMethod?.id) => {
     if (!amount || isNaN(amount)) return 0;
+    if (methodId === "transfer") return 0;
     // Assuming 1% fee
     return parseFloat(amount) * 0.01;
   };
 
-  const calculateTotal = (amount) => {
+  const calculateTotal = (amount, methodId = activeMethod?.id) => {
     if (!amount || isNaN(amount)) return 0;
-    const fee = calculateFee(amount);
+    const fee = calculateFee(amount, methodId);
     return parseFloat(amount) + fee;
   };
 
@@ -418,6 +576,89 @@ const Withdraw = () => {
     );
   };
 
+  const renderVerificationModal = () => {
+    if (!showVerificationModal) return null;
+
+    return (
+      <motion.div
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="bg-gray-800 rounded-lg p-6 w-full max-w-md"
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+        >
+          <h3 className="text-xl font-medium text-white mb-2">
+            Confirm Withdrawal
+          </h3>
+          <p className="text-gray-400 mb-4 text-sm">
+            Enter the OTP sent to your email and your withdrawal PIN to confirm this withdrawal.
+          </p>
+
+          <div className="space-y-4">
+            <FormInput
+              label="Email OTP"
+              name="otpCode"
+              value={verificationData.otpCode}
+              onChange={handleVerificationChange}
+              placeholder="Enter 6-digit OTP"
+              required
+            />
+
+            <FormInput
+              label="Withdrawal PIN"
+              name="withdrawalPin"
+              type="password"
+              value={verificationData.withdrawalPin}
+              onChange={handleVerificationChange}
+              placeholder="Enter 4-6 digit PIN"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              onClick={() => {
+                setShowVerificationModal(false);
+                setPendingSubmissionData(null);
+                setVerificationData({ otpCode: "", withdrawalPin: "" });
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              onClick={handleResendOtp}
+              disabled={isSubmitting}
+            >
+              Resend OTP
+            </Button>
+
+            <Button
+              type="button"
+              fullWidth
+              onClick={handleConfirmWithdrawal}
+              disabled={isSubmitting}
+              isLoading={isSubmitting}
+            >
+              Confirm
+            </Button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
   const formatPrice = (price) => {
     if (!price) return "0.00";
     let formatted;
@@ -488,7 +729,7 @@ const Withdraw = () => {
               <h2 className="text-lg font-medium text-white mb-4">
                 Select Withdrawal Method
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 {withdrawalMethods.map((method) => (
                   <div
                     key={method.id}
@@ -564,12 +805,12 @@ const Withdraw = () => {
                 transition={{ delay: 0.2 }}
               >
                 <FormInput
-                  label="Withdrawal Amount ($)"
+                  label={activeMethod.id === "transfer" ? "Transfer Amount ($)" : "Withdrawal Amount ($)"}
                   name="amount"
                   type="number"
                   value={formData.amount}
                   onChange={handleChange}
-                  placeholder="Enter amount to withdraw"
+                  placeholder={activeMethod.id === "transfer" ? "Enter amount to transfer" : "Enter amount to withdraw"}
                   error={errors.amount}
                   required
                 />
@@ -642,6 +883,18 @@ const Withdraw = () => {
                   />
                 )}
 
+                {activeMethod.id === "transfer" && (
+                  <FormInput
+                    label="Recipient Account Number"
+                    name="transferAccountNumber"
+                    value={formData.transferAccountNumber}
+                    onChange={handleChange}
+                    placeholder="Enter recipient account number"
+                    error={errors.transferAccountNumber}
+                    required
+                  />
+                )}
+
                 <FormInput
                   label="Description (Optional)"
                   name="description"
@@ -656,7 +909,7 @@ const Withdraw = () => {
                   parseFloat(formData.amount) > 0 && (
                     <div className="bg-gray-800 p-4 rounded-lg my-6">
                       <h4 className="text-white font-medium mb-3">
-                        Withdrawal Summary
+                        {activeMethod.id === "transfer" ? "Transfer Summary" : "Withdrawal Summary"}
                       </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -674,15 +927,17 @@ const Withdraw = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Fee (1%):</span>
+                          <span className="text-gray-400">
+                            Fee ({activeMethod.id === "transfer" ? "0%" : "1%"}):
+                          </span>
                           <span className="text-white">
-                            ${calculateFee(formData.amount).toFixed(2)}
+                            ${calculateFee(formData.amount, activeMethod.id).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between font-medium">
                           <span className="text-gray-300">Total:</span>
                           <span className="text-white">
-                            ${calculateTotal(formData.amount).toFixed(2)}
+                            ${calculateTotal(formData.amount, activeMethod.id).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between pt-2 border-t border-gray-700">
@@ -703,7 +958,7 @@ const Withdraw = () => {
                     disabled={withdrawalStatus === "loading" || isSubmitting}
                     isLoading={isSubmitting}
                   >
-                    <FaArrowRight className="mr-2" /> Submit Withdrawal
+                    <FaArrowRight className="mr-2" /> {activeMethod.id === "transfer" ? "Send Transfer" : "Submit Withdrawal"}
                   </Button>
                 </div>
               </motion.form>
@@ -716,6 +971,9 @@ const Withdraw = () => {
       <AnimatePresence>
         {showConfirmation && renderWithdrawalConfirmation()}
       </AnimatePresence>
+
+      {/* Verification modal */}
+      <AnimatePresence>{renderVerificationModal()}</AnimatePresence>
     </DashboardLayout>
   );
 };

@@ -27,6 +27,7 @@ import {
   selectUserProfile,
   selectUserName,
   selectUserBalance,
+  selectUserBonusBalance,
   fetchUserProfile,
   selectUserLoading,
   selectUserEmail,
@@ -50,6 +51,7 @@ const navigationGroups = [
         label: "Invest",
         icon: <FaChartLine />,
         path: "/login/investmentplans",
+        badge: "Rich",
       },
     ],
   },
@@ -144,6 +146,7 @@ const DashboardSidebar = ({ isMobile }) => {
   const userProfile = useSelector(selectUserProfile);
   const userName = useSelector(selectUserName);
   const userBalance = useSelector(selectUserBalance);
+  const userBonusBalance = useSelector(selectUserBonusBalance);
   const user = useSelector((state) => state.user.profile);
   const userEmail = useSelector(selectUserEmail);
   const isLoading = useSelector(selectUserLoading);
@@ -322,6 +325,17 @@ const DashboardSidebar = ({ isMobile }) => {
           <div className="text-white font-bold">
             $
             {`${userBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          </div>
+        </div>
+
+        <div className="mt-2 bg-gray-700/30 rounded-lg p-2">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-gray-400">Bonus Balance</span>
+            <span className="text-xs text-gray-400">Rewards</span>
+          </div>
+          <div className="text-primary-200 font-bold">
+            $
+            {`${userBonusBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           </div>
         </div>
       </div>

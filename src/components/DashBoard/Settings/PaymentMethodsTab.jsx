@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectPaymentMethods,
@@ -8,6 +8,7 @@ import {
   removePaymentMethod,
   setDefaultPaymentMethod,
   updatePaymentMethod,
+  fetchPaymentMethods,
 } from "../../../redux/slices/userSlice";
 import {
   FaCreditCard,
@@ -41,6 +42,7 @@ const PaymentMethodsTab = () => {
     expiryMonth: "",
     expiryYear: "",
     cvv: "",
+    stripePaymentMethodId: "",
     isDefault: false,
   });
 
@@ -58,6 +60,10 @@ const PaymentMethodsTab = () => {
     nickname: "",
     isDefault: false,
   });
+
+  useEffect(() => {
+    dispatch(fetchPaymentMethods());
+  }, [dispatch]);
 
   const handleCardChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -97,6 +103,7 @@ const PaymentMethodsTab = () => {
         expiryMonth: parseInt(cardFormData.expiryMonth),
         expiryYear: parseInt(cardFormData.expiryYear),
         cvv: cardFormData.cvv,
+        stripePaymentMethodId: cardFormData.stripePaymentMethodId || undefined,
         isDefault: cardFormData.isDefault,
       };
 
@@ -111,6 +118,7 @@ const PaymentMethodsTab = () => {
           expiryMonth: "",
           expiryYear: "",
           cvv: "",
+          stripePaymentMethodId: "",
           isDefault: false,
         });
         setShowAddForm(false);
@@ -397,6 +405,14 @@ const PaymentMethodsTab = () => {
                     />
                   </div>
                 </div>
+
+                <FormInput
+                  label="Stripe PaymentMethod ID (optional)"
+                  name="stripePaymentMethodId"
+                  value={cardFormData.stripePaymentMethodId}
+                  onChange={handleCardChange}
+                  placeholder="pm_..."
+                />
 
                 <div className="flex items-center">
                   <input

@@ -13,6 +13,7 @@ export default function Checkout(){
   const cart = useSelector((s)=>s.shop.cart);
   const user = useSelector((s)=>s.user.profile);
   const [address, setAddress] = useState({ fullName: user?.firstName + ' ' + user?.lastName || '', addressLine1: '', city: '', country: '' });
+  const [paymentMethod, setPaymentMethod] = useState("balance");
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -25,7 +26,7 @@ export default function Checkout(){
         return;
       }
 
-      const payload = { shippingAddress: address, paymentMethod: 'balance' };
+      const payload = { shippingAddress: address, paymentMethod };
       const res = await dispatch(createOrder(payload)).unwrap();
       showToast('Order created successfully', { type: 'success' });
       navigate(`/login/shop/orders/${res.data.order._id}`);
@@ -55,14 +56,40 @@ export default function Checkout(){
               <input className="w-full p-2 rounded-lg bg-gray-900 border border-gray-700 mb-2" placeholder="City" value={address.city} onChange={(e)=>setAddress({...address, city: e.target.value})} />
               <input className="w-full p-2 rounded-lg bg-gray-900 border border-gray-700 mb-2" placeholder="Country" value={address.country} onChange={(e)=>setAddress({...address, country: e.target.value})} />
             </div>
+
+            <div className="mt-4 bg-gray-800/60 border border-gray-700 p-4 rounded-lg">
+              <div className="font-semibold mb-3">Payment Method</div>
+              <div className="text-sm text-gray-400 mb-2">
+                Balance: ${(Number(user?.balance || 0)).toFixed(2)} · Bonus: ${(Number(user?.bonusBalance || 0)).toFixed(2)}
+              </div>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full p-2 rounded-lg bg-gray-900 border border-gray-700"
+              >
+                <option value="balance">Pay with Balance</option>
+                <option value="bonus">Pay with Bonus Balance</option>
+              </select>
+              <div className="mt-2 text-xs text-gray-500">
+                {paymentMethod === "balance"
+                  ? "Cashback reward is credited to your BONUS balance when paying with Balance."
+                  : "No cashback reward when paying with Bonus balance."}
+              </div>
+            </div>
           </div>
           <div>
             <div className="bg-gray-800/60 border border-gray-700 p-4 rounded-lg">
               <div className="font-semibold mb-2">Order Summary</div>
               <div className="mb-2 text-sm text-gray-400">Items: {(cart.items||[]).length}</div>
               <div className="mb-2 text-sm">Subtotal: ${(cart.summary?.subtotal||0).toFixed(2)}</div>
-              <div className="mb-4 text-sm text-green-400">Reward: ${(cart.summary?.potentialReward||0).toFixed(2)}</div>
-              <Button fullWidth isLoading={loading} onClick={handlePlaceOrder}>Place Order (Pay with Balance)</Button>
+              <div className="mb-4 text-sm text-green-400">
+                Reward: ${(
+                  paymentMethod === "balance" ? (cart.summary?.potentialReward || 0) : 0
+                ).toFixed(2)}
+              </div>
+              <Button fullWidth isLoading={loading} onClick={handlePlaceOrder}>
+                Place Order ({paymentMethod === "balance" ? "Pay with Balance" : "Pay with Bonus"})
+              </Button>
             </div>
           </div>
         </div>

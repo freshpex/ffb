@@ -72,6 +72,13 @@ const TradingDashboard = lazy(
 // Legal pages
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const GuidesPage = lazy(() => import("./pages/Resources/GuidesPage"));
+const VideosPage = lazy(() => import("./pages/Resources/VideosPage"));
+const MarketAnalysisPage = lazy(
+  () => import("./pages/Resources/MarketAnalysisPage"),
+);
+const FaqsPage = lazy(() => import("./pages/Resources/FaqsPage"));
+const Disclaimer = lazy(() => import("./pages/Disclaimer"));
 
 // Admin components
 const AdminLogin = lazy(() => import("./components/Admin/AdminLogin"));
@@ -97,6 +104,7 @@ const AdminNotifications = lazy(
   () => import("./components/Admin/AdminNotifications"),
 );
 const AdminProfile = lazy(() => import("./components/Admin/AdminProfile"));
+const AdminEmailCenter = lazy(() => import("./components/Admin/AdminEmailCenter"));
 const AdminEducationImporter = lazy(
   () => import("./components/Admin/AdminEducationImporter"),
 );
@@ -122,6 +130,11 @@ const VisitorAnalytics = lazy(
   () => import("./components/Admin/analytics/VisitorAnalytics"),
 );
 
+// Admin impersonation receiver (opens in a new tab)
+const ImpersonationReceiver = lazy(
+  () => import("./components/Admin/ImpersonationReceiver"),
+);
+
 // Error page
 const ErrorPage = lazy(() => import("./components/ErrorPage"));
 
@@ -144,8 +157,17 @@ function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/impersonate" element={<ImpersonationReceiver />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/resources/guides" element={<GuidesPage />} />
+          <Route path="/resources/videos" element={<VideosPage />} />
+          <Route
+            path="/resources/market-analysis"
+            element={<MarketAnalysisPage />}
+          />
+          <Route path="/resources/faqs" element={<FaqsPage />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
 
           {/* Protected Dashboard routes*/}
           <Route
@@ -381,6 +403,7 @@ function App() {
             <Route path="support/:ticketId" element={<SupportTicketDetail />} />
 
             {/* Admin settings and profile routes */}
+            <Route path="emails" element={<AdminEmailCenter />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="profile" element={<AdminProfile />} />

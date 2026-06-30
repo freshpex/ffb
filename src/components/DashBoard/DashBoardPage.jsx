@@ -19,6 +19,7 @@ import PriceAlerts from "./PriceAlerts";
 import QuickActions from "./QuickActions";
 import NotificationsPanel from "./Layout/NotificationsPanel";
 import AssetCards from "../trading/AssetCards";
+import WithdrawDummy from "../../pages/LandingPage/WithdrawDummy";
 
 const DashBoardPage = () => {
   const dispatch = useDispatch();
@@ -104,6 +105,11 @@ const DashBoardPage = () => {
 
             {/* Market News */}
             <MarketNews maxItems={3} />
+
+            {/* Live withdrawals ticker (FFB) */}
+            <div className="mt-4">
+              <WithdrawDummy compact className="" />
+            </div>
 
             {/* Market Pulse - visible only on mobile */}
             <div className="lg:hidden">

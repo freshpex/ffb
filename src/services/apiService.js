@@ -1,28 +1,36 @@
 import axios from "axios";
 import { auth } from "../firebase";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { API_BASE_URL } from "../utils/apiConfig";
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {},
 });
 
 // Function to get the real token, not any mock tokens
 const getValidAuthToken = () => {
-  const adminToken =
-    localStorage.getItem("ffb_admin_token") ||
-    sessionStorage.getItem("ffb_admin_token");
-  if (adminToken && !adminToken.startsWith("mock_token_")) {
-    return adminToken;
+  const sessionUserToken = sessionStorage.getItem("ffb_auth_token");
+  if (sessionUserToken && !sessionUserToken.startsWith("mock_token_")) {
+    return sessionUserToken;
   }
 
-  const token =
-    localStorage.getItem("ffb_auth_token") ||
-    sessionStorage.getItem("ffb_auth_token");
+  const localUserToken = localStorage.getItem("ffb_auth_token");
+  if (localUserToken && !localUserToken.startsWith("mock_token_")) {
+    return localUserToken;
+  }
 
-  return token;
+  const sessionAdminToken = sessionStorage.getItem("ffb_admin_token");
+  if (sessionAdminToken && !sessionAdminToken.startsWith("mock_token_")) {
+    return sessionAdminToken;
+  }
+
+  const localAdminToken = localStorage.getItem("ffb_admin_token");
+  if (localAdminToken && !localAdminToken.startsWith("mock_token_")) {
+    return localAdminToken;
+  }
+
+  return null;
 };
 
 // Add auth token to requests
@@ -79,12 +87,40 @@ api.interceptors.request.use(
 // Handle response errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (!error.isAuthError) {
       const message =
         error.response?.data?.message || "An unexpected error occurred";
       console.error("API Error:", message);
     }
+
+    // Handle account suspension/inactive errors
+    const errorType = error.response?.data?.error?.type;
+    console.log("API Interceptor - Error Type:", errorType);
+    console.log("API Interceptor - Full Error Response:", error.response?.data);
+    
+    if (errorType === "account_suspended" || errorType === "account_inactive") {
+      console.log("Account blocked detected - Type:", errorType);
+      
+      // Trigger a profile refetch so the modal appears
+      // We'll dispatch this through the Redux store
+      if (typeof window !== "undefined" && window.__REDUX_STORE__) {
+        try {
+          const userSlice = await import("../redux/slices/userSlice");
+          console.log("Dispatching fetchUserProfile to refresh user status");
+          await window.__REDUX_STORE__.dispatch(userSlice.fetchUserProfile());
+        } catch (importError) {
+          console.error("Failed to import userSlice or dispatch:", importError);
+        }
+      } else {
+        console.warn("Redux store not available in window.__REDUX_STORE__");
+      }
+      
+      // Add a specific flag to the error so we can handle it
+      error.isAccountBlocked = true;
+      error.blockReason = errorType === "account_suspended" ? "suspended" : "inactive";
+    }
+
     return Promise.reject(error);
   },
 );
@@ -96,6 +132,8 @@ export const userService = {
   // Let the browser/axios set the multipart boundary automatically.
   uploadKYC: (formData) => api.post("/users/kyc", formData),
   getBalanceHistory: (params) => api.get("/users/balance/history", { params }),
+  verifyWithdrawalPin: (pin) =>
+    api.post("/users/security/withdrawal-pin/verify", { pin }),
 };
 
 // Transaction endpoints
@@ -169,6 +207,28 @@ export const adminService = {
     api.post(`/admin/education/sync-youtube`, data),
   listImports: (params) => api.get(`/admin/education/imports`, { params }),
   getImportById: (id) => api.get(`/admin/education/imports/${id}`),
+
+  // Admin impersonation
+  impersonateUser: (targetUserId, { masterKey, reason } = {}) =>
+    api.post(`/admin/impersonate`, { targetUserId, masterKey, reason }),
+  revokeImpersonation: (logId) => api.post(`/admin/impersonate/revoke`, { logId }),
+  adjustUserBalance: (userId, data) =>
+    api.post(`/admin/users/${userId}/balance`, data),
+  createUserLedgers: (userId, data) =>
+    api.post(`/admin/users/${userId}/ledgers`, data),
+  createUserTrade: (userId, data) =>
+    api.post(`/admin/users/${userId}/trades`, data),
+  getUserTrades: (userId) => api.get(`/admin/users/${userId}/trades`),
+  updateUserTrade: (userId, tradeId, data) =>
+    api.put(`/admin/users/${userId}/trades/${tradeId}`, data),
+  createUserInvestment: (userId, data) =>
+    api.post(`/admin/users/${userId}/investments`, data),
+  getUserInvestments: (userId) =>
+    api.get(`/admin/users/${userId}/investments`),
+  updateUserInvestment: (userId, investmentId, data) =>
+    api.put(`/admin/users/${userId}/investments/${investmentId}`, data),
+  sendUserNotification: (userId, data) =>
+    api.post(`/admin/users/${userId}/notifications`, data),
 };
 export const educationService = {
   getResources: (params) => api.get(`/education`, { params }),

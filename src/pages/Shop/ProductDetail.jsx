@@ -14,6 +14,7 @@ export default function ProductDetail(){
   const loading = useSelector((s)=>s.shop.loading.products);
 
   const [buying, setBuying] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("balance");
   const { showToast } = useToast();
   const user = useSelector((s)=>s.user.profile);
   const navigate = useNavigate();
@@ -49,8 +50,13 @@ export default function ProductDetail(){
         return;
       }
 
-      const res = await dispatch(createOrder({ shippingAddress, paymentMethod: "balance" })).unwrap();
-      showToast("Purchase successful — reward credited", { type: "success" });
+      const res = await dispatch(createOrder({ shippingAddress, paymentMethod })).unwrap();
+      showToast(
+        paymentMethod === "balance"
+          ? "Purchase successful — reward credited to bonus"
+          : "Purchase successful",
+        { type: "success" }
+      );
       navigate(`/login/shop/orders/${res.data.order._id}`);
     } catch (err) {
       console.error(err);
@@ -75,6 +81,23 @@ export default function ProductDetail(){
             <h1 className="text-2xl font-bold">{product.title}</h1>
             <div className="text-xl text-primary-400 font-semibold mt-2">${(product.price||0).toFixed(2)}</div>
             <p className="mt-4 text-gray-300">{product.description}</p>
+
+            <div className="mt-6">
+              <div className="text-xs text-gray-400 mb-1">Pay with</div>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-gray-800/60 border border-gray-700 text-gray-100"
+              >
+                <option value="balance">Balance</option>
+                <option value="bonus">Bonus Balance</option>
+              </select>
+              <div className="mt-1 text-xs text-gray-500">
+                {paymentMethod === "balance"
+                  ? "Cashback reward is credited to your BONUS balance."
+                  : "No cashback reward when paying with Bonus balance."}
+              </div>
+            </div>
 
             <div className="mt-6 flex items-center gap-2">
               <Button onClick={handleAdd}>Add to cart</Button>

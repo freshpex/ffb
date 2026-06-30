@@ -253,10 +253,13 @@ const investmentSlice = createSlice({
         state.status.cancellation = "loading";
       })
       .addCase(cancelInvestment.fulfilled, (state, action) => {
+        const cancelled = action.payload?.data?.investment || action.payload?.data || action.payload;
+        const cancelledId = cancelled?._id || cancelled?.id;
         state.userInvestments.active = state.userInvestments.active.filter(
-          (investment) => investment.id !== action.payload.id,
+          (investment) =>
+            (investment._id || investment.id) !== cancelledId,
         );
-        state.userInvestments.history.unshift(action.payload);
+        state.userInvestments.history.unshift(cancelled);
         state.status.cancellation = "succeeded";
         state.error.cancellation = null;
       })
@@ -270,10 +273,13 @@ const investmentSlice = createSlice({
         state.status.withdrawal = "loading";
       })
       .addCase(withdrawInvestment.fulfilled, (state, action) => {
+        const withdrawn = action.payload?.data?.investment || action.payload?.data || action.payload;
+        const withdrawnId = withdrawn?._id || withdrawn?.id;
         state.userInvestments.active = state.userInvestments.active.filter(
-          (investment) => investment.id !== action.payload.id,
+          (investment) =>
+            (investment._id || investment.id) !== withdrawnId,
         );
-        state.userInvestments.history.unshift(action.payload);
+        state.userInvestments.history.unshift(withdrawn);
         state.status.withdrawal = "succeeded";
         state.error.withdrawal = null;
       })

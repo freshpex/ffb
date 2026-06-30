@@ -21,7 +21,7 @@ class WebSocketService {
   connect() {
     return new Promise((resolve, reject) => {
       try {
-        const wsUrl = import.meta.env.VITE_WS_URL || "wss://ffb.vercel.app";
+        const wsUrl = import.meta.env.VITE_WS_URL || "wss://ffbroker.com";
 
         // Add token for authentication if available
         const token = localStorage.getItem("token");

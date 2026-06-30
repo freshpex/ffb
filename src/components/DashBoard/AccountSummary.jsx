@@ -59,7 +59,7 @@ const AccountSummary = () => {
   }
 
   // Add proper null/undefined checks using optional chaining and default values
-  const accountNumber = userProfile?.accountNumber || "XXXX-XXXX-XXXX";
+  const accountNumber = userProfile?.accountNumber || "Not Assigned";
   const userName = userProfile?.firstName
     ? `${userProfile.firstName} ${userProfile.lastName || ""}`.trim()
     : "User";
@@ -76,6 +76,9 @@ const AccountSummary = () => {
   const totalDeposits = accountSummary?.totalDeposits || 0;
   const totalWithdrawals = accountSummary?.totalWithdrawals || 0;
   const trades = accountActivity?.trades || 0;
+
+  const bonusBalance =
+    accountSummary?.bonusBalance ?? userProfile?.bonusBalance ?? 0;
 
   // Determine currency
   const currency = accountSummary?.currency || "USD";
@@ -149,7 +152,7 @@ const AccountSummary = () => {
       </div>
 
       {/* Activity Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gray-700 rounded-lg p-4 flex items-center">
           <div className="bg-green-600/20 p-3 rounded-lg mr-3">
             <FaArrowDown className="text-green-500" />
@@ -185,6 +188,19 @@ const AccountSummary = () => {
             <p className="text-white font-semibold">
               {currency}
               {(accountSummary?.projectedEarnings || 0).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-gray-700 rounded-lg p-4 flex items-center">
+          <div className="bg-purple-600/20 p-3 rounded-lg mr-3">
+            <FaWallet className="text-purple-300" />
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs">Bonus Balance</p>
+            <p className="text-white font-semibold">
+              {currency}
+              {Number(bonusBalance || 0).toLocaleString()}
             </p>
           </div>
         </div>

@@ -65,4 +65,9 @@ const store = configureStore({
     }),
 });
 
+// Expose store globally for API interceptor
+if (typeof window !== "undefined") {
+  window.__REDUX_STORE__ = store;
+}
+
 export default store;

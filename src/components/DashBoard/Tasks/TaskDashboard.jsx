@@ -84,7 +84,16 @@ const TaskDashboard = () => {
   }, [showAlert]);
 
   // Filter tasks based on search query and filters
-  const filteredTasks = allTasks.filter((task) => {
+  const availableTasks = allTasks.filter((task) => {
+    return !(
+      task.userProgress &&
+      (task.userProgress.status === "completed" || task.userProgress.status === "claimed")
+    );
+  });
+
+  const baseTasks = activeTab === "available" ? availableTasks : allTasks;
+
+  const filteredTasks = baseTasks.filter((task) => {
     const matchesQuery =
       searchQuery.toLowerCase() === "" ||
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -128,6 +137,7 @@ const TaskDashboard = () => {
       .unwrap()
       .then(() => {
         showToast("Task started successfully", { type: "success" });
+        refreshTasks();
       })
       .catch((error) => {
         const msg = error?.message || error || "Failed to start task";
@@ -154,6 +164,8 @@ const TaskDashboard = () => {
       .unwrap()
       .then((result) => {
         showToast(`Reward of ${result.data.reward.amount} ${result.data.reward.type} claimed successfully!`, { type: "success" });
+        // Refresh tasks to show updated stats and new available tasks
+        refreshTasks();
       })
       .catch((error) => {
         const msg = error?.message || error || "Failed to claim reward";
@@ -198,6 +210,15 @@ const TaskDashboard = () => {
     return (
       category.charAt(0).toUpperCase() + category.slice(1).replace("_", " ")
     );
+  };
+
+  const getTaskDetailsFromUserTask = (userTask) => {
+    if (!userTask) return null;
+    if (userTask.task && typeof userTask.task === "object") {
+      return userTask.task;
+    }
+    const taskId = userTask.task;
+    return allTasks.find((task) => (task._id || task.id) === taskId) || null;
   };
 
   // Render task tabs
@@ -436,7 +457,7 @@ const TaskDashboard = () => {
           <div className="divide-y divide-gray-700">
             {inProgressTasks.length > 0 ? (
               inProgressTasks.map((userTask) => {
-                const task = allTasks.find((t) => t.id === userTask.task);
+                const task = getTaskDetailsFromUserTask(userTask);
                 return task ? (
                   <TaskItem
                     key={
@@ -469,15 +490,39 @@ const TaskDashboard = () => {
   };
 
   // Render completed tasks tab
-  const renderCompletedTasks = () => (
-    <CompletedTaskList
-      userTasks={userTasks.filter(
-        (task) => task.status === "completed" || task.status === "claimed",
-      )}
-      allTasks={allTasks}
-      onClaimReward={handleClaimReward}
-    />
-  );
+  const renderCompletedTasks = () => {
+    const completedUserTasks = userTasks.filter(
+      (task) => task.status === "completed" || task.status === "claimed",
+    );
+
+    const completedTasks = completedUserTasks
+      .map((userTask) => {
+        const taskDetails = getTaskDetailsFromUserTask(userTask);
+        if (!taskDetails) return null;
+        return {
+          id: taskDetails._id || taskDetails.id || userTask._id || userTask.id,
+          title: taskDetails.title || userTask.title || "Task",
+          reward: {
+            amount: userTask.rewardAmount ?? taskDetails.reward ?? 0,
+            type: userTask.rewardType || taskDetails.rewardType || "cash",
+          },
+          userProgress: {
+            status: userTask.status,
+            completedAt: userTask.completedAt,
+            updatedAt: userTask.updatedAt,
+          },
+        };
+      })
+      .filter(Boolean);
+
+    return (
+      <CompletedTaskList
+        tasks={completedTasks}
+        onClaimReward={handleClaimReward}
+        allTasks={allTasks}
+      />
+    );
+  };
 
   // Render statistics tab
   const renderStatisticsTab = () => (
@@ -560,7 +605,7 @@ const TaskDashboard = () => {
               </div>
             </div>
             <div className="text-xl md:text-2xl font-bold text-white">
-              {allTasks.length}
+              {availableTasks.length}
             </div>
             <div className="mt-1 md:mt-2 text-xs md:text-sm text-blue-400">
               {userTasks.filter((task) => task.status === "in_progress").length}{" "}

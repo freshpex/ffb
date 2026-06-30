@@ -40,7 +40,7 @@ const TradeForm = ({ symbol, initialSide = "buy" }) => {
 
       try {
         setLoading(true);
-        const { data } = await api.get(`/api/market/price`, {
+        const { data } = await api.get(`/trading/market/price`, {
           params: { symbol },
         });
 
@@ -57,7 +57,7 @@ const TradeForm = ({ symbol, initialSide = "buy" }) => {
 
     const fetchBalance = async () => {
       try {
-        const { data } = await api.get("/api/users/profile");
+        const { data } = await api.get("/users/profile");
         setBalance(data.balance || 0);
       } catch (err) {
         console.error("Error fetching balance:", err);

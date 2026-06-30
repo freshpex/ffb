@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 import {
@@ -9,10 +9,13 @@ import {
   FaQrcode,
   FaDownload,
 } from "react-icons/fa";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import Button from "./Button";
 
 const TransactionDetailsModal = ({ transaction, onClose, showQR = false }) => {
   const [copySuccess, setCopySuccess] = useState(null);
+  const receiptRef = useRef(null);
 
   // Handle copy to clipboard function
   const handleCopy = (text) => {
@@ -74,6 +77,39 @@ const TransactionDetailsModal = ({ transaction, onClose, showQR = false }) => {
   const transactionType =
     transaction.type || (transaction.amount < 0 ? "withdrawal" : "deposit");
 
+  const getReceiptNumber = () =>
+    transaction.reference || transaction.id || transaction._id;
+
+  const getReceiptDate = () =>
+    formatDate(transaction.processedAt || transaction.createdAt);
+
+  const getReceiptAmount = () => Math.abs(transaction.amount || 0);
+
+  const getReceiptFee = () => Math.abs(transaction.fee || 0);
+
+  const getReceiptTotal = () => getReceiptAmount() + getReceiptFee();
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current) return;
+
+    const canvas = await html2canvas(receiptRef.current, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    const safeType = transactionType.toLowerCase();
+    const filename = `FFB-${safeType}-receipt-${getReceiptNumber()}.pdf`;
+    pdf.save(filename);
+  };
+
   return (
     <motion.div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto"
@@ -88,6 +124,113 @@ const TransactionDetailsModal = ({ transaction, onClose, showQR = false }) => {
         animate={{ scale: 1, y: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Off-screen receipt for PDF generation */}
+        <div className="absolute left-[-9999px] top-0">
+          <div
+            ref={receiptRef}
+            className="w-[700px] bg-white text-gray-900 p-8"
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/favicon.ico"
+                  alt="FFB"
+                  className="h-12 w-12"
+                />
+                <div>
+                  <p className="text-lg font-bold">Fidelity First Brokers</p>
+                  <p className="text-xs text-gray-500">
+                    Transaction Receipt
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Receipt No</p>
+                <p className="text-sm font-semibold">{getReceiptNumber()}</p>
+                <p className="text-xs text-gray-500 mt-1">Issued</p>
+                <p className="text-sm font-semibold">{getReceiptDate()}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="rounded border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">Transaction Type</p>
+                <p className="text-sm font-semibold capitalize">
+                  {transactionType}
+                </p>
+                <p className="text-xs text-gray-500 mt-3">Status</p>
+                <p className="text-sm font-semibold capitalize">
+                  {transaction.status}
+                </p>
+                <p className="text-xs text-gray-500 mt-3">Method</p>
+                <p className="text-sm font-semibold capitalize">
+                  {transaction.method}
+                </p>
+              </div>
+              <div className="rounded border border-gray-200 p-4">
+                <p className="text-xs text-gray-500">Amount</p>
+                <p className="text-sm font-semibold">
+                  {formatCurrency(getReceiptAmount(), transaction.currency)}
+                </p>
+                {transaction.fee > 0 && (
+                  <>
+                    <p className="text-xs text-gray-500 mt-3">Fee</p>
+                    <p className="text-sm font-semibold">
+                      {formatCurrency(getReceiptFee(), transaction.currency)}
+                    </p>
+                  </>
+                )}
+                <p className="text-xs text-gray-500 mt-3">Total</p>
+                <p className="text-lg font-bold">
+                  {formatCurrency(getReceiptTotal(), transaction.currency)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded border border-gray-200 p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500">Transaction ID</p>
+                  <p className="text-sm font-semibold">
+                    {transaction.id || transaction._id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Reference</p>
+                  <p className="text-sm font-semibold">
+                    {transaction.reference || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className="text-sm font-semibold">
+                    {formatDate(transaction.createdAt)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Currency</p>
+                  <p className="text-sm font-semibold">
+                    {transaction.currency || "USD"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex items-center justify-between text-xs text-gray-500">
+              <div>
+                <p className="font-semibold text-gray-700">
+                  Official Receipt
+                </p>
+                <p>Thank you for choosing FFB.</p>
+              </div>
+              <div className="text-right">
+                <p className="uppercase tracking-widest">Authorized</p>
+                <div className="mt-6 w-40 border-t border-gray-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-between items-center p-6 border-b border-gray-700">
           <h3 className="text-xl font-semibold text-white">
             Transaction Details
@@ -293,7 +436,7 @@ const TransactionDetailsModal = ({ transaction, onClose, showQR = false }) => {
               <Button
                 variant="outline"
                 fullWidth
-                onClick={() => handleCopy(transaction.id || transaction._id)}
+                onClick={handleDownloadReceipt}
               >
                 <FaDownload className="mr-2" /> Download Receipt
               </Button>

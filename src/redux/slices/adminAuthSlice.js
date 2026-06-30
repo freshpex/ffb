@@ -1,16 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { API_BASE_URL } from "../../utils/apiConfig";
 
 // Update the loginAdmin thunk to use the backend API
 export const loginAdmin = createAsyncThunk(
   "adminAuth/login",
   async (credentials, { rejectWithValue }) => {
     try {
-      // Get the API URL from environment variable
-      const apiUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
       // Make the actual API call
-      const response = await fetch(`${apiUrl}/admin/login`, {
+      const response = await fetch(`${API_BASE_URL}/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -37,6 +34,7 @@ export const loginAdmin = createAsyncThunk(
 export const logoutAdmin = createAsyncThunk("adminAuth/logout", async () => {
   // Remove token from localStorage
   localStorage.removeItem("ffb_admin_token");
+  sessionStorage.removeItem("ffb_admin_token");
   return true;
 });
 
@@ -51,12 +49,8 @@ export const checkAdminAuth = createAsyncThunk(
         return rejectWithValue("No token found");
       }
 
-      // Get the API URL from environment variable
-      const apiUrl =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
       // Verify token with backend
-      const response = await fetch(`${apiUrl}/admin/verify-token`, {
+      const response = await fetch(`${API_BASE_URL}/admin/verify-token`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

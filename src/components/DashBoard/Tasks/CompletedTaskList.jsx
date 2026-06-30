@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const CompletedTaskList = ({ tasks }) => {
+const CompletedTaskList = ({ tasks, onClaimReward }) => {
   if (!tasks || tasks.length === 0) {
     return (
       <div className="bg-gray-800 rounded-lg p-6 text-center">
@@ -57,7 +57,7 @@ const CompletedTaskList = ({ tasks }) => {
       <ul className="space-y-3">
         {tasks.map((task) => (
           <motion.li
-            key={task.id}
+            key={task.id || task._id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-gray-700 rounded-md p-3 flex items-center justify-between"
@@ -89,10 +89,17 @@ const CompletedTaskList = ({ tasks }) => {
                 </span>
               </div>
 
-              {task.userProgress.status === "claimed" && (
+              {task.userProgress.status === "claimed" ? (
                 <span className="ml-2 text-xs bg-green-900/30 text-green-400 border border-green-500 rounded-full px-2 py-1">
                   Claimed
                 </span>
+              ) : (
+                <button
+                  onClick={() => onClaimReward(task.id || task._id)}
+                  className="ml-2 text-xs bg-blue-900/30 text-blue-300 border border-blue-500 rounded-full px-2 py-1 hover:bg-blue-900/50"
+                >
+                  Claim Reward
+                </button>
               )}
             </div>
           </motion.li>
@@ -105,7 +112,8 @@ const CompletedTaskList = ({ tasks }) => {
 CompletedTaskList.propTypes = {
   tasks: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.string,
+      _id: PropTypes.string,
       title: PropTypes.string.isRequired,
       reward: PropTypes.shape({
         amount: PropTypes.number.isRequired,
@@ -118,6 +126,7 @@ CompletedTaskList.propTypes = {
       }).isRequired,
     }),
   ).isRequired,
+  onClaimReward: PropTypes.func.isRequired,
 };
 
 export default CompletedTaskList;

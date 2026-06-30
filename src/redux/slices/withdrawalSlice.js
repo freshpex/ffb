@@ -55,6 +55,12 @@ export const submitWithdrawal = createAsyncThunk(
       } else if (withdrawalData.method === "paypal") {
         formattedData.paypalEmail = withdrawalData.paypalEmail;
       }
+      if (withdrawalData.withdrawalPin) {
+        formattedData.withdrawalPin = withdrawalData.withdrawalPin;
+      }
+      if (withdrawalData.otpCode) {
+        formattedData.otpCode = withdrawalData.otpCode;
+      }
       const response = await apiClient.post("/withdrawals", formattedData);
       return response.data;
     } catch (error) {
@@ -69,6 +75,55 @@ export const submitWithdrawal = createAsyncThunk(
           error?.response?.data?.message ||
           error?.message ||
           "Failed to process withdrawal",
+        type: apiErr?.type || error?.response?.data?.type,
+      });
+    }
+  },
+);
+
+export const requestWithdrawalOtp = createAsyncThunk(
+  "withdrawal/requestWithdrawalOtp",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post("/withdrawals/request-otp");
+      return response.data;
+    } catch (error) {
+      const apiErr = error?.response?.data?.error;
+      return rejectWithValue({
+        message:
+          apiErr?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to send OTP",
+        type: apiErr?.type || error?.response?.data?.type,
+      });
+    }
+  },
+);
+
+export const submitInternalTransfer = createAsyncThunk(
+  "withdrawal/submitInternalTransfer",
+  async ({ toAccountNumber, amount, description } = {}, { rejectWithValue }) => {
+    try {
+      const payload = {
+        toAccountNumber,
+        amount: parseFloat(amount),
+        ...(description ? { description } : {}),
+      };
+      const response = await apiClient.post("/withdrawals/transfer", payload);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Internal transfer error:",
+        error.response?.data || error.message,
+      );
+      const apiErr = error?.response?.data?.error;
+      return rejectWithValue({
+        message:
+          apiErr?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to transfer funds",
         type: apiErr?.type || error?.response?.data?.type,
       });
     }
@@ -155,6 +210,49 @@ const withdrawalSlice = createSlice({
         } else {
           state.error =
             payload || action.error?.message || "Failed to process withdrawal";
+          state.errorType = null;
+        }
+      })
+
+      // Handle requestWithdrawalOtp
+      .addCase(requestWithdrawalOtp.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.errorType = null;
+      })
+      .addCase(requestWithdrawalOtp.fulfilled, (state) => {
+        state.status = "succeeded";
+      })
+      .addCase(requestWithdrawalOtp.rejected, (state, action) => {
+        state.status = "failed";
+        const payload = action.payload;
+        if (payload && typeof payload === "object") {
+          state.error = payload.message || "Failed to send OTP";
+          state.errorType = payload.type || null;
+        } else {
+          state.error = payload || action.error?.message || "Failed to send OTP";
+          state.errorType = null;
+        }
+      })
+
+      // Handle submitInternalTransfer
+      .addCase(submitInternalTransfer.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+        state.errorType = null;
+      })
+      .addCase(submitInternalTransfer.fulfilled, (state) => {
+        state.status = "succeeded";
+      })
+      .addCase(submitInternalTransfer.rejected, (state, action) => {
+        state.status = "failed";
+        const payload = action.payload;
+        if (payload && typeof payload === "object") {
+          state.error = payload.message || "Failed to transfer funds";
+          state.errorType = payload.type || null;
+        } else {
+          state.error =
+            payload || action.error?.message || "Failed to transfer funds";
           state.errorType = null;
         }
       })

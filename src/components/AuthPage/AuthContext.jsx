@@ -10,32 +10,41 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../../firebase";
+import { API_BASE_URL } from "../../utils/apiConfig";
 
 const AuthContext = createContext();
 const CURRENT_USER_KEY = "ffb_current_user";
 const AUTH_TOKEN_KEY = "ffb_auth_token";
-const apiUrl = import.meta.env.VITE_API_URL;
-1;
+const apiUrl = API_BASE_URL;
+
+const getStoredToken = () =>
+  sessionStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(AUTH_TOKEN_KEY);
+
+const getStoredUserJson = () =>
+  sessionStorage.getItem(CURRENT_USER_KEY) || localStorage.getItem(CURRENT_USER_KEY);
+
 export function AuthContextProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
+  const [token, setToken] = useState(() => getStoredToken());
 
   const saveCurrentUser = (userData) => {
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
+    sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
   };
 
   // Helper function to get current user data from localStorage
   const getCurrentUser = () => {
-    const userJson = localStorage.getItem(CURRENT_USER_KEY);
+    const userJson = getStoredUserJson();
     return userJson ? JSON.parse(userJson) : null;
   };
 
   // Helper function to save auth token
   const saveToken = (authToken) => {
     localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+    sessionStorage.setItem(AUTH_TOKEN_KEY, authToken);
     setToken(authToken);
   };
 
@@ -246,6 +255,8 @@ export function AuthContextProvider({ children }) {
     setUserData(null);
     localStorage.removeItem(CURRENT_USER_KEY);
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(CURRENT_USER_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
     setToken(null);
     return signOut(auth);
   };
@@ -265,23 +276,20 @@ export function AuthContextProvider({ children }) {
 
   const getUserProfile = async () => {
     try {
-      if (!user) {
-        console.warn("Cannot fetch user profile: User is not logged in");
+      const activeToken = token || getStoredToken();
 
-        if (token) {
-          const cachedUser = getCurrentUser();
-          if (cachedUser) {
-            setUserData(cachedUser);
-            return cachedUser;
-          }
+      if (!activeToken) {
+        const cachedUser = getCurrentUser();
+        if (cachedUser) {
+          setUserData(cachedUser);
+          return cachedUser;
         }
-
         return null;
       }
 
       const response = await fetch(`${apiUrl}/users/profile`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${activeToken}`,
         },
       });
 
@@ -313,7 +321,7 @@ export function AuthContextProvider({ children }) {
 
   // Initialize with stored token
   useEffect(() => {
-    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    const storedToken = getStoredToken();
     if (storedToken) {
       setToken(storedToken);
 
@@ -337,7 +345,7 @@ export function AuthContextProvider({ children }) {
             setUserData(cachedUser);
           }
 
-          const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+          const storedToken = getStoredToken();
           if (storedToken) {
             setToken(storedToken);
           } else {
@@ -355,20 +363,31 @@ export function AuthContextProvider({ children }) {
           setLoading(false);
         }
       } else {
-        if (token) {
+        const storedToken = getStoredToken();
+        if (storedToken) {
+          setToken(storedToken);
+
           const cachedUser = getCurrentUser();
           if (cachedUser) {
             setUserData(cachedUser);
-          } else {
+          }
+
+          try {
+            await getUserProfile();
+          } catch (e) {
             localStorage.removeItem(CURRENT_USER_KEY);
             localStorage.removeItem(AUTH_TOKEN_KEY);
+            sessionStorage.removeItem(CURRENT_USER_KEY);
+            sessionStorage.removeItem(AUTH_TOKEN_KEY);
             setToken(null);
             setUserData(null);
+          } finally {
+            setLoading(false);
           }
-        } else {
-          setUserData(null);
+          return;
         }
 
+        setUserData(null);
         setLoading(false);
       }
     });

@@ -7,10 +7,21 @@ import {
   FaInfoCircle,
   FaTag,
 } from "react-icons/fa";
+import { formatExpectedReturn } from "../../../utils/investmentReturns";
 
 const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
   // Check if user has enough balance to invest in this plan
-  const canInvest = userBalance >= plan.minAmount;
+  const isActive = plan.isActive !== false;
+  const canInvest = isActive && userBalance >= plan.minAmount;
+  const riskLabel = `${plan.riskLevel || plan.id || ""}`;
+  const formattedRiskLabel = riskLabel
+    ? `${riskLabel.charAt(0).toUpperCase()}${riskLabel.slice(1)} Risk`
+    : "Standard Risk";
+  const showAmountRange = plan.maxAmount && plan.maxAmount !== plan.minAmount;
+  const features =
+    plan.features?.length > 0
+      ? plan.features
+      : ["Fixed ROI amount", "Clear maturity payout", "Priority processing"];
 
   // Determine risk color - Added null check for riskLevel
   const getRiskColor = (planId) => {
@@ -40,26 +51,38 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
         </div>
       )}
 
+      {!isActive && (
+        <div className="bg-yellow-600 text-white text-xs font-bold px-3 py-1 text-center">
+          TEMPORARILY UNAVAILABLE
+        </div>
+      )}
+
       <div className="p-5">
         <div className="flex justify-between items-start">
           <h3 className="text-xl font-bold text-gray-100">{plan.name}</h3>
           <span
             className={`text-sm font-medium ${getRiskColor(plan.riskLevel || plan.id)}`}
           >
-            {(plan.riskLevel || plan.id) + " Risk"}
+            {formattedRiskLabel}
           </span>
         </div>
 
         <p className="text-gray-400 mt-2 text-sm">{plan.description}</p>
 
+        {!isActive && plan.deactivationReason && (
+          <div className="mt-3 rounded-md border border-yellow-500/40 bg-yellow-900/20 p-3 text-xs text-yellow-200">
+            {plan.deactivationReason}
+          </div>
+        )}
+
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="bg-gray-700/50 rounded-lg p-3">
             <div className="flex items-center text-gray-400 text-xs mb-1">
               <FaPercent className="mr-1" size={12} />
-              <span>RETURN</span>
+              <span>ROI</span>
             </div>
             <div className="text-xl font-bold text-primary-500">
-              {plan.roi ?? plan.returnRate * 100}%
+              {formatExpectedReturn(plan.minAmount, plan)}
             </div>
           </div>
 
@@ -84,14 +107,14 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
               <span className="text-lg font-bold">
                 ${plan.minAmount.toLocaleString()}
               </span>
-              {plan.maxAmount ? (
+              {showAmountRange ? (
                 <span className="text-gray-400">
                   {" "}
                   - ${plan.maxAmount.toLocaleString()}
                 </span>
-              ) : (
+              ) : !plan.maxAmount ? (
                 <span className="text-gray-400"> and above</span>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -102,8 +125,7 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
             Features
           </h4>
           <ul className="text-gray-400 text-sm space-y-1">
-            {plan.features &&
-              plan.features.map((feature, index) => (
+            {features.map((feature, index) => (
                 <li key={index} className="flex items-start">
                   <FaTag
                     className="mr-2 mt-1 text-primary-500 flex-shrink-0"
@@ -132,11 +154,11 @@ const InvestmentPlanCard = ({ plan, userBalance, onClick }) => {
               <FaArrowRight className="ml-2" size={14} />
             </>
           ) : (
-            <span>Insufficient Balance</span>
+            <span>{isActive ? "Insufficient Balance" : "Plan Unavailable"}</span>
           )}
         </button>
 
-        {!canInvest && (
+        {!canInvest && isActive && (
           <p className="text-xs text-red-400 mt-2 text-center">
             You need at least ${plan.minAmount.toLocaleString()} to invest in
             this plan
@@ -155,10 +177,15 @@ InvestmentPlanCard.propTypes = {
     minAmount: PropTypes.number.isRequired,
     maxAmount: PropTypes.number,
     roi: PropTypes.number.isRequired,
+    roiAmount: PropTypes.number,
+    baseAmount: PropTypes.number,
+    returnRate: PropTypes.number,
     duration: PropTypes.number.isRequired,
     features: PropTypes.arrayOf(PropTypes.string),
     riskLevel: PropTypes.string,
     recommended: PropTypes.bool,
+    isActive: PropTypes.bool,
+    deactivationReason: PropTypes.string,
   }).isRequired,
   userBalance: PropTypes.number.isRequired,
   onClick: PropTypes.func.isRequired,

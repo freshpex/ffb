@@ -4,15 +4,19 @@ import { fetchCart, updateCartItem, removeFromCart } from "../../redux/slices/sh
 import Button from "../../components/common/Button";
 import ComponentLoader from "../../components/common/ComponentLoader";
 import DashboardLayout from "../../components/DashBoard/Layout/DashboardLayout";
+import { useToast } from "../../context/ToastContext";
 
 export default function CartPage(){
   const dispatch = useDispatch();
   const cart = useSelector((s)=>s.shop.cart);
   const loading = useSelector((s)=>s.shop.loading.cart);
+  const { showToast } = useToast();
 
   useEffect(()=>{
     dispatch(fetchCart());
   },[]);
+
+  const safeId = (it) => String(it?.productId?._id || it?.productId || "");
 
   if(loading) return (
     <DashboardLayout>
@@ -35,9 +39,50 @@ export default function CartPage(){
                     <div className="text-sm text-gray-400">${(it.price||0).toFixed(2)} × {it.quantity}</div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Button size="small" onClick={()=>dispatch(updateCartItem({ productId: it.productId._id||it.productId, quantity: it.quantity+1 }))}>+</Button>
-                    <Button size="small" onClick={()=>dispatch(updateCartItem({ productId: it.productId._id||it.productId, quantity: Math.max(1, it.quantity-1) }))}>-</Button>
-                    <Button size="small" variant="outline" onClick={()=>dispatch(removeFromCart(it.productId._id||it.productId))}>Remove</Button>
+                    <Button
+                      size="small"
+                      onClick={async () => {
+                        const pid = safeId(it);
+                        if (!pid) return;
+                        try {
+                          await dispatch(updateCartItem({ productId: pid, quantity: it.quantity + 1 })).unwrap();
+                        } catch (err) {
+                          showToast(String(err || "Failed to update cart"), { type: "error" });
+                        }
+                      }}
+                    >
+                      +
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={async () => {
+                        const pid = safeId(it);
+                        if (!pid) return;
+                        try {
+                          await dispatch(updateCartItem({ productId: pid, quantity: Math.max(1, it.quantity - 1) })).unwrap();
+                        } catch (err) {
+                          showToast(String(err || "Failed to update cart"), { type: "error" });
+                        }
+                      }}
+                    >
+                      -
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outline"
+                      onClick={async () => {
+                        const pid = safeId(it);
+                        if (!pid) return;
+                        try {
+                          await dispatch(removeFromCart(pid)).unwrap();
+                          showToast("Item removed", { type: "success" });
+                        } catch (err) {
+                          showToast(String(err || "Failed to remove item"), { type: "error" });
+                        }
+                      }}
+                    >
+                      Remove
+                    </Button>
                   </div>
                 </div>
               ))}

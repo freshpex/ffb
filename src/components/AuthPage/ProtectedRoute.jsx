@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import Loader from "../common/Loader";
@@ -6,11 +5,12 @@ import Loader from "../common/Loader";
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
   const location = useLocation();
-  const [showLoader, setShowLoader] = useState(true);
-
- 
   if (loading) {
-    return <Loader text="Authenticating..." />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <Loader size="large" color="primary" />
+      </div>
+    );
   }
 
   // Only check for token existence
