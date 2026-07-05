@@ -4,6 +4,7 @@ import {
   createSelector,
 } from "@reduxjs/toolkit";
 import apiClient from "../../services/apiService";
+import { getFriendlyApiErrorMessage } from "../../utils/apiErrorMessages";
 
 // Initial state structure
 const initialState = {
@@ -70,11 +71,10 @@ export const submitWithdrawal = createAsyncThunk(
       );
       const apiErr = error?.response?.data?.error;
       return rejectWithValue({
-        message:
-          apiErr?.message ||
-          error?.response?.data?.message ||
-          error?.message ||
+        message: getFriendlyApiErrorMessage(
+          apiErr || error?.response?.data || error,
           "Failed to process withdrawal",
+        ),
         type: apiErr?.type || error?.response?.data?.type,
       });
     }
@@ -90,11 +90,10 @@ export const requestWithdrawalOtp = createAsyncThunk(
     } catch (error) {
       const apiErr = error?.response?.data?.error;
       return rejectWithValue({
-        message:
-          apiErr?.message ||
-          error?.response?.data?.message ||
-          error?.message ||
+        message: getFriendlyApiErrorMessage(
+          apiErr || error?.response?.data || error,
           "Failed to send OTP",
+        ),
         type: apiErr?.type || error?.response?.data?.type,
       });
     }
@@ -103,7 +102,10 @@ export const requestWithdrawalOtp = createAsyncThunk(
 
 export const submitInternalTransfer = createAsyncThunk(
   "withdrawal/submitInternalTransfer",
-  async ({ toAccountNumber, amount, description } = {}, { rejectWithValue }) => {
+  async (
+    { toAccountNumber, amount, description } = {},
+    { rejectWithValue },
+  ) => {
     try {
       const payload = {
         toAccountNumber,
@@ -119,11 +121,10 @@ export const submitInternalTransfer = createAsyncThunk(
       );
       const apiErr = error?.response?.data?.error;
       return rejectWithValue({
-        message:
-          apiErr?.message ||
-          error?.response?.data?.message ||
-          error?.message ||
+        message: getFriendlyApiErrorMessage(
+          apiErr || error?.response?.data || error,
           "Failed to transfer funds",
+        ),
         type: apiErr?.type || error?.response?.data?.type,
       });
     }
@@ -230,7 +231,8 @@ const withdrawalSlice = createSlice({
           state.error = payload.message || "Failed to send OTP";
           state.errorType = payload.type || null;
         } else {
-          state.error = payload || action.error?.message || "Failed to send OTP";
+          state.error =
+            payload || action.error?.message || "Failed to send OTP";
           state.errorType = null;
         }
       })

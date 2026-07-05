@@ -64,3 +64,80 @@
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
+
+html.dark,
+html.dark body,
+html.dark #root {
+  background: #030712;
+  color: #e5e7eb;
+}
+
+.admin-shell {
+  color-scheme: dark;
+  background: #030712 !important;
+  color: #e5e7eb !important;
+  min-height: 100vh;
+}
+
+.admin-shell .bg-white,
+.admin-shell .bg-gray-50,
+.admin-shell .bg-gray-100 {
+  background-color: #111827 !important;
+}
+
+.admin-shell .bg-gray-200 {
+  background-color: #374151 !important;
+}
+
+.admin-shell .border-gray-200,
+.admin-shell .border-gray-300 {
+  border-color: #374151 !important;
+}
+
+.admin-shell .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #374151 !important;
+}
+
+.admin-shell .text-gray-900,
+.admin-shell .text-gray-800,
+.admin-shell .text-gray-700 {
+  color: #f9fafb !important;
+}
+
+.admin-shell .text-gray-600,
+.admin-shell .text-gray-500 {
+  color: #cbd5e1 !important;
+}
+
+.admin-shell .shadow,
+.admin-shell .shadow-sm,
+.admin-shell .shadow-md,
+.admin-shell .shadow-lg,
+.admin-shell .shadow-xl {
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22) !important;
+}
+
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.admin-shell button.bg-white,
+.admin-shell a.bg-white {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.admin-shell button.hover\:bg-gray-50:hover,
+.admin-shell a.hover\:bg-gray-50:hover,
+.admin-shell tr.hover\:bg-gray-50:hover {
+  background-color: #1f2937 !important;
+}

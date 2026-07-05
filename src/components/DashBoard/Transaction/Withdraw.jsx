@@ -37,6 +37,7 @@ import {
   resetWithdrawalForm,
   clearError,
 } from "../../../redux/slices/withdrawalSlice";
+import { getFriendlyApiErrorMessage } from "../../../utils/apiErrorMessages";
 
 const Withdraw = () => {
   const dispatch = useDispatch();
@@ -242,9 +243,13 @@ const Withdraw = () => {
 
     // Transfer recipient validation
     if (activeMethod?.id === "transfer") {
-      const digits = String(formData.transferAccountNumber || "").replace(/\s+/g, "");
+      const digits = String(formData.transferAccountNumber || "").replace(
+        /\s+/g,
+        "",
+      );
       if (!digits) {
-        newErrors.transferAccountNumber = "Recipient account number is required";
+        newErrors.transferAccountNumber =
+          "Recipient account number is required";
       } else if (!/^\d{6,}$/.test(digits)) {
         newErrors.transferAccountNumber = "Enter a valid account number";
       }
@@ -328,7 +333,9 @@ const Withdraw = () => {
             "Please set your withdrawal PIN in Settings > Security before making a withdrawal.",
             { type: "info" },
           );
-          navigate("/login/accountsettings?tab=security&section=withdrawal-pin");
+          navigate(
+            "/login/accountsettings?tab=security&section=withdrawal-pin",
+          );
           return;
         }
 
@@ -340,24 +347,16 @@ const Withdraw = () => {
       }
       // Success will be handled by useEffect when pendingWithdrawal is updated
     } catch (error) {
-      const errorData = error || {};
-      let errorMessage;
-      if (errorData.type === "kyc_required") {
-        errorMessage =
-          "Please complete KYC verification in Settings before withdrawing funds.";
-      } else if (typeof errorData === "string") {
-        errorMessage = errorData;
-      } else if (errorData.message) {
-        errorMessage = errorData.message;
-      } else {
-        errorMessage = "Failed to process withdrawal";
-      }
+      const errorMessage = getFriendlyApiErrorMessage(
+        error,
+        "Failed to process withdrawal",
+      );
 
       setAlert({
         type: "error",
         message: errorMessage,
       });
-      showToast(errorMessage, { type: 'error' });
+      showToast(errorMessage, { type: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -365,9 +364,10 @@ const Withdraw = () => {
 
   const handleVerificationChange = (e) => {
     const { name, value } = e.target;
-    const cleanedValue = name === "otpCode"
-      ? value.replace(/\D/g, "").slice(0, 6)
-      : value.replace(/\D/g, "").slice(0, 6);
+    const cleanedValue =
+      name === "otpCode"
+        ? value.replace(/\D/g, "").slice(0, 6)
+        : value.replace(/\D/g, "").slice(0, 6);
     setVerificationData((prev) => ({
       ...prev,
       [name]: cleanedValue,
@@ -407,10 +407,10 @@ const Withdraw = () => {
       showToast("Withdrawal submitted successfully", { type: "success" });
     } catch (error) {
       const errorData = error || {};
-      const errorMessage =
-        typeof errorData === "string"
-          ? errorData
-          : errorData.message || "Failed to verify and submit withdrawal";
+      const errorMessage = getFriendlyApiErrorMessage(
+        error,
+        "Failed to verify and submit withdrawal",
+      );
 
       if (errorData.type === "withdrawal_pin_not_set") {
         setShowVerificationModal(false);
@@ -433,10 +433,7 @@ const Withdraw = () => {
         type: "success",
       });
     } catch (error) {
-      const message =
-        (typeof error === "object" && error?.message) ||
-        error ||
-        "Failed to resend OTP";
+      const message = getFriendlyApiErrorMessage(error, "Failed to resend OTP");
       showToast(message, { type: "error" });
     } finally {
       setSubmitting(false);
@@ -595,7 +592,8 @@ const Withdraw = () => {
             Confirm Withdrawal
           </h3>
           <p className="text-gray-400 mb-4 text-sm">
-            Enter the OTP sent to your email and your withdrawal PIN to confirm this withdrawal.
+            Enter the OTP sent to your email and your withdrawal PIN to confirm
+            this withdrawal.
           </p>
 
           <div className="space-y-4">
@@ -805,12 +803,20 @@ const Withdraw = () => {
                 transition={{ delay: 0.2 }}
               >
                 <FormInput
-                  label={activeMethod.id === "transfer" ? "Transfer Amount ($)" : "Withdrawal Amount ($)"}
+                  label={
+                    activeMethod.id === "transfer"
+                      ? "Transfer Amount ($)"
+                      : "Withdrawal Amount ($)"
+                  }
                   name="amount"
                   type="number"
                   value={formData.amount}
                   onChange={handleChange}
-                  placeholder={activeMethod.id === "transfer" ? "Enter amount to transfer" : "Enter amount to withdraw"}
+                  placeholder={
+                    activeMethod.id === "transfer"
+                      ? "Enter amount to transfer"
+                      : "Enter amount to withdraw"
+                  }
                   error={errors.amount}
                   required
                 />
@@ -909,7 +915,9 @@ const Withdraw = () => {
                   parseFloat(formData.amount) > 0 && (
                     <div className="bg-gray-800 p-4 rounded-lg my-6">
                       <h4 className="text-white font-medium mb-3">
-                        {activeMethod.id === "transfer" ? "Transfer Summary" : "Withdrawal Summary"}
+                        {activeMethod.id === "transfer"
+                          ? "Transfer Summary"
+                          : "Withdrawal Summary"}
                       </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -928,16 +936,25 @@ const Withdraw = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">
-                            Fee ({activeMethod.id === "transfer" ? "0%" : "1%"}):
+                            Fee ({activeMethod.id === "transfer" ? "0%" : "1%"}
+                            ):
                           </span>
                           <span className="text-white">
-                            ${calculateFee(formData.amount, activeMethod.id).toFixed(2)}
+                            $
+                            {calculateFee(
+                              formData.amount,
+                              activeMethod.id,
+                            ).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between font-medium">
                           <span className="text-gray-300">Total:</span>
                           <span className="text-white">
-                            ${calculateTotal(formData.amount, activeMethod.id).toFixed(2)}
+                            $
+                            {calculateTotal(
+                              formData.amount,
+                              activeMethod.id,
+                            ).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex justify-between pt-2 border-t border-gray-700">
@@ -958,7 +975,10 @@ const Withdraw = () => {
                     disabled={withdrawalStatus === "loading" || isSubmitting}
                     isLoading={isSubmitting}
                   >
-                    <FaArrowRight className="mr-2" /> {activeMethod.id === "transfer" ? "Send Transfer" : "Submit Withdrawal"}
+                    <FaArrowRight className="mr-2" />{" "}
+                    {activeMethod.id === "transfer"
+                      ? "Send Transfer"
+                      : "Submit Withdrawal"}
                   </Button>
                 </div>
               </motion.form>

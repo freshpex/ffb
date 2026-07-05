@@ -7,10 +7,12 @@ import {
 } from "../../redux/slices/adminAuthSlice";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import { useDarkMode } from "../../context/DarkModeContext";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarMinimized, setSidebarMinimized] = useState(false);
+  const { darkMode, setDarkMode } = useDarkMode();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAdminAuthenticated);
   const navigate = useNavigate();
@@ -30,6 +32,12 @@ const AdminLayout = () => {
 
     verifyAdminToken();
   }, [dispatch, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (!darkMode) {
+      setDarkMode(true);
+    }
+  }, [darkMode, setDarkMode]);
 
   // Close sidebar on mobile when screen size changes
   useEffect(() => {
@@ -52,7 +60,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="admin-shell dark min-h-screen bg-gray-950 text-gray-100">
       <AdminSidebar
         isOpen={sidebarOpen}
         isMinimized={sidebarMinimized}
@@ -64,12 +72,12 @@ const AdminLayout = () => {
         } flex flex-col flex-1`}
       >
         <AdminHeader toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-4 md:p-6 mp-16 lg:mb-0">
+        <main className="flex-1 p-4 pt-20 md:p-6 md:pt-24 lg:mb-0">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
+            <h1 className="text-2xl font-semibold text-white">
               Admin Dashboard
             </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-gray-400">
               Manage your application settings and users.
             </p>
           </div>

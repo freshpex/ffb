@@ -9,11 +9,6 @@ export const DarkModeProvider = ({ children }) => {
       if (typeof savedMode === "string") {
         return savedMode === "true";
       }
-
-      const userMedia = window.matchMedia("(prefers-color-scheme: dark)");
-      if (userMedia.matches) {
-        return true;
-      }
     }
 
     return true;
@@ -40,7 +35,7 @@ export const DarkModeProvider = ({ children }) => {
   }, [darkMode]);
 
   return (
-    <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
+    <DarkModeContext.Provider value={{ darkMode, toggleDarkMode, setDarkMode }}>
       {children}
     </DarkModeContext.Provider>
   );
