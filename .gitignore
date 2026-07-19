@@ -61,3 +61,4 @@ server/uploads/
 *.bak
 *.tgz
 .nyc_output/
+.gitd/

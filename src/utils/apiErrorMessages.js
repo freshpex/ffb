@@ -13,7 +13,10 @@ export const getFriendlyApiErrorMessage = (
   switch (type) {
     case "withdrawal_commitment_required":
     case "insufficient_deposits":
-      return "To withdraw, you need either 500 USDT in completed deposits or 3 invited users who have completed KYC verification.";
+      return (
+        rawMessage ||
+        "To withdraw, you need either 500 USDT in completed deposits or 3 invited users who have completed KYC verification."
+      );
     case "kyc_required":
       return "Please complete KYC verification in Settings before withdrawing funds.";
     case "withdrawal_pin_not_set":
