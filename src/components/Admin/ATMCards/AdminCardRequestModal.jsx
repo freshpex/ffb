@@ -19,10 +19,12 @@ const AdminCardRequestModal = ({
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejecting, setIsRejecting] = useState(false);
 
+  const cardId = card?.id || card?._id;
+
   if (!card) return null;
 
   const handleApprove = () => {
-    onApprove(card._id);
+    onApprove(cardId);
   };
 
   const handleShowRejectForm = () => {
@@ -31,7 +33,7 @@ const AdminCardRequestModal = ({
 
   const handleReject = () => {
     if (rejectionReason.trim()) {
-      onReject(card._id, rejectionReason);
+      onReject(cardId, rejectionReason);
     }
   };
 

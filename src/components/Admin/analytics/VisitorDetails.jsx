@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDarkMode } from "../../../context/DarkModeContext";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
@@ -181,8 +182,13 @@ const VisitorDetails = () => {
                 <p
                   className={`font-bold ${darkMode ? "text-white" : "text-gray-900"} truncate`}
                 >
-                  ID: {visitor.visitorId.substring(0, 8)}...
+                  {visitor.userId?.email || `ID: ${visitor.visitorId.substring(0, 8)}...`}
                 </p>
+                {visitor.userId && (
+                  <p className={`text-sm mt-1 ${darkMode ? "text-indigo-300" : "text-indigo-600"}`}>
+                    {[visitor.userId.firstName, visitor.userId.lastName].filter(Boolean).join(" ") || "Registered user"}
+                  </p>
+                )}
                 <p
                   className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"} mt-1`}
                 >
@@ -326,9 +332,16 @@ const VisitorDetails = () => {
               <td
                 className={`px-6 py-4 whitespace-nowrap text-sm ${darkMode ? "text-white" : "text-gray-900"}`}
               >
-                <span title={visitor.visitorId}>
-                  {visitor.visitorId.substring(0, 10)}...
-                </span>
+                <div>
+                  <span className="font-medium" title={visitor.userId?.email || visitor.visitorId}>
+                    {visitor.userId?.email || `${visitor.visitorId.substring(0, 10)}...`}
+                  </span>
+                  {visitor.userId && (
+                    <div className="text-xs text-gray-500">
+                      {[visitor.userId.firstName, visitor.userId.lastName].filter(Boolean).join(" ") || "Registered user"}
+                    </div>
+                  )}
+                </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -615,6 +628,20 @@ const VisitorDetails = () => {
                                         : "Visitor"}
                                     </span>
                                   </dd>
+                                  {selectedVisitor.userId && (
+                                    <>
+                                      <dt className="text-sm font-medium text-gray-500">Account:</dt>
+                                      <dd className="text-sm text-right">
+                                        <div className="font-medium text-gray-900">{selectedVisitor.userId.email}</div>
+                                        <Link
+                                          to={`/admin/users/${selectedVisitor.userId._id}`}
+                                          className="text-indigo-600 hover:text-indigo-800 font-medium"
+                                        >
+                                          Open full user details →
+                                        </Link>
+                                      </dd>
+                                    </>
+                                  )}
                                 </dl>
                               </div>
 

@@ -88,7 +88,11 @@ const AdminATMCardsPage = () => {
   // Handle approving card requests
   const handleApproveCard = async (cardId) => {
     try {
-      await dispatch(approveCardRequest(cardId));
+      if (!cardId) {
+        throw new Error("Card ID is required to approve a request");
+      }
+
+      await dispatch(approveCardRequest(cardId)).unwrap();
       setIsModalOpen(false);
       setAlertMessage({
         type: "success",
@@ -122,7 +126,11 @@ const AdminATMCardsPage = () => {
   // Handle rejecting card requests
   const handleRejectCard = async (cardId, reason) => {
     try {
-      await dispatch(rejectCardRequest({ cardId, reason }));
+      if (!cardId) {
+        throw new Error("Card ID is required to reject a request");
+      }
+
+      await dispatch(rejectCardRequest({ cardId, reason })).unwrap();
       setIsModalOpen(false);
       setAlertMessage({
         type: "success",

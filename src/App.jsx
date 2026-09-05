@@ -129,6 +129,9 @@ const AdminATMCardsPage = lazy(
 const VisitorAnalytics = lazy(
   () => import("./components/Admin/analytics/VisitorAnalytics"),
 );
+const LandingEngagement = lazy(
+  () => import("./pages/LandingPage/LandingEngagement"),
+);
 
 // Admin impersonation receiver (opens in a new tab)
 const ImpersonationReceiver = lazy(
@@ -414,6 +417,7 @@ function App() {
           <Route path="*" element={<ErrorPage />} />
         </Routes>
         <VisitorTracker />
+        <LandingEngagement />
         <CartDrawer />
       </Suspense>
       </ToastProvider>

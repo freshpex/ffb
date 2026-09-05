@@ -8,8 +8,32 @@ const api = axios.create({
   headers: {},
 });
 
-// Function to get the real token, not any mock tokens
-const getValidAuthToken = () => {
+const getValidAuthToken = (requestUrl = "") => {
+  const isAdminEndpoint = requestUrl.includes("/admin/");
+
+  const tokenFromStorage = (keys) => {
+    for (const key of keys) {
+      const token = sessionStorage.getItem(key);
+      if (token && !token.startsWith("mock_token_")) {
+        return token;
+      }
+
+      const localToken = localStorage.getItem(key);
+      if (localToken && !localToken.startsWith("mock_token_")) {
+        return localToken;
+      }
+    }
+
+    return null;
+  };
+
+  if (isAdminEndpoint) {
+    return (
+      tokenFromStorage(["ffb_admin_token"]) ||
+      tokenFromStorage(["ffb_auth_token"])
+    );
+  }
+
   const sessionUserToken = sessionStorage.getItem("ffb_auth_token");
   if (sessionUserToken && !sessionUserToken.startsWith("mock_token_")) {
     return sessionUserToken;
@@ -44,7 +68,7 @@ api.interceptors.request.use(
         delete config.headers["content-type"];
       }
 
-      const token = getValidAuthToken();
+      const token = getValidAuthToken(config.url || "");
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;

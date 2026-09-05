@@ -620,7 +620,7 @@ const UserDetail = () => {
                       <p
                         className={`${darkMode ? "text-white" : "text-gray-900"}`}
                       >
-                        {formatDate(user.lastLogin)}
+                        {formatDate(user.lastActivityAt || user.lastLoginAt)}
                       </p>
                     </div>
                   </div>
@@ -799,7 +799,7 @@ const UserDetail = () => {
                       <p
                         className={`${darkMode ? "text-white" : "text-gray-900"}`}
                       >
-                        {formatDate(user.lastLogin)}
+                        {formatDate(user.lastLoginAt)}
                       </p>
                     </div>
                     <div>

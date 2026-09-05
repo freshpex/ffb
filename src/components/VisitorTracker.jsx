@@ -2,11 +2,18 @@ import { useEffect } from "react";
 import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/apiConfig";
+import { useAuth } from "./AuthPage/AuthContext";
 
 const API = API_BASE_URL;
 
 const VisitorTracker = () => {
+  const { token } = useAuth();
+
   useEffect(() => {
+    const trackingHeaders = {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
     const trackVisitor = async () => {
       try {
         const fp = await FingerprintJS.load();
@@ -52,9 +59,7 @@ const VisitorTracker = () => {
         // Send tracking data to backend
         const response = await fetch(`${API}/tracking/visitor`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: trackingHeaders,
           body: JSON.stringify({
             visitorId,
             browserInfo,
@@ -145,9 +150,7 @@ const VisitorTracker = () => {
       try {
         fetch(`${API}/tracking/pageview`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: trackingHeaders,
           body: JSON.stringify({
             visitorId: sessionStorage.getItem("visitorId"),
             sessionId: sessionStorage.getItem("sessionId"),
@@ -191,7 +194,7 @@ const VisitorTracker = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.history.pushState = originalPushState;
     };
-  }, []);
+  }, [token]);
 
   return null;
 };

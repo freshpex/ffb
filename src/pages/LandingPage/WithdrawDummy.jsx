@@ -1,219 +1,112 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDarkMode } from "../../context/DarkModeContext";
 
+const FIRST_NAMES = ["Amina", "Amara", "Ana", "Arjun", "Aya", "Chinedu", "Daniel", "David", "Elena", "Fatima", "Grace", "Hana", "Ibrahim", "Isabella", "James", "Javier", "Jean", "Jordan", "Kwame", "Layla", "Leila", "Liam", "Lucas", "Mariam", "Mateo", "Maya", "Michael", "Mohamed", "Nadia", "Noah", "Olivia", "Priya", "Rania", "Samuel", "Sara", "Sofia", "Thomas", "Victor", "Wei", "Yasmin", "Zara"];
+const LAST_NAMES = ["Abbas", "Adeyemi", "Ali", "Anderson", "Bennett", "Brown", "Chen", "Costa", "Diallo", "Dubois", "Garcia", "Haddad", "Hassan", "Ivanov", "Johnson", "Kamara", "Khan", "Kim", "Kumar", "Lee", "Lopez", "Martin", "Mensah", "Miller", "Moyo", "Müller", "Nguyen", "Njoroge", "Okafor", "Patel", "Rossi", "Santos", "Silva", "Singh", "Smith", "Taylor", "Williams", "Wilson", "Yilmaz", "Zhang"];
+const BANKS = ["Chase", "HSBC", "Citibank", "Wells Fargo", "Barclays", "Santander", "Standard Chartered", "BNP Paribas", "Deutsche Bank", "ING", "Revolut", "Wise", "N26", "Ecobank", "Access Bank", "GTBank", "FirstBank", "UBA", "Zenith Bank", "Absa", "Nedbank", "KCB Bank", "Equity Bank"];
 const PAYMENT_TYPES = ["BTC", "USDT", "ETH", "Bank"];
-const ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const usedMaskedNames = new Set();
+const ALPHANUM = "0123456789abcdefghijklmnopqrstuvwxyz";
+const HEX = "0123456789abcdef";
 
-function randInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pick = (values) => values[randInt(0, values.length - 1)];
+const randomString = (alphabet, length) => Array.from({ length }, () => pick(alphabet)).join("");
+
+function maskedName() {
+  const first = pick(FIRST_NAMES);
+  const last = pick(LAST_NAMES);
+  return `${first[0]}${"•".repeat(Math.max(2, first.length - 1))} ${last[0]}${"•".repeat(Math.max(2, last.length - 1))}`;
 }
 
-function pick(arr) {
-    return arr[randInt(0, arr.length - 1)];
+function amount(type) {
+  if (type === "BTC") return `${(Math.random() * 0.48 + 0.002).toFixed(4)} BTC`;
+  if (type === "ETH") return `${(Math.random() * 7.5 + 0.04).toFixed(3)} ETH`;
+  if (type === "USDT") return `${(Math.random() * 4800 + 25).toFixed(2)} USDT`;
+  return `$${(Math.random() * 14500 + 75).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
 }
 
-function randomLetters(length) {
-    return Array.from({ length }, () => ALPHABET[randInt(0, ALPHABET.length - 1)]).join("");
+function destination(type) {
+  if (type === "Bank") return `${pick(BANKS)} •••• ${String(randInt(0, 9999)).padStart(4, "0")}`;
+  if (type === "BTC") return `bc1q${randomString(ALPHANUM, 6)}…${randomString(ALPHANUM, 5)}`;
+  return `0x${randomString(HEX, 7)}…${randomString(HEX, 5)}`;
 }
 
-function maskAlphabetName(raw) {
-    const first = raw.charAt(0).toUpperCase();
-    const last = raw.charAt(raw.length - 1);
-    const stars = "*".repeat(Math.max(2, raw.length - 2));
-    const styledLast = Math.random() > 0.5 ? last.toUpperCase() : last.toLowerCase();
-    return `${first}${stars}${styledLast}`;
+function makeItem(index) {
+  const type = pick(PAYMENT_TYPES);
+  return {
+    id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
+    name: maskedName(),
+    type,
+    amount: amount(type),
+    destination: destination(type),
+    timeAgo: `${randInt(1, 58)}s ago`,
+  };
 }
 
-function nextUniqueName() {
-    let attempts = 0;
-    while (attempts < 5000) {
-        const raw = randomLetters(randInt(4, 10));
-        const masked = maskAlphabetName(raw);
-        if (!usedMaskedNames.has(masked)) {
-            usedMaskedNames.add(masked);
-            return masked;
-        }
-        attempts += 1;
-    }
-
-    // Extremely unlikely fallback: force uniqueness while keeping alphabet + mask format.
-    const forceA = randomLetters(1).toUpperCase();
-    const forceB = randomLetters(1);
-    const forced = `${forceA}${"*".repeat(randInt(5, 10))}${forceB}`;
-    usedMaskedNames.add(forced);
-    return forced;
-}
-
-function randomAmount(type) {
-    switch (type) {
-        case "BTC": return `${(Math.random() * 0.5 + 0.01).toFixed(4)} BTC`;
-        case "ETH": return `${(Math.random() * 5 + 0.05).toFixed(3)} ETH`;
-        case "USDT": return `${(Math.random() * 2000 + 10).toFixed(2)} USDT`;
-        case "Bank": return `$${(Math.random() * 10000 + 50).toFixed(2)}`;
-        default: return "$0";
-    }
-}
-
-function randomAddress(type) {
-    if (type === "Bank") {
-        // show masked account: ****1234 (4 last digits)
-        const last4 = String(randInt(0, 9999)).padStart(4, "0");
-        const bank = ["Chase", "HSBC", "Citi", "WellsFargo", "Standard Chartered"][randInt(0,4)];
-        return `${bank} • ****${last4}`;
-    }
-    // crypto: show first 6 and last 4 for realism
-    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    const gen = (len) => Array.from({length: len}, () => chars[randInt(0, chars.length-1)]).join("");
-    const first = gen(6);
-    const last = gen(4);
-    if (type === "BTC") {
-        return `bc1${first}...${last}`; // bc1 addresses start like this commonly
-    }
-    if (type === "ETH" || type === "USDT") {
-        return `0x${first}...${last}`;
-    }
-    return `${first}...${last}`;
-}
-
-function makeItem() {
-    const type = pick(PAYMENT_TYPES);
-    return {
-        id: Math.random().toString(36).slice(2, 9),
-        name: nextUniqueName(),
-        type,
-        amount: randomAmount(type),
-        dest: randomAddress(type),
-        timeAgo: `${randInt(1, 59)}s ago`
-    };
-}
+const badgeColor = (type) => ({ BTC: "#f7931a", ETH: "#627eea", USDT: "#26a17b", Bank: "#3b82f6" })[type] || "#64748b";
 
 export default function WithdrawDummy({ compact = false, className = "" }) {
-    const { darkMode } = useDarkMode();
-    const BASE_COUNT = compact ? 8 : 12;
-    const [seed, setSeed] = useState(0);
+  const { darkMode } = useDarkMode();
+  const itemCount = compact ? 8 : 14;
+  const [seed, setSeed] = useState(0);
+  const items = useMemo(() => Array.from({ length: itemCount }, (_, index) => makeItem(index)), [seed, itemCount]);
+  const display = useMemo(() => [...items, ...items], [items]);
 
-    // Build a base list of entries; regenerate when seed changes
-    const items = useMemo(() => {
-        return Array.from({ length: BASE_COUNT }, () => makeItem());
-    }, [seed, BASE_COUNT]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setSeed((value) => value + 1), 18000);
+    return () => window.clearInterval(timer);
+  }, []);
 
-    // refresh periodically to keep content feeling live
-    useEffect(() => {
-        const t = setInterval(() => {
-            setSeed((s) => s + 1);
-        }, 12000); // regenerate every 12s
-        return () => clearInterval(t);
-    }, []);
+  const surface = darkMode ? "rgba(10, 15, 28, 0.97)" : "rgba(255, 255, 255, 0.97)";
+  const itemSurface = darkMode ? "rgba(30, 41, 59, .9)" : "rgba(248, 250, 252, .96)";
+  const primaryText = darkMode ? "#f8fafc" : "#0f172a";
+  const secondaryText = darkMode ? "#94a3b8" : "#64748b";
 
-    // Extend with fresh items so names remain unique in visible stream
-    const display = useMemo(() => {
-        const extraItems = Array.from({ length: items.length }, () => makeItem());
-        return [...items, ...extraItems];
-    }, [items]);
-
-    // theme-aware colors
-    const outerBg = darkMode ? "#FFFFFF" : "rgba(0,0,0,0.04)";
-    const itemBg = darkMode ? "#000000" : "rgba(255,255,255,0.65)";
-    const itemBorder = darkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
-    const textColor = darkMode ? "#e5e7eb" : "#111827";
-    const secondaryText = darkMode ? "#9ca3af" : "#6b7280";
-
-    return (
-        <div className={`${className}`} style={{ overflow: "hidden", width: "100%", marginTop: compact ? 12 : 64 }}>
-            <div style={{
-                background: outerBg,
-                borderRadius: 8,
-                padding: compact ? "6px 0" : "8px 0",
-                boxSizing: "border-box",
-                fontFamily: "Inter, system-ui, Arial, sans-serif",
-                fontSize: compact ? 12 : 13,
-                color: textColor,
-                border: `1px solid ${darkMode ? 'rgba(255,255,255,0.02)' : 'transparent'}`
-            }}>
-                <div
-                    className="ticker"
-                    key={seed} // restart animation on seed change for fresh items
-                    style={{
-                        display: "inline-block",
-                        whiteSpace: "nowrap",
-                        willChange: "transform",
-                        animation: "scroll-left linear infinite",
-                        animationDuration: `${6 + items.length * 5}s`,
-                    }}
-                >
-                    {display.map((it, idx) => (
-                        <div
-                            key={it.id + "-" + idx}
-                            className="ticker-item"
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: compact ? 8 : 12,
-                                padding: compact ? "6px 12px" : "8px 18px",
-                                marginRight: compact ? 6 : 8,
-                                background: itemBg,
-                                borderRadius: 10,
-                                boxShadow: darkMode ? "none" : "0 1px 2px rgba(0,0,0,0.04)",
-                                border: `1px solid ${itemBorder}`,
-                                minWidth: compact ? 160 : 220,
-                            }}
-                        >
-                            <div style={{
-                                minWidth: compact ? 36 : 44,
-                                height: compact ? 36 : 44,
-                                borderRadius: 10,
-                                background: badgeColor(it.type),
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#fff",
-                                fontWeight: 700,
-                                fontSize: compact ? 11 : 12
-                            }}>{it.type}</div>
-                            <div style={{display: "flex", flexDirection: "column", lineHeight: 1}}>
-                                <div style={{fontWeight: 600, color: textColor}}>{it.name} • {it.amount}</div>
-                                <div style={{color: secondaryText, fontSize: compact ? 11 : 12}}>{maskDest(it.dest)}</div>
-                            </div>
-                            <div style={{marginLeft: 10, color: secondaryText, fontSize: compact ? 11 : 12}}>{it.timeAgo}</div>
-                        </div>
-                    ))}
-                </div>
-
-                <style>{`
-                    @keyframes scroll-left {
-                        from { transform: translateX(0); }
-                        to { transform: translateX(-50%); }
-                    }
-                    /* small responsive tweak */
-                    @media (max-width: 480px) {
-                        .ticker-item { padding: 8px 12px; margin-right: 6px; min-width: 140px; }
-                    }
-                `}</style>
-            </div>
+  return (
+    <aside
+      className={className}
+      aria-label="Illustrative recent withdrawal activity"
+      style={{
+        position: compact ? "relative" : "sticky",
+        top: compact ? "auto" : 72,
+        zIndex: compact ? 1 : 40,
+        width: "100%",
+        overflow: "hidden",
+        background: surface,
+        borderBottom: compact ? "none" : `1px solid ${darkMode ? "#1e293b" : "#e2e8f0"}`,
+        boxShadow: compact ? "none" : "0 8px 24px rgba(15, 23, 42, .12)",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        marginTop: compact ? 0 : 72,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", padding: compact ? "6px 0" : "7px 0" }}>
+        {!compact && (
+          <div style={{ flex: "0 0 auto", padding: "0 14px", borderRight: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}` }}>
+            <div style={{ color: primaryText, fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}><span style={{ color: "#22c55e" }}>●</span> Withdrawal activity</div>
+            <div style={{ color: secondaryText, fontSize: 9, marginTop: 2 }}>Illustrative, privacy-masked examples</div>
+          </div>
+        )}
+        <div style={{ overflow: "hidden", minWidth: 0, flex: 1 }}>
+          <div key={seed} className="withdrawal-ticker-track" style={{ display: "inline-flex", whiteSpace: "nowrap", willChange: "transform", animationDuration: `${Math.max(40, items.length * 4)}s` }}>
+            {display.map((item, index) => (
+              <div key={`${item.id}-${index}`} style={{ display: "inline-flex", alignItems: "center", gap: compact ? 8 : 10, padding: compact ? "6px 10px" : "7px 13px", marginRight: 7, background: itemSurface, borderRadius: 9, border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`, minWidth: compact ? 215 : 290 }}>
+                <span style={{ minWidth: 39, height: 30, borderRadius: 7, background: badgeColor(item.type), display: "inline-flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: 10 }}>{item.type}</span>
+                <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.25 }}>
+                  <span style={{ color: primaryText, fontWeight: 700, fontSize: compact ? 11 : 12 }}>{item.name} · {item.amount}</span>
+                  <span style={{ color: secondaryText, fontSize: 10 }}>{item.destination}</span>
+                </span>
+                <span style={{ color: secondaryText, fontSize: 10, marginLeft: "auto" }}>{item.timeAgo}</span>
+              </div>
+            ))}
+          </div>
         </div>
-    );
-}
-
-// helpers used inside component but below to keep top area clean
-function badgeColor(type) {
-    switch (type) {
-        case "BTC": return "#f7931a";
-        case "ETH": return "#627eea";
-        case "USDT": return "#26a17b";
-        case "Bank": return "#3b82f6";
-        default: return "#888";
-    }
-}
-
-function maskDest(dest) {
-    // ensure dest is not too revealing; if it already has ellipsis keep it
-    if (dest.includes("...")) return dest;
-    // for bank style like "Chase • ****1234", ensure only last 4 visible
-    if (dest.includes("•")) return dest;
-    // otherwise mask middle
-    if (dest.length > 10) {
-        return dest.slice(0, 6) + "..." + dest.slice(-4);
-    }
-    return dest;
+      </div>
+      <style>{`
+        @keyframes withdrawal-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .withdrawal-ticker-track { animation: withdrawal-scroll linear infinite; }
+        .withdrawal-ticker-track:hover { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) { .withdrawal-ticker-track { animation: none; } }
+      `}</style>
+    </aside>
+  );
 }
