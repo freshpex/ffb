@@ -34,6 +34,7 @@ import { adminService } from "../../services/apiService";
 const initialForms = {
   balance: {
     action: "credit",
+    transactionType: "deposit",
     amount: "",
     description: "",
     date: new Date().toISOString().slice(0, 10),
@@ -689,6 +690,12 @@ const AdminUsers = () => {
               { value: "debit", label: "Debit account" },
               { value: "withdraw", label: "Withdraw from account" },
             ])}
+            {forms.balance.action === "credit" &&
+              renderSelect("balance", "transactionType", "Credit category", [
+                { value: "deposit", label: "Deposit" },
+                { value: "profit", label: "Trading profit" },
+                { value: "bonus", label: "Bonus" },
+              ])}
             {renderInput("balance", "amount", "Amount", {
               type: "number",
               min: "0",
@@ -711,6 +718,7 @@ const AdminUsers = () => {
               { value: "withdrawal", label: "Withdrawal" },
               { value: "investment", label: "Investment" },
               { value: "bonus", label: "Bonus" },
+              { value: "profit", label: "Trading profit" },
               { value: "fee", label: "Fee" },
               { value: "transfer", label: "Transfer" },
             ])}

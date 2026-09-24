@@ -36,7 +36,7 @@ const InvestmentSummary = () => {
           Investment Summary
         </h2>
         <button
-          onClick={() => navigate("/account/investments")}
+          onClick={() => navigate("/login/investmentplans")}
           className="text-primary-500 text-sm flex items-center hover:text-primary-400"
         >
           View All <FaArrowRight className="ml-1" size={12} />

@@ -7,13 +7,19 @@ import {
   selectPriceAlerts,
   selectDashboardComponentStatus,
   fetchPriceAlerts,
+  updatePriceAlert,
+  selectActionStatus,
+  selectDashboardError,
 } from "../../redux/slices/dashboardSlice";
 import CardLoader from "../common/CardLoader";
 
 const PriceAlerts = () => {
   const dispatch = useDispatch();
   const alerts = useSelector(selectPriceAlerts);
-  const [isLoading, setIsLoading] = useState(true);
+  const actionStatus = useSelector(selectActionStatus);
+  const alertError = useSelector((state) =>
+    selectDashboardError(state, "priceAlerts"),
+  );
   const componentStatus = useSelector((state) =>
     selectDashboardComponentStatus(state, "priceAlerts"),
   );
@@ -23,6 +29,8 @@ const PriceAlerts = () => {
     symbol: "BTC",
     condition: "above",
     price: "",
+    repeatable: false,
+    notificationMethods: { app: true, email: false, sms: false },
   });
 
   useEffect(() => {
@@ -30,7 +38,7 @@ const PriceAlerts = () => {
       try {
         await dispatch(fetchPriceAlerts());
       } finally {
-        setIsLoading(false);
+        // The Redux status controls the visible loading state.
       }
     };
 
@@ -42,7 +50,7 @@ const PriceAlerts = () => {
     setNewAlert((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddAlert = () => {
+  const handleAddAlert = async () => {
     if (
       !newAlert.price ||
       isNaN(newAlert.price) ||
@@ -51,26 +59,36 @@ const PriceAlerts = () => {
       return;
     }
 
-    dispatch(
+    try {
+      await dispatch(
       addPriceAlert({
-        id: `alert_${Date.now()}`,
         symbol: newAlert.symbol,
         condition: newAlert.condition,
         price: parseFloat(newAlert.price),
-        createdAt: new Date().toISOString(),
+        repeatable: newAlert.repeatable,
+        notificationMethods: newAlert.notificationMethods,
       }),
-    );
+      ).unwrap();
 
-    setNewAlert({
-      symbol: "BTC",
-      condition: "above",
-      price: "",
-    });
-    setShowAddForm(false);
+      setNewAlert({
+        symbol: "BTC",
+        condition: "above",
+        price: "",
+        repeatable: false,
+        notificationMethods: { app: true, email: false, sms: false },
+      });
+      setShowAddForm(false);
+    } catch {
+      // The rejected thunk stores the backend's user-facing error.
+    }
   };
 
   const handleRemoveAlert = (alertId) => {
     dispatch(removePriceAlert(alertId));
+  };
+
+  const handleToggle = (alert) => {
+    dispatch(updatePriceAlert({ id: alert._id, active: !alert.active }));
   };
 
   // If the component is loading, show a skeleton loader
@@ -142,14 +160,29 @@ const PriceAlerts = () => {
               <button
                 type="button"
                 onClick={handleAddAlert}
-                className="bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-r-lg text-sm px-4 py-2 flex items-center"
+                disabled={actionStatus === "loading"}
+                className="bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-medium rounded-r-lg text-sm px-4 py-2 flex items-center"
               >
                 <FaCheck className="mr-1" size={12} />
                 Save
               </button>
             </div>
+            <div className="flex flex-wrap gap-4 text-sm text-gray-300">
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={newAlert.repeatable} onChange={(e) => setNewAlert((value) => ({ ...value, repeatable: e.target.checked }))} />
+                Repeat whenever the price crosses
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={newAlert.notificationMethods.email} onChange={(e) => setNewAlert((value) => ({ ...value, notificationMethods: { ...value.notificationMethods, email: e.target.checked } }))} />
+                Also email me
+              </label>
+            </div>
           </div>
         </div>
+      )}
+
+      {alertError && (
+        <p role="alert" className="mb-3 rounded bg-red-500/10 p-2 text-sm text-red-300">{alertError}</p>
       )}
 
       {alerts.length > 0 ? (
@@ -173,6 +206,13 @@ const PriceAlerts = () => {
                   {new Date(alert.createdAt).toLocaleDateString()}
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={() => handleToggle(alert)}
+                className={`mr-3 rounded-full px-2 py-1 text-xs ${alert.active === false ? "bg-gray-600 text-gray-300" : "bg-green-900/50 text-green-300"}`}
+              >
+                {alert.active === false ? "Paused" : "Active"}
+              </button>
               <button
                 onClick={() => handleRemoveAlert(alert._id)}
                 className="text-gray-400 hover:text-red-500"

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../common/Button";
 import { fetchCart, removeFromCart, updateCartItem, clearCart, createOrder } from "../../redux/slices/shopSlice";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ComponentLoader from "../common/ComponentLoader";
 import { useToast } from "../../context/ToastContext";
 
@@ -10,6 +10,8 @@ export default function CartDrawer() {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const cartEnabled = location.pathname.startsWith("/login/");
   const cart = useSelector((s) => s.shop.cart || { items: [], summary: {} });
   const loading = useSelector((s) => s.shop.loading.cart);
 
@@ -20,12 +22,12 @@ export default function CartDrawer() {
   const [payMethod, setPayMethod] = useState("balance");
 
   useEffect(() => {
-    dispatch(fetchCart());
-  }, [dispatch]);
+    if (cartEnabled) dispatch(fetchCart());
+  }, [dispatch, cartEnabled]);
 
   useEffect(() => {
-    if (open) dispatch(fetchCart());
-  }, [open, dispatch]);
+    if (open && cartEnabled) dispatch(fetchCart());
+  }, [open, dispatch, cartEnabled]);
 
   const toggle = () => setOpen((v) => !v);
 

@@ -8,6 +8,34 @@ const api = axios.create({
   headers: {},
 });
 
+let sessionRefreshPromise = null;
+
+const refreshBackendSession = async () => {
+  if (!auth.currentUser) throw new Error("No active user session");
+  if (!sessionRefreshPromise) {
+    sessionRefreshPromise = (async () => {
+      const firebaseToken = await auth.currentUser.getIdToken(true);
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        uid: auth.currentUser.uid,
+        email: auth.currentUser.email,
+        firebaseToken,
+      });
+      const { token, user } = response.data;
+      localStorage.setItem("ffb_auth_token", token);
+      sessionStorage.setItem("ffb_auth_token", token);
+      if (user) {
+        const serialized = JSON.stringify(user);
+        localStorage.setItem("ffb_current_user", serialized);
+        sessionStorage.setItem("ffb_current_user", serialized);
+      }
+      return token;
+    })().finally(() => {
+      sessionRefreshPromise = null;
+    });
+  }
+  return sessionRefreshPromise;
+};
+
 const getValidAuthToken = (requestUrl = "") => {
   const isAdminEndpoint = requestUrl.includes("/admin/");
 
@@ -112,6 +140,22 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+    const errorType = error.response?.data?.error?.type;
+    const isAdminRequest = originalRequest?.url?.includes("/admin/");
+    if (
+      error.response?.status === 401 &&
+      !isAdminRequest &&
+      !originalRequest?._sessionRetried &&
+      auth.currentUser &&
+      ["token_expired", "invalid_token", "authentication_error"].includes(errorType)
+    ) {
+      originalRequest._sessionRetried = true;
+      const refreshedToken = await refreshBackendSession();
+      originalRequest.headers.Authorization = `Bearer ${refreshedToken}`;
+      return api(originalRequest);
+    }
+
     if (!error.isAuthError) {
       const message =
         error.response?.data?.message || "An unexpected error occurred";
@@ -119,7 +163,6 @@ api.interceptors.response.use(
     }
 
     // Handle account suspension/inactive errors
-    const errorType = error.response?.data?.error?.type;
     console.log("API Interceptor - Error Type:", errorType);
     console.log("API Interceptor - Full Error Response:", error.response?.data);
     

@@ -37,6 +37,7 @@ const RecentTransactions = () => {
   const getTransactionIcon = (type) => {
     switch (type) {
       case "deposit":
+      case "profit":
         return <FaArrowDown className="text-green-500" size={16} />;
       case "withdrawal":
         return <FaArrowUp className="text-red-500" size={16} />;
@@ -97,14 +98,14 @@ const RecentTransactions = () => {
                   <td className="py-3">
                     <span
                       className={
-                        transaction.type === "deposit"
+                        ["deposit", "profit", "bonus", "shop_reward", "shop_refund"].includes(transaction.type)
                           ? "text-green-500"
                           : transaction.type === "withdrawal"
                             ? "text-red-500"
                             : "text-gray-200"
                       }
                     >
-                      {transaction.type === "deposit"
+                      {["deposit", "profit", "bonus", "shop_reward", "shop_refund"].includes(transaction.type)
                         ? "+"
                         : transaction.type === "withdrawal"
                           ? "-"

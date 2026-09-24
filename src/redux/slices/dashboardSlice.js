@@ -264,7 +264,7 @@ export const updatePriceAlert = createAsyncThunk(
       }
 
       const response = await fetch(`${API_URL}/price-alerts/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -392,15 +392,7 @@ const initialState = {
     lastUpdated: null,
   },
   marketNews: [],
-  priceAlerts: {
-    data: [],
-    pagination: {
-      total: 0,
-      page: 1,
-      limit: 10,
-      pages: 0,
-    },
-  },
+  priceAlerts: [],
   status: {
     dashboard: "idle",
     accountSummary: "idle",
@@ -457,11 +449,15 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardData.fulfilled, (state, action) => {
         state.status.dashboard = "succeeded";
+        state.accountSummary = action.payload.accountSummary || state.accountSummary;
         state.recentTransactions = action.payload.recentTransactions;
         state.investmentSummary = action.payload.investmentSummary;
         state.accountActivity = action.payload.accountActivity;
         state.accountBalanceHistory = action.payload.accountBalanceHistory;
-        state.marketNews = action.payload.recentNews;
+        state.priceAlerts = Array.isArray(action.payload.priceAlerts)
+          ? action.payload.priceAlerts
+          : state.priceAlerts;
+        state.marketNews = action.payload.latestNews || action.payload.recentNews || [];
 
         state.error.dashboard = null;
       })
@@ -560,10 +556,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(createPriceAlert.fulfilled, (state, action) => {
         state.actionStatus = "succeeded";
-        if (!state.priceAlerts.data) {
-          state.priceAlerts.data = [];
-        }
-        state.priceAlerts.data.unshift(action.payload);
+        state.priceAlerts.unshift(action.payload);
         state.error.priceAlerts = null;
       })
       .addCase(createPriceAlert.rejected, (state, action) => {
@@ -577,11 +570,11 @@ const dashboardSlice = createSlice({
       })
       .addCase(updatePriceAlert.fulfilled, (state, action) => {
         state.actionStatus = "succeeded";
-        const index = state.priceAlerts.data.findIndex(
+        const index = state.priceAlerts.findIndex(
           (alert) => alert._id === action.payload._id,
         );
         if (index !== -1) {
-          state.priceAlerts.data[index] = action.payload;
+          state.priceAlerts[index] = action.payload;
         }
         state.error.priceAlerts = null;
       })
@@ -698,7 +691,7 @@ export const selectAccountBalance = createSelector(
 
 export const selectDashboardComponentStatus = createSelector(
   [getDashboardState, (_, component) => component],
-  (dashboard, component) => dashboard.componentStatus?.[component] || "idle",
+  (dashboard, component) => dashboard.status?.[component] || "idle",
 );
 
 export const selectTransactionCount = createSelector(
@@ -818,7 +811,7 @@ export const selectProfitLossPercentage = createSelector(
 
 export const selectPriceAlertById = createSelector(
   [getPriceAlerts, (_, id) => id],
-  (alerts, id) => alerts?.data?.find((alert) => alert.id === id) || null,
+  (alerts, id) => alerts?.find((alert) => alert._id === id) || null,
 );
 
 export const selectPriceAlertsStatus = createSelector(

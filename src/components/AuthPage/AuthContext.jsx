@@ -4,7 +4,6 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  sendPasswordResetEmail,
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
@@ -46,6 +45,28 @@ export function AuthContextProvider({ children }) {
     localStorage.setItem(AUTH_TOKEN_KEY, authToken);
     sessionStorage.setItem(AUTH_TOKEN_KEY, authToken);
     setToken(authToken);
+  };
+
+  const exchangeBackendSession = async (firebaseUser) => {
+    if (!firebaseUser) throw new Error("No active Firebase session");
+    const firebaseToken = await firebaseUser.getIdToken(true);
+    const response = await fetch(`${apiUrl}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        firebaseToken,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to refresh your secure session");
+    }
+    saveToken(data.token);
+    setUserData(data.user);
+    saveCurrentUser(data.user);
+    return data;
   };
 
   // Register user
@@ -152,28 +173,7 @@ export function AuthContextProvider({ children }) {
       }
 
       // Then login with the backend
-      const loginResponse = await fetch(`${apiUrl}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-        }),
-      });
-
-      if (!loginResponse.ok) {
-        const loginError = await loginResponse.json();
-        throw new Error(loginError.message || "Failed to login with backend");
-      }
-
-      const userData = await loginResponse.json();
-
-      // Save token and user data
-      saveToken(userData.token);
-      setUserData(userData.user);
-      saveCurrentUser(userData.user);
+      await exchangeBackendSession(userCredential.user);
 
       return userCredential;
     } catch (error) {
@@ -265,8 +265,14 @@ export function AuthContextProvider({ children }) {
   const resetPassword = async (email) => {
     try {
       setAuthError(null);
-      await sendPasswordResetEmail(auth, email);
-      return true;
+      const response = await fetch(`${apiUrl}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "Unable to send reset code");
+      return data;
     } catch (error) {
       console.error("Reset password error:", error);
       setAuthError(error.message);
@@ -274,9 +280,9 @@ export function AuthContextProvider({ children }) {
     }
   };
 
-  const getUserProfile = async () => {
+  const getUserProfile = async (tokenOverride) => {
     try {
-      const activeToken = token || getStoredToken();
+      const activeToken = tokenOverride || token || getStoredToken();
 
       if (!activeToken) {
         const cachedUser = getCurrentUser();
@@ -345,18 +351,8 @@ export function AuthContextProvider({ children }) {
             setUserData(cachedUser);
           }
 
-          const storedToken = getStoredToken();
-          if (storedToken) {
-            setToken(storedToken);
-          } else {
-            const newToken =
-              "mock_token_" + Math.random().toString(36).substring(2, 15);
-            saveToken(newToken);
-          }
-
-          if (!userData || userData.uid !== currentUser.uid) {
-            await getUserProfile();
-          }
+          const session = await exchangeBackendSession(currentUser);
+          await getUserProfile(session.token);
         } catch (error) {
           console.error("Failed to process auth state change:", error);
         } finally {

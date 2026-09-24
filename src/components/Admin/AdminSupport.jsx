@@ -303,10 +303,12 @@ const AdminSupport = () => {
                               </div>
                               <div>
                                 <div className="text-sm">
-                                  {ticket.user.fullName}
+                                  {ticket.user?.fullName ||
+                                    [ticket.user?.firstName, ticket.user?.lastName].filter(Boolean).join(" ") ||
+                                    "Unavailable user"}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {ticket.user.email}
+                                  {ticket.user?.email || "No email available"}
                                 </div>
                               </div>
                             </div>

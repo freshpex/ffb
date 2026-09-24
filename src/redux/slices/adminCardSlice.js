@@ -62,7 +62,9 @@ export const fetchAdminCards = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch admin cards",
+        error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          "Failed to fetch admin cards",
       );
     }
   },

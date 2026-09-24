@@ -4,6 +4,8 @@ import {
   fetchDashboardData,
   fetchFinancialHighlights,
   fetchMarketPulse,
+  fetchMarketNews,
+  fetchPriceAlerts,
   selectDashboardStatus,
   selectDashboardError,
 } from "../../redux/slices/dashboardSlice";
@@ -45,11 +47,14 @@ const DashBoardPage = () => {
     // Fetch additional data that isn't part of the main dashboard endpoint
     dispatch(fetchFinancialHighlights());
     dispatch(fetchMarketPulse());
+    dispatch(fetchMarketNews({ limit: 5 }));
+    dispatch(fetchPriceAlerts());
 
     // Set up periodic refresh (every 60 seconds)
     const refreshInterval = setInterval(() => {
       dispatch(fetchDashboardData());
       dispatch(fetchMarketPulse());
+      dispatch(fetchMarketNews({ limit: 5 }));
     }, 60000);
 
     return () => clearInterval(refreshInterval);

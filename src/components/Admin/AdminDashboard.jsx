@@ -498,6 +498,7 @@ const AdminDashboard = () => {
                             <p
                               className={`font-medium ${
                                 transaction.type === "deposit"
+                                  || transaction.type === "profit"
                                   ? "text-green-500"
                                   : transaction.type === "withdrawal"
                                     ? "text-red-500"
@@ -506,7 +507,7 @@ const AdminDashboard = () => {
                                       : "text-gray-900"
                               }`}
                             >
-                              {transaction.type === "deposit"
+                              {["deposit", "profit", "bonus", "shop_reward", "shop_refund"].includes(transaction.type)
                                 ? "+"
                                 : transaction.type === "withdrawal"
                                   ? "-"
@@ -522,7 +523,9 @@ const AdminDashboard = () => {
                           <p
                             className={`text-sm truncate ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                           >
-                            {transaction.user.fullName}
+                            {transaction.user?.fullName ||
+                              [transaction.user?.firstName, transaction.user?.lastName].filter(Boolean).join(" ") ||
+                              "Unavailable user"}
                           </p>
                           <Link
                             to={`/admin/transactions/${transaction.id}`}
@@ -574,19 +577,21 @@ const AdminDashboard = () => {
                               }`}
                             >
                               <span className="text-primary-500 font-semibold">
-                                {kyc.user.fullName.charAt(0)}
+                                {(kyc.user?.fullName || kyc.user?.firstName || "U").charAt(0)}
                               </span>
                             </div>
                             <div>
                               <p
                                 className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
                               >
-                                {kyc.user.fullName}
+                                {kyc.user?.fullName ||
+                                  [kyc.user?.firstName, kyc.user?.lastName].filter(Boolean).join(" ") ||
+                                  "Unavailable user"}
                               </p>
                               <p
                                 className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                               >
-                                {kyc.user.email}
+                                {kyc.user?.email || "No email available"}
                               </p>
                             </div>
                           </div>
@@ -706,10 +711,12 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm">
-                                {ticket.user.fullName}
+                                {ticket.user?.fullName ||
+                                  [ticket.user?.firstName, ticket.user?.lastName].filter(Boolean).join(" ") ||
+                                  "Unavailable user"}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {ticket.user.email}
+                                {ticket.user?.email || "No email available"}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

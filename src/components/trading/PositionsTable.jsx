@@ -147,8 +147,8 @@ const PositionsTable = ({
         <div className="mb-2">
           <div className="flex justify-between text-base">
             <span>Balance</span>
-            <span className={valueClass(forexDeposit, "text-blue-500")}>
-              {formatMoney(forexDeposit)}
+            <span className={valueClass(firstNumber(forexSummary.balance, forexBalance), "text-blue-500")}>
+              {formatMoney(firstNumber(forexSummary.balance, forexBalance))}
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm text-gray-400">

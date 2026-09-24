@@ -83,6 +83,7 @@ const AdminTransactions = () => {
   // Define filter options
   const typeFilterOptions = [
     { value: "deposit", label: "Deposit" },
+    { value: "profit", label: "Trading Profit" },
     { value: "withdrawal", label: "Withdrawal" },
     { value: "investment", label: "Investment" },
     { value: "transfer", label: "Transfer" },
@@ -115,6 +116,7 @@ const AdminTransactions = () => {
   const getTransactionIcon = (type) => {
     switch (type) {
       case "deposit":
+      case "profit":
         return <FaArrowDown className="h-4 w-4 text-green-500" />;
       case "withdrawal":
         return <FaArrowUp className="h-4 w-4 text-red-500" />;
@@ -127,6 +129,7 @@ const AdminTransactions = () => {
   const getTransactionBgColor = (type) => {
     switch (type) {
       case "deposit":
+      case "profit":
         return darkMode ? "bg-green-900/20" : "bg-green-100";
       case "withdrawal":
         return darkMode ? "bg-red-900/20" : "bg-red-100";
@@ -139,6 +142,7 @@ const AdminTransactions = () => {
   const getTransactionAmountColor = (type) => {
     switch (type) {
       case "deposit":
+      case "profit":
         return "text-green-500";
       case "withdrawal":
         return "text-red-500";
@@ -371,17 +375,21 @@ const AdminTransactions = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm">
-                              {transaction.user.fullName}
+                                  {transaction.user?.fullName ||
+                                    [transaction.user?.firstName, transaction.user?.lastName]
+                                      .filter(Boolean)
+                                      .join(" ") ||
+                                    "Deleted or unavailable user"}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {transaction.user.email}
+                              {transaction.user?.email || "No email available"}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div
                               className={`text-sm font-medium ${getTransactionAmountColor(transaction.type)}`}
                             >
-                              {transaction.type === "deposit"
+                              {["deposit", "profit", "bonus", "shop_reward", "shop_refund"].includes(transaction.type)
                                 ? "+"
                                 : transaction.type === "withdrawal"
                                   ? "-"

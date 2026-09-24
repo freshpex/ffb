@@ -595,23 +595,25 @@ const TransactionDetail = () => {
                     <p
                       className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}
                     >
-                      {transaction.user.fullName}
+                      {transaction.user?.fullName ||
+                        [transaction.user?.firstName, transaction.user?.lastName].filter(Boolean).join(" ") ||
+                        "Unavailable user"}
                     </p>
                     <p
                       className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
                     >
-                      {transaction.user.email}
+                      {transaction.user?.email || "No email available"}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4">
-                  <Link
+                  {transaction.user?._id && <Link
                     to={`/admin/users/${transaction.user._id}`}
                     className="w-full flex items-center justify-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                   >
                     View User Profile
-                  </Link>
+                  </Link>}
                 </div>
               </div>
             </div>
