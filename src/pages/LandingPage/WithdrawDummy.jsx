@@ -65,7 +65,7 @@ export default function WithdrawDummy({ compact = false, className = "" }) {
   return (
     <aside
       className={className}
-      aria-label="Illustrative recent withdrawal activity"
+      aria-label="Recent withdrawal activity"
       style={{
         position: compact ? "relative" : "sticky",
         top: compact ? "auto" : 72,
@@ -83,7 +83,7 @@ export default function WithdrawDummy({ compact = false, className = "" }) {
         {!compact && (
           <div style={{ flex: "0 0 auto", padding: "0 14px", borderRight: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}` }}>
             <div style={{ color: primaryText, fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}><span style={{ color: "#22c55e" }}>●</span> Withdrawal activity</div>
-            <div style={{ color: secondaryText, fontSize: 9, marginTop: 2 }}>Illustrative, privacy-masked examples</div>
+            <div style={{ color: secondaryText, fontSize: 9, marginTop: 2 }}>Recent withdrawal activities</div>
           </div>
         )}
         <div style={{ overflow: "hidden", minWidth: 0, flex: 1 }}>
