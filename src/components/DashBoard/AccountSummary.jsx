@@ -66,7 +66,16 @@ const AccountSummary = () => {
   const accountType = accountSummary?.accountType || "Standard";
 
   // Get balance information with proper fallbacks
-  const availableBalance = accountSummary?.availableBalance || 0;
+  const profileBalance =
+    userProfile?.accountBalance ??
+    userProfile?.balance ??
+    userProfile?.availableBalance;
+  const summaryBalance =
+    accountSummary?.availableBalance ?? accountSummary?.balance;
+  const availableBalance =
+    dashboardStatus === "succeeded" && summaryBalance != null
+      ? summaryBalance
+      : profileBalance ?? summaryBalance ?? 0;
   const totalInvestments = accountSummary?.totalInvestments || 0;
   const totalAssets =
     accountSummary?.totalAssets || availableBalance + totalInvestments;

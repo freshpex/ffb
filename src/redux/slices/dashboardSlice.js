@@ -62,7 +62,9 @@ export const fetchAccountSummary = createAsyncThunk(
       });
 
       const data = await handleApiError(response);
-      return data;
+      // Dashboard endpoints return their payload in `data`. Keep the slice
+      // shape consistent with the fields consumed by dashboard components.
+      return data.data ?? data;
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch account summary",
